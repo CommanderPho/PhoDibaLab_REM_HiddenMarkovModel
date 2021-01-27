@@ -1,0 +1,3 @@
+[submodule "libraries/ephys"]
+	path = libraries/ephys
+	url = https://github.com/CommanderPho/ephys.git
