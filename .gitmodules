@@ -1,3 +1,6 @@
 [submodule "libraries/ephys"]
 	path = libraries/ephys
 	url = https://github.com/CommanderPho/ephys.git
+[submodule "libraries/buzcode"]
+	path = libraries/buzcode
+	url = https://github.com/CommanderPho/buzcode.git
