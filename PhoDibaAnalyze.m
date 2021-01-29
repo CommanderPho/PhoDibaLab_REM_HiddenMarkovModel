@@ -1,4 +1,6 @@
 % READ
+addpath(genpath('helpers'));
+addpath(genpath('libraries/buzcode/'));
 clear all;
 
 data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject';
@@ -6,79 +8,38 @@ data_config.source_data_prefix = 'Hiro_Datasets';
 
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
 
-
 % microseconds (10^6): 1000000
 % nanoseconds (10^9): 1000000000
-conversion_factor = (10^6);
-
-% ,'y'
-source_data.spikes = load(fullfile(data_config.source_root_path,'wake-spikes.mat'), 'spikes').spikes;
-source_data.behavior = load(fullfile(data_config.source_root_path, 'wake-behavior.mat'), 'behavior').behavior;
+data_config.conversion_factor = (10^6);
+data_config.behavioral_epoch_names = {'pre_sleep', 'track', 'post_sleep'};
 
 % Process one of the experiments: 
 processing_config.active_expt.name = 'RoyMaze1';
 
-processing_config.active_expt.spikes_list = source_data.spikes.(processing_config.active_expt.name);
-processing_config.active_expt.behavior_list = source_data.behavior.(processing_config.active_expt.name).list;
-
-
-behavioral_state_names = source_data.behavior.(processing_config.active_expt.name).name;
-
-behavioral_epoch_names = {'pre_sleep', 'track', 'post_sleep'};
-
-active_processing.earliest_start_timestamp = Inf; % Set the initial timestamp to be infinity, so that any timestamp it's compared to will be less than it
-
-for i = 1:length(behavioral_epoch_names)
-    temp.curr_epoch_name = behavioral_epoch_names{i};
-    temp.curr_epoch_start_stop = source_data.behavior.(processing_config.active_expt.name).time(i,:);
-    
-    % microseconds (10^6): 1000000
-    % nanoseconds (10^9): 1000000000
-    active_processing.earliest_start_timestamp = min(active_processing.earliest_start_timestamp, (temp.curr_epoch_start_stop(1) / conversion_factor));
-    temp.curr_epoch_duration = ((temp.curr_epoch_start_stop(2) - temp.curr_epoch_start_stop(1)) / conversion_factor);
-    disp(temp.curr_epoch_duration)
-    active_processing.behavioral_epochs.(temp.curr_epoch_name) = [temp.curr_epoch_start_stop temp.curr_epoch_duration];
+if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
+    [active_processing, source_data] = loadData(data_config, processing_config);
 end
 
-
-fprintf('earliest recording timestamp is %d\n', active_processing.earliest_start_timestamp)
-% curr_activity_table = array2table(processing_config.active_expt.behavior_list, ...
-%         'VariableNames',{'epoch_start_time', 'epoch_end_time', 'type'});
-    
-
-temp.durations = ((processing_config.active_expt.behavior_list(:,2) - processing_config.active_expt.behavior_list(:,1)) ./ conversion_factor);
+% active_processing.behavioral_state_names
 
 
-% Datetime based:
-curr_activity_table = table(((processing_config.active_expt.behavior_list(:,1) ./ conversion_factor) - active_processing.earliest_start_timestamp),  ...
-    ((processing_config.active_expt.behavior_list(:,2) ./ conversion_factor) - active_processing.earliest_start_timestamp),  ...
-    temp.durations, ...
-    categorical(processing_config.active_expt.behavior_list(:,3), [1:length(behavioral_state_names)], behavioral_state_names),  ...
-    'VariableNames',{'epoch_start_seconds', 'epoch_end_seconds', 'duration', 'type'});
 
 
-% % Datetime based:
-% curr_activity_table = table(convert_date(processing_config.active_expt.behavior_list(:,1), conversion_factor),  ...
-%     convert_date(processing_config.active_expt.behavior_list(:,2), conversion_factor),  ...
-%     temp.durations, ...
-%     categorical(processing_config.active_expt.behavior_list(:,3), [1:length(behavioral_state_names)], behavioral_state_names),  ...
-%     'VariableNames',{'epoch_start_time', 'epoch_end_time', 'duration', 'type'});
+num_of_electrodes = height(active_processing.spikes);
+
+% Loop over electrodes
+for electrode_index = 1:num_of_electrodes
+    temp.curr_spikes = active_processing.spikes.time{electrode_index};
+    subplot(num_of_electrodes, 1, electrode_index);
+    histogram(temp.curr_spikes)
+end
+
+% [xPoints, yPoints] = plotSpikeRaster({active_processing.spikes(1).time});
+% plot(xPoints, yPoints)
+
     
 % TimeWindows
 %     FileLoaderOpenEphys
-function [date_out] = convert_date(aDateTimestamp, conversion_factor)
-%% Raw Timestamps Mode:
-return_raw_timestamps = false;
-    timestamps_seconds = aDateTimestamp ./ conversion_factor;
-if return_raw_timestamps
-   date_out = timestamps_seconds
-else
-    %     date_out = datetime(aDateTimestamp,'ConvertFrom','epochtime','TicksPerSecond',1000);
-%     date_out = datetime(timestamps_seconds,'ConvertFrom','epochtime','Epoch','2000-01-01','TicksPerSecond', conversion_factor); % Prety close
-    date_out = datetime(timestamps_seconds,'ConvertFrom','epochtime');
-    %     date_out = datetime(aDateTimestamp,'ConvertFrom','datenum');
-end % end if
-end % end function convert_date
 
 
 %     table(indexArray', final_data_explorer_obj.uniqueComps, final_data_explorer_obj.cellROIIndex_mapper.compIDsArray, final_data_explorer_obj.multiSessionCellRoi_CompListIndicies,...
