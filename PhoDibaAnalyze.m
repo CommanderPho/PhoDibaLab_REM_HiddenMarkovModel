@@ -6,7 +6,11 @@ clear all;
 data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject';
 data_config.source_data_prefix = 'Hiro_Datasets';
 
+data_config.output.intermediate_file_name = 'PhoIntermediate.mat';
+
+
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
+data_config.output.intermediate_file_path = fullfile(data_config.source_root_path, data_config.output.intermediate_file_name);
 
 % microseconds (10^6): 1000000
 % nanoseconds (10^9): 1000000000
@@ -52,6 +56,7 @@ for state_index = 1:temp.curr_num_of_behavioral_states
     temp.curr_state_type = active_processing.curr_activity_table.type(state_index);
     temp.curr_epoch_type = active_processing.curr_activity_table.behavioral_epoch(state_index);
     
+    fprintf('progress: %d/%d\n', state_index, temp.curr_num_of_behavioral_states);
     
     temp.curr_state_spikes = cell(num_of_electrodes, 1);
     % Extract the spike train for each electrode
@@ -75,36 +80,84 @@ active_processing.spikes.behavioral_states = temp.spikes_behavioral_states;
 active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch;
 
 
+%% Processing:
+active_processing.processed.spike_data = cell([num_of_electrodes, 1]);
 
-active_processing.processed_spike_data = cell([num_of_electrodes, 1]);
 for electrode_index = 1:num_of_electrodes
     % Convert spike times to relative to expt start and scale to seconds. 
-    active_processing.processed.spike_data{electrode_index} = timetable(seconds(active_processing.spikes.time{electrode_index}'), active_processing.spikes.behavioral_epoch{electrode_index}, active_processing.spikes.behavioral_states{electrode_index}, active_processing.spikes.behavioral_duration_indicies{electrode_index}, ...
+    fprintf('electrode progress: %d/%d\n', electrode_index, num_of_electrodes);
+    
+    temp.curr_timetable = timetable(seconds(active_processing.spikes.time{electrode_index}'), active_processing.spikes.behavioral_epoch{electrode_index}, active_processing.spikes.behavioral_states{electrode_index}, active_processing.spikes.behavioral_duration_indicies{electrode_index}, ...
         'VariableNames',{'behavioral_epoch','behavioral_state','behavioral_period_index'});
-    % This retimed version is pretty slow: > 30 seconds execution time.
-    active_processing.processed.normalized_spike_data = retime(active_processing.processed.spike_data{electrode_index},'regular','count','TimeStep', seconds(1));
+    
+    active_processing.processed.spike_data{electrode_index} = temp.curr_timetable;
+   
+    %% Split based on experiment epoch:
+    for i = 1:length(data_config.behavioral_epoch_names)
+        temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+        active_processing.processed.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
+    end
+    
+    %% Split based on behavioral state:
+    for i = 1:length(active_processing.behavioral_state_names)
+        temp.curr_state_name =  active_processing.behavioral_state_names{i};
+        active_processing.processed.by_state.(temp.curr_state_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_state == temp.curr_state_name), :);
+    end
+
+end
+
+fprintf('writing out to %s...\n', data_config.output.intermediate_file_path);
+save(data_config.output.intermediate_file_path, 'active_processing', 'data_config', 'processing_config', 'num_of_electrodes', 'source_data');
+fprintf('done.\n');
+
+
+% Smooth with a gaussian window
+% Perform Gaussian Binning: (sigma = 1.5 sec)
+
+
+timesteps = seconds(active_processing.behavioral_epochs.start_seconds(1):active_processing.behavioral_epochs.end_seconds(end));
+
+
+active_processing.processed.smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)), active_processing.processed.spike_data, 'UniformOutput', false);
+
+%% Split based on experiment epoch:
+for i = 1:length(data_config.behavioral_epoch_names)
+    temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+    active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)), active_processing.processed.by_epoch.(temp.curr_epoch_name).spike_data, 'UniformOutput', false);
+end
+
+%% Split based on behavioral state:
+for i = 1:length(active_processing.behavioral_state_names)
+    temp.curr_state_name =  active_processing.behavioral_state_names{i};
+    active_processing.processed.by_state.(temp.curr_state_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)), active_processing.processed.by_state.(temp.curr_state_name).spike_data, 'UniformOutput', false);
 end
 
 
 
-% [xPoints, yPoints] = plotSpikeRaster({active_processing.spikes(1).time});
-% plot(xPoints, yPoints)
-
-    
-% TimeWindows
-%     FileLoaderOpenEphys
-
-
-%     table(indexArray', final_data_explorer_obj.uniqueComps, final_data_explorer_obj.cellROIIndex_mapper.compIDsArray, final_data_explorer_obj.multiSessionCellRoi_CompListIndicies,...
-% 		manualRoiFilteringResults.final_is_Excluded, manualRoiFilteringResults.final_quality_of_tuning, ...
-% 'datetime'
-
+% active_processing.processed.smoothed_spike_data = cell([num_of_electrodes, 1]);
+% for electrode_index = 1:num_of_electrodes
+%     % Gaussian smoothing of spike data:
+%     fprintf('progress: %d/%d\n', electrode_index, num_of_electrodes);
+%     % This retimed version is pretty slow: > 30 seconds execution time.
+%     active_processing.processed.normalized_spike_data{electrode_index} = retime(active_processing.processed.spike_data{electrode_index},'regular','count','TimeStep', seconds(1));    
+%     active_processing.processed.smoothed_spike_data{electrode_index} = smoothdata(active_processing.processed.normalized_spike_data{electrode_index},'gaussian', seconds(1.5));
 % 
-% curr_activity_timetable = timetable(all_actigraphy_files_output_data{i}.concatenatedTimestamps, ...
-%             all_actigraphy_files_output_data{i}.concatenatedResults.num_changed_pixels, all_actigraphy_files_output_data{i}.concatenatedResults.total_sum_changed_pixel_value, ...
-%             'VariableNames',{'NumChangedPixels', 'TotalSumChangedPixelValues'});
-%         
-%         
-%         
-% processing_config.active_expt.spikes_list
+%     histcounts(active_processing.processed.spike_data{electrode_index}, timesteps);
+%     
+%     
+%     %% Split based on experiment epoch:
+%     for i = 1:length(data_config.behavioral_epoch_names)
+%         temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+%         active_processing.processed.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
+%     end
+%     
+%     %% Split based on behavioral state:
+%     for i = 1:length(active_processing.behavioral_state_names)
+%         temp.curr_state_name =  active_processing.behavioral_state_names{i};
+%         active_processing.processed.by_state.(temp.curr_state_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_state == temp.curr_state_name), :);
+%     end
+%     
+%     
+% end
+
 
