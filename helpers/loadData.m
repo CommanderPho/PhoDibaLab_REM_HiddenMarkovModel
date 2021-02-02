@@ -16,7 +16,6 @@ active_processing.earliest_start_timestamp = Inf; % Set the initial timestamp to
 for i = 1:length(data_config.behavioral_epoch_names)
     temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
     temp.curr_epoch_start_stop_absolute = source_data.behavior.(processing_config.active_expt.name).time(i,:) ./ data_config.conversion_factor; % Absolute
-%     temp.curr_epoch_start_stop_relative = temp.curr_epoch_start_stop_absolute ./ data_config.conversion_factor;
     
     active_processing.earliest_start_timestamp = min(active_processing.earliest_start_timestamp, temp.curr_epoch_start_stop_absolute(1));
     temp.curr_epoch_duration = (temp.curr_epoch_start_stop_absolute(2) - temp.curr_epoch_start_stop_absolute(1));
@@ -51,16 +50,7 @@ active_processing.curr_activity_table = table(((processing_config.active_expt.be
 % we want to be able to extract:
 %% Any spikes that occur within that period
 %% the experimental_phase it belongs in {pre_sleep, track, post_sleep}
-% for behavior_i = 1:height(active_processing.curr_activity_table)
-%     active_processing.curr_activity_table.epoch_start_seconds
-%     
-%     
-%     
-% end
 
-
-% [active_processing.behavioral_epochs.start_seconds
-% temp.edges = [active_processing.behavioral_epochs.start_seconds(1), active_processing.behavioral_epochs.end_seconds(1), active_processing.behavioral_epochs.start_seconds(2), active_processing.behavioral_epochs.end_seconds(2), active_processing.behavioral_epochs.start_seconds(3), active_processing.behavioral_epochs.end_seconds(3)];
 temp.edges = [active_processing.behavioral_epochs.start_seconds(1), active_processing.behavioral_epochs.start_seconds(2), active_processing.behavioral_epochs.start_seconds(3), active_processing.behavioral_epochs.end_seconds(3)];
 temp.behavior_types = discretize(active_processing.curr_activity_table.epoch_start_seconds, temp.edges);
 % Add the categorical data to the table
@@ -68,7 +58,8 @@ active_processing.curr_activity_table.behavioral_epoch = categorical(temp.behavi
 
 % Build Spikes table:
 active_processing.spikes = struct2table(processing_config.active_expt.spikes_list);
-% Convert to offset timestamps
+
+% Convert the first column (of timestamp offsets) to relative offsets into the experiment
 active_processing.spikes.time = cellfun((@(timestamps) (timestamps ./ data_config.conversion_factor) - active_processing.earliest_start_timestamp), ...
         active_processing.spikes.time, ...
         'UniformOutput', false);
@@ -88,16 +79,7 @@ active_processing.spikes.num_spikes = cellfun((@(timestamps) length(timestamps))
 
 
 
-% % Loop over electrodes
-% for electrode_index = 1:num_of_electrodes
-%     % Convert spike times to relative to expt start and scale to seconds.
-%     active_processing.spikes.time{electrode_index} = (active_processing.spikes.time{electrode_index} ./ data_config.conversion_factor) - active_processing.earliest_start_timestamp;
-% end
 
-
-
-% Convert the first column (of timestamp offsets) to relative offsets into the experiment
-% active_processing.spikes.time = (active_processing.spikes.time ./ data_config.conversion_factor) - active_processing.earliest_start_timestamp;
 
 
 %% Loading complete.
