@@ -37,8 +37,8 @@ spikes_behavioral_states = cell([num_of_electrodes, 1]);
 % Pre-allocation: Loop over electrodes
 for electrode_index = 1:num_of_electrodes
     % Convert spike times to relative to expt start and scale to seconds. 
-    spikes_behavioral_states{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(active_processing.behavioral_state_names)], active_processing.behavioral_state_names);
-    spikes_behavioral_epoch{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(data_config.behavioral_epoch_names)], data_config.behavioral_epoch_names);
+    temp.spikes_behavioral_states{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(active_processing.behavioral_state_names)], active_processing.behavioral_state_names);
+    temp.spikes_behavioral_epoch{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(data_config.behavioral_epoch_names)], data_config.behavioral_epoch_names);
     active_processing.spikes.behavioral_duration_indicies{electrode_index} = zeros([active_processing.spikes.num_spikes(electrode_index), 1]); % to store the index of the corresponding behavioral state the spike belongs to
 end
 
@@ -61,17 +61,16 @@ for state_index = 1:temp.curr_num_of_behavioral_states
         
         temp.curr_state_spikes{electrode_index} = temp.curr_electrode_spikes((temp.curr_state_start < temp.curr_electrode_spikes) & (temp.curr_electrode_spikes < temp.curr_state_end));
         
-        spikes_behavioral_states{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = temp.curr_state_type;
-        spikes_behavioral_epoch{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = temp.curr_epoch_type;
+        temp.spikes_behavioral_states{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = temp.curr_state_type;
+        temp.spikes_behavioral_epoch{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = temp.curr_epoch_type;
         
         active_processing.spikes.behavioral_duration_indicies{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = state_index;
     end
 
-   
 end
 
-active_processing.spikes.behavioral_states = spikes_behavioral_states;
-active_processing.spikes.behavioral_epoch = spikes_behavioral_epoch;
+active_processing.spikes.behavioral_states = temp.spikes_behavioral_states;
+active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch';
 
 
 
