@@ -118,21 +118,23 @@ fprintf('done.\n');
 timesteps = seconds(active_processing.behavioral_epochs.start_seconds(1):active_processing.behavioral_epochs.end_seconds(end));
 
 
-active_processing.processed.smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)), active_processing.processed.spike_data, 'UniformOutput', false);
+active_processing.processed.smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), active_processing.processed.spike_data, 'UniformOutput', false);
 
 %% Split based on experiment epoch:
 for i = 1:length(data_config.behavioral_epoch_names)
     temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
-    active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)), active_processing.processed.by_epoch.(temp.curr_epoch_name).spike_data, 'UniformOutput', false);
+    active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), active_processing.processed.by_epoch.(temp.curr_epoch_name).spike_data, 'UniformOutput', false);
 end
 
 %% Split based on behavioral state:
 for i = 1:length(active_processing.behavioral_state_names)
     temp.curr_state_name =  active_processing.behavioral_state_names{i};
-    active_processing.processed.by_state.(temp.curr_state_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)), active_processing.processed.by_state.(temp.curr_state_name).spike_data, 'UniformOutput', false);
+    active_processing.processed.by_state.(temp.curr_state_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), active_processing.processed.by_state.(temp.curr_state_name).spike_data, 'UniformOutput', false);
 end
 
-
+fprintf('writing out to %s...\n', data_config.output.intermediate_file_path);
+save(data_config.output.intermediate_file_path, 'active_processing', 'data_config', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps');
+fprintf('done.\n');
 
 % active_processing.processed.smoothed_spike_data = cell([num_of_electrodes, 1]);
 % for electrode_index = 1:num_of_electrodes
