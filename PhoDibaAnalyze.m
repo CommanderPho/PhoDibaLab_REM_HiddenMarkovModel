@@ -22,23 +22,11 @@ if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly pro
     [active_processing, source_data] = loadData(data_config, processing_config);
 end
 
-% active_processing.behavioral_state_names
-
-
 %% Preprocessing:
 
 % Each entry in active_processing.spikes has a variable number of double entries, indicating the relative offset (in seconds) the spike occured for each unit.
 
 num_of_electrodes = height(active_processing.spikes);
-
-
-
-
-
-
-
-% data_config.behavioral_epoch_names
-
 
 %% For each behavioral period in curr_activity_table:
 % we want to be able to extract:
@@ -59,7 +47,7 @@ spikes_behavioral_states = cell([num_of_electrodes, 1]);
 % Loop over electrodes
 for electrode_index = 1:num_of_electrodes
     % Convert spike times to relative to expt start and scale to seconds. 
-    spikes_behavioral_states{electrode_index} = zeros([active_processing.spikes.num_spikes(electrode_index), 1]);
+    spikes_behavioral_states{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(active_processing.behavioral_state_names)], active_processing.behavioral_state_names);
     active_processing.spikes.behavioral_duration_indicies{electrode_index} = zeros([active_processing.spikes.num_spikes(electrode_index), 1]); % to store the index of the corresponding behavioral state the spike belongs to
 end
 
@@ -98,7 +86,6 @@ for state_index = 1:temp.curr_num_of_behavioral_states
 %     
     
 end
-
 
 active_processing.spikes.behavioral_states = spikes_behavioral_states;
 
