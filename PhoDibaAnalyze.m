@@ -33,7 +33,9 @@ num_of_electrodes = height(active_processing.spikes);
 %% Partition spikes based on behavioral state:
 temp.curr_num_of_behavioral_states = height(active_processing.curr_activity_table);
 
-spikes_behavioral_states = cell([num_of_electrodes, 1]);
+temp.spikes_behavioral_states = cell([num_of_electrodes, 1]);
+temp.spikes_behavioral_epoch = cell([num_of_electrodes, 1]);
+
 % Pre-allocation: Loop over electrodes
 for electrode_index = 1:num_of_electrodes
     % Convert spike times to relative to expt start and scale to seconds. 
@@ -70,7 +72,7 @@ for state_index = 1:temp.curr_num_of_behavioral_states
 end
 
 active_processing.spikes.behavioral_states = temp.spikes_behavioral_states;
-active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch';
+active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch;
 
 
 
