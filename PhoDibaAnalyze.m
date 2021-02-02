@@ -76,8 +76,14 @@ active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch;
 
 
 
-
-
+active_processing.processed_spike_data = cell([num_of_electrodes, 1]);
+for electrode_index = 1:num_of_electrodes
+    % Convert spike times to relative to expt start and scale to seconds. 
+    active_processing.processed.spike_data{electrode_index} = timetable(seconds(active_processing.spikes.time{electrode_index}'), active_processing.spikes.behavioral_epoch{electrode_index}, active_processing.spikes.behavioral_states{electrode_index}, active_processing.spikes.behavioral_duration_indicies{electrode_index}, ...
+        'VariableNames',{'behavioral_epoch','behavioral_state','behavioral_period_index'});
+    % This retimed version is pretty slow: > 30 seconds execution time.
+    active_processing.processed.normalized_spike_data = retime(active_processing.processed.spike_data{electrode_index},'regular','count','TimeStep', seconds(1));
+end
 
 
 
