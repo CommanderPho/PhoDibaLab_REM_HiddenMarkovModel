@@ -76,7 +76,7 @@ temp.smoothed_spike_data_matrix = cell2mat(active_processing.processed.smoothed_
 % rho: Pairwise linear correlation coefficient
 % 
 % [active_results.pairwise_correlations.rho, active_results.pairwise_correlations.pval] = corr(temp.smoothed_spike_data_matrix);
-process_config.max_xcorr_lag = 6; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
+process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
 active_results.pairwise_xcorrelations.lag_offsets = (-process_config.max_xcorr_lag):process_config.max_xcorr_lag;
 active_results.pairwise_xcorrelations.num_lag_steps = length(active_results.pairwise_xcorrelations.lag_offsets);
 
@@ -97,7 +97,7 @@ parfor i = 1:active_results.indicies.num_unique_pairs
 %    temp.curr_pair = active_result.indicies.unique_electrode_pairs(i,:);
    pairwise_xcorrelations(i,:) = xcorr(smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,1)), ...
        smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,2)), ...
-       max_xcorr_lag);
+       max_xcorr_lag,'normalized');
 end
 
 active_results.pairwise_xcorrelations.xcorr = pairwise_xcorrelations;
@@ -126,10 +126,11 @@ active_results.pairwise_xcorrelations.processed.sorted.xcorr = active_results.pa
 
 %% Display the Correlational Results:
 %%%%%%%%%%%%%%%%%%%%%
-figure(1);
+figure(4);
+clf
 % temp.active_idx = 1:5;
 % temp.active_idx = num_of_electrodes-5:num_of_electrodes;
-temp.active_idx = 5;
+temp.active_idx = 116;
 
 % temp.found_lin_idx = find((active_results.indicies.unique_electrode_pairs(:,1) == temp.active_idx) | (active_results.indicies.unique_electrode_pairs(:,2) == temp.active_idx));
 temp.found_lin_idx = active_results.indicies.reverse_lookup_unique_electrode_pairs(temp.active_idx, :); % 1x126 double
@@ -174,25 +175,15 @@ temp.plot_matrix = active_results.pairwise_xcorrelations.xcorr(temp.active_found
 temp.plot_matrix(temp.excluded_indicies, :) = NaN;
 
 % % Cell formatter: "[unitID - timeOffset]: xcorr_value"
-% plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('[%d - %d]: %d', row_index, active_results.pairwise_xcorrelations.lags(column_index), temp.plot_matrix(row_index, column_index)); 
+% plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('[%d - %d]: %d', row_index, active_results.pairwise_xcorrelations.lag_offsets(column_index), temp.plot_matrix(row_index, column_index)); 
 
 % Cell formatter: "unitID[@t=timeOffset]"
-plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('%d[@t=%d]', row_index, active_results.pairwise_xcorrelations.lags(column_index)); 
+plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('%d[@t=%d]', row_index, active_results.pairwise_xcorrelations.lag_offsets(column_index)); 
 
 [h, temp.plot_info] = fnPhoMatrixPlotDetailed(temp.plot_matrix, plottingOptions);
-% %xlim: -4.2083  131.2083
-% %ylim: 0.9520   13.0480
-% % xticks([1 13 126])
-% % xticks(active_results.pairwise_xcorrelations.lags);
-% % xticks(1:length(active_results.pairwise_xcorrelations.lags));
-% xticklabels(active_results.pairwise_xcorrelations.lags);
-% yticks([]);
-% yticklabels([]);
 xlabel('[seconds]');
 ylabel('xcorr');
 title(sprintf('Pairwise XCorr for Unit %d',  temp.active_idx));
-% fnPhoMatrixPlot(active_results.pairwise_xcorrelations.processed.sorted.xcorr);
-% stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_idx, :)');
 
 
 
