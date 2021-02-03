@@ -28,9 +28,16 @@ end
 
 %% Pairwise Indexing:
 % Generates all unique pairs of indicies for pairwise comparisons (without replacement or repetition)
-active_result.indicies.unique_electrode_pairs = nchoose2([1:num_of_electrodes]);
-active_results.indicies.num_unique_pairs = length(active_result.indicies.unique_electrode_pairs);
+active_results.indicies.unique_electrode_pairs = nchoose2([1:num_of_electrodes]);
+active_results.indicies.num_unique_pairs = length(active_results.indicies.unique_electrode_pairs);
 
+% Build a reverse lookup matrix
+active_results.indicies.reverse_lookup_unique_electrode_pairs = zeros(num_of_electrodes);
+for linear_pair_idx = 1:active_results.indicies.num_unique_pairs
+    curr_pair = active_results.indicies.unique_electrode_pairs(linear_pair_idx,:);
+    active_results.indicies.reverse_lookup_unique_electrode_pairs(curr_pair(1), curr_pair(2)) = linear_pair_idx;
+    active_results.indicies.reverse_lookup_unique_electrode_pairs(curr_pair(2), curr_pair(1)) = linear_pair_idx;
+end
 
 
 %% Auto-Correlations:
@@ -67,17 +74,66 @@ active_results.pairwise_xcorrelations.num_lag_steps = length(active_results.pair
 
 
 % pre-allocate output
-active_results.pairwise_xcorrelations.xcorr = zeros([active_result.indicies.num_unique_pairs active_results.pairwise_xcorrelations.num_lag_steps]);
-parfor i = 1:active_result.indicies.num_unique_pairs
-   temp.curr_pair = active_result.indicies.unique_electrode_pairs(i,:);
-   active_results.pairwise_xcorrelations.xcorr(i,:) = xcorr(temp.smoothed_spike_data_matrix(:,temp.curr_pair(1)), temp.smoothed_spike_data_matrix(:,temp.curr_pair(2)), process_config.max_xcorr_lag);
+
+% parfor unpacking
+smoothed_spike_data_matrix = temp.smoothed_spike_data_matrix;
+unique_electrode_index_pairs = active_results.indicies.unique_electrode_pairs;
+max_xcorr_lag = process_config.max_xcorr_lag;
+
+pairwise_xcorrelations = zeros([active_results.indicies.num_unique_pairs active_results.pairwise_xcorrelations.num_lag_steps]);
+parfor i = 1:active_results.indicies.num_unique_pairs
+%    temp.curr_pair = active_result.indicies.unique_electrode_pairs(i,:);
+   pairwise_xcorrelations(i,:) = xcorr(smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,1)), ...
+       smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,2)), ...
+       max_xcorr_lag);
 end
 
+active_results.pairwise_xcorrelations.xcorr = pairwise_xcorrelations;
+
+% parfor cleanup
+clear smoothed_spike_data_matrix unique_electrode_index_pairs max_xcorr_lag pairwise_xcorrelations
+
+% Find maximum correlations and when they occur
+[active_results.pairwise_xcorrelations.processed.MaxXCorr, active_results.pairwise_xcorrelations.processed.MaxXCorrLagIndex] = max(active_results.pairwise_xcorrelations.xcorr');
+[active_results.pairwise_xcorrelations.processed.MinXCorr, active_results.pairwise_xcorrelations.processed.MinXCorrLagIndex] = min(active_results.pairwise_xcorrelations.xcorr');
+active_results.pairwise_xcorrelations.processed.meanXCorr = mean(active_results.pairwise_xcorrelations.xcorr, 2)';
+
+% active_results.pairwise_xcorrelations.processed.MaxXCorr: contains the maximum xcorr value obtained for each unit
+% active_results.pairwise_xcorrelations.processed.MaxXCorrLagIndex: contains when the maximum xcorr value occurred for each unit
+
+[temp.sorted_values, temp.sorted_index] = sortrows(active_results.pairwise_xcorrelations.processed.MaxXCorr','descend');
+
+% Get the sorted indicies:
+active_results.pairwise_xcorrelations.processed.sorted.unique_electrode_index_pairs = active_results.indicies.unique_electrode_pairs(temp.sorted_index, :);
+% Get the sorted xcorr values:
+active_results.pairwise_xcorrelations.processed.sorted.MaxXCorr = active_results.pairwise_xcorrelations.processed.MaxXCorr(temp.sorted_index);
+active_results.pairwise_xcorrelations.processed.sorted.MaxXCorrLagIndex = active_results.pairwise_xcorrelations.processed.MaxXCorrLagIndex(temp.sorted_index);
+active_results.pairwise_xcorrelations.processed.sorted.xcorr = active_results.pairwise_xcorrelations.xcorr(temp.sorted_index, :);
 
 
-temp.active_idx = 1:5;
 
-stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.xcorr(:, temp.active_idx));
+
+figure(1);
+% temp.active_idx = 1:5;
+% temp.active_idx = num_of_electrodes-5:num_of_electrodes;
+temp.active_idx = 5;
+
+% temp.found_lin_idx = find((active_results.indicies.unique_electrode_pairs(:,1) == temp.active_idx) | (active_results.indicies.unique_electrode_pairs(:,2) == temp.active_idx));
+temp.found_lin_idx = active_results.indicies.reverse_lookup_unique_electrode_pairs(temp.active_idx, :); % 1x126 double
+
+temp.preview_subset = temp.active_idx+1:temp.active_idx+20;
+temp.active_found_lin_idx = temp.found_lin_idx(temp.preview_subset);
+stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_found_lin_idx, :)','filled');
+
+
+
+%% Sorted version (unfinished)
+temp.sorted_found_lin_idx = temp.found_lin_idx(temp.sorted_index);
+
+stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.sorted_found_lin_idx, :)');
+
+
+% stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_idx, :)');
 
 
 
