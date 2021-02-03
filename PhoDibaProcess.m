@@ -23,10 +23,12 @@ data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 
 data_config.source_data_prefix = 'Hiro_Datasets';
 
 data_config.output.intermediate_file_name = 'PhoIntermediate.mat';
+data_config.output.results_file_name = 'PhoResults.mat';
+
 
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
 data_config.output.intermediate_file_path = fullfile(data_config.source_root_path, data_config.output.intermediate_file_name);
-
+data_config.output.results_file_path = fullfile(data_config.source_root_path, data_config.output.results_file_name);
 
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
     fprintf('loading from %s...\n', data_config.output.intermediate_file_path);
@@ -126,11 +128,11 @@ active_results.pairwise_xcorrelations.processed.sorted.xcorr = active_results.pa
 
 %% Display the Correlational Results:
 %%%%%%%%%%%%%%%%%%%%%
-figure(4);
+figure(3);
 clf
 % temp.active_idx = 1:5;
 % temp.active_idx = num_of_electrodes-5:num_of_electrodes;
-temp.active_idx = 116;
+temp.active_idx = 10;
 
 % temp.found_lin_idx = find((active_results.indicies.unique_electrode_pairs(:,1) == temp.active_idx) | (active_results.indicies.unique_electrode_pairs(:,2) == temp.active_idx));
 temp.found_lin_idx = active_results.indicies.reverse_lookup_unique_electrode_pairs(temp.active_idx, :); % 1x126 double
@@ -234,3 +236,7 @@ if process_config.show_graphics
     xlim([timesteps(1), timesteps(end)]);
     title('behavioral state spike counts')
 end
+
+fprintf('writing out results to %s...\n', data_config.output.results_file_path);
+save(data_config.output.results_file_path, 'active_results');
+fprintf('done.\n');
