@@ -4,8 +4,20 @@ addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
 % clear all;
 
+%% Configure Graphics and Plotting:
 process_config.show_graphics = false;
+% Options for tightening up the subplots:
+plotting_options.should_use_custom_subplots = true;
 
+if plotting_options.should_use_custom_subplots
+    plotting_options.subtightplot.gap = [0.01 0.01]; % [intra_graph_vertical_spacing, intra_graph_horizontal_spacing]
+    plotting_options.subtightplot.width_h = [0.01 0.05]; % Looks like [padding_bottom, padding_top]
+    plotting_options.subtightplot.width_w = [0.025 0.01];
+    plotting_options.opt = {plotting_options.subtightplot.gap, plotting_options.subtightplot.width_h, plotting_options.subtightplot.width_w}; % {gap, width_h, width_w}
+    subplot_cmd = @(m,n,p) subtightplot(m, n, p, plotting_options.opt{:});
+else
+    subplot_cmd = @(m,n,p) subplot(m, n, p);
+end
 
 data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject';
 data_config.source_data_prefix = 'Hiro_Datasets';
@@ -121,16 +133,43 @@ temp.active_idx = 5;
 % temp.found_lin_idx = find((active_results.indicies.unique_electrode_pairs(:,1) == temp.active_idx) | (active_results.indicies.unique_electrode_pairs(:,2) == temp.active_idx));
 temp.found_lin_idx = active_results.indicies.reverse_lookup_unique_electrode_pairs(temp.active_idx, :); % 1x126 double
 
+
+
+% %% Sorted version (unfinished)
+% temp.sorted_found_lin_idx = temp.found_lin_idx(temp.sorted_index);
+
+
+
 temp.preview_subset = temp.active_idx+1:temp.active_idx+20;
+temp.preview_subset_size = length(temp.preview_subset);
 temp.active_found_lin_idx = temp.found_lin_idx(temp.preview_subset);
-stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_found_lin_idx, :)','filled');
+
+% Overlay version:
+% stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_found_lin_idx, :)','filled');
 
 
+% Subplot version:
+% tiledlayout(temp.preview_subset_size, 1)
+for i = 1:temp.preview_subset_size
+    % Subplot
+    temp.isLastSession = (i == temp.preview_subset_size);
+    ax(i) = subplot_cmd(temp.preview_subset_size, 1, i);
+    stem(ax(i), active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_found_lin_idx(i), :)')
+    
+    set(gca,'ytick',[],'yticklabel',[])
+    
+    if temp.isLastSession
+       xlabel('t');
+    else
+%         title('');
+%         xlabel('');
+%         ylabel('');
+        set(gca,'xtick',[],'xticklabel',[])
+%         set(gca,'xtick',[],'ytick',[],'xticklabel',[],'yticklabel',[])
+    end
+    
+end
 
-%% Sorted version (unfinished)
-temp.sorted_found_lin_idx = temp.found_lin_idx(temp.sorted_index);
-
-stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.sorted_found_lin_idx, :)');
 
 
 % stem(active_results.pairwise_xcorrelations.lags, active_results.pairwise_xcorrelations.processed.sorted.xcorr(temp.active_idx, :)');
