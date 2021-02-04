@@ -5,8 +5,10 @@ addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
 clear all;
 
-Config;
 
+if ~exist('data_config','var')
+    Config;
+end
 
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
     [active_processing, source_data] = loadData(data_config, processing_config);

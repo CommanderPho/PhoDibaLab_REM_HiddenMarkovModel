@@ -29,8 +29,8 @@ data_config.output.intermediate_file_path = fullfile(data_config.source_root_pat
 
 
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
-    fprintf('loading data from %s...\n', data_config.output.intermediate_file_path);
-    load(data_config.output.intermediate_file_path, 'data_config', 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');
+    fprintf('loading data from %s...\n', data_config.output.intermediate_file_paths{2});
+    load(data_config.output.intermediate_file_paths{2}, 'data_config', 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');
     fprintf('done.\n');
 else
     fprintf('active_processing already exists in workspace. Using extant data.\n');
