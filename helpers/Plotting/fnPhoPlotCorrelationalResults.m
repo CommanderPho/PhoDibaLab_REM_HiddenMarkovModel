@@ -58,10 +58,12 @@ temp.plot_matrix(temp.excluded_indicies, :) = NaN;
 % plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('[%d - %d]: %d', row_index, active_results.pairwise_xcorrelations.lag_offsets(column_index), temp.plot_matrix(row_index, column_index)); 
 
 % Cell formatter: "unitID[@t=timeOffset]"
-plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('%d[@t=%d]', row_index, active_results.pairwise_xcorrelations.lag_offsets(column_index)); 
-plottingOptions.xlabel = '[seconds]';
-plottingOptions.ylabel = 'xcorr';
-plottingOptions.title = sprintf('Pairwise XCorr for Unit %d',  temp.active_idx);
+if ~exist('plottingOptions','var')
+    plottingOptions.custom_cell_text_formatter = @(row_index, column_index) sprintf('%d[@t=%d]', row_index, active_results.pairwise_xcorrelations.lag_offsets(column_index)); 
+    plottingOptions.xlabel = '[seconds]';
+    plottingOptions.ylabel = 'xcorr';
+    plottingOptions.title = sprintf('Pairwise XCorr for Unit %d',  temp.active_idx);
+end
 
 [h, temp.plot_info] = fnPhoMatrixPlotDetailed(temp.plot_matrix, plottingOptions);
 xlabel(plottingOptions.xlabel);

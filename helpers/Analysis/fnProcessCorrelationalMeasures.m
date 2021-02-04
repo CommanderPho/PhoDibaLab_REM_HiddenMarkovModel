@@ -39,18 +39,18 @@ smoothed_spike_data_matrix = active_spike_data_matrix;
 unique_electrode_index_pairs = active_results_indicies.unique_electrode_pairs;
 max_xcorr_lag = process_config.max_xcorr_lag;
 
-pairwise_xcorrelations = zeros([active_results_indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]);
+output_pairwise_xcorrelations = zeros([active_results_indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]);
 parfor i = 1:active_results_indicies.num_unique_pairs
 %    temp.curr_pair = active_result.indicies.unique_electrode_pairs(i,:);
-   pairwise_xcorrelations(i,:) = xcorr(smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,1)), ...
+   output_pairwise_xcorrelations(i,:) = xcorr(smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,1)), ...
        smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,2)), ...
        max_xcorr_lag,'normalized');
 end
 
-pairwise_xcorrelations.xcorr = pairwise_xcorrelations;
+pairwise_xcorrelations.xcorr = output_pairwise_xcorrelations;
 
 % parfor cleanup
-clear smoothed_spike_data_matrix unique_electrode_index_pairs max_xcorr_lag pairwise_xcorrelations
+clear smoothed_spike_data_matrix unique_electrode_index_pairs max_xcorr_lag output_pairwise_xcorrelations
 
 % Find maximum correlations and when they occur
 [pairwise_xcorrelations.processed.MaxXCorr, pairwise_xcorrelations.processed.MaxXCorrLagIndex] = max(pairwise_xcorrelations.xcorr');

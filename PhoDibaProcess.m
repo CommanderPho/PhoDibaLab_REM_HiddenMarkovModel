@@ -23,21 +23,21 @@ data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 
 data_config.source_data_prefix = 'Hiro_Datasets';
 
 data_config.output.intermediate_file_name = 'PhoIntermediate.mat';
-data_config.output.results_file_name = 'PhoResults.mat';
-
-
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
 data_config.output.intermediate_file_path = fullfile(data_config.source_root_path, data_config.output.intermediate_file_name);
-data_config.output.results_file_path = fullfile(data_config.source_root_path, data_config.output.results_file_name);
+
 
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
     fprintf('loading from %s...\n', data_config.output.intermediate_file_path);
-    load(data_config.output.intermediate_file_path, 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps');
+    load(data_config.output.intermediate_file_path, 'data_config', 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps');
     fprintf('done.\n');
 else
     fprintf('active_processing already exists in workspace. Using extant data.\n');
 end
 
+% Add the results file path:
+data_config.output.results_file_name = 'PhoResults.mat';
+data_config.output.results_file_path = fullfile(data_config.source_root_path, data_config.output.results_file_name);
 
 
 %% Pairwise Indexing:
@@ -59,7 +59,7 @@ process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correla
 [~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.smoothed_spike_data, active_results.indicies, process_config);
 
 %% Display the Correlational Results:
-[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results, plottingOptions);
+% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
 
 
 
