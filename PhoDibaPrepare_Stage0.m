@@ -95,7 +95,7 @@ fprintf('writing out to %s...\n', data_config.output.intermediate_file_paths{2})
 save(data_config.output.intermediate_file_paths{2}, 'active_processing', 'data_config', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');
 fprintf('done.\n');
 
-
+fprintf('PhoDibaPrepare_Stage0 complete!\n');
 
 
 
