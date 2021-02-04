@@ -1,4 +1,4 @@
-function [output] = fnBinSpikeData(active_processing, timesteps)
+function [output] = fnBinSpikeData(active_processing, data_config, timesteps)
 %FNBINSPIKEDATA Summary of this function goes here
 %   Detailed explanation goes here
 output.all.smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), active_processing.processed.all.spike_data, 'UniformOutput', false);

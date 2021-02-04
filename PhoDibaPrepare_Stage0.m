@@ -110,7 +110,7 @@ active_processing.processed_array = cell([processing_config.num_step_sizes 1]);
 
 for i = 1:length(processing_config.step_sizes)
 	% timesteps_array{i} = seconds(active_processing.behavioral_epochs.start_seconds(1):processing_config.step_sizes{i}:active_processing.behavioral_epochs.end_seconds(end));
-	[active_processing.processed_array{i}] = fnBinSpikeData(active_processing, timesteps_array{i});
+	[active_processing.processed_array{i}] = fnBinSpikeData(active_processing, data_config, timesteps_array{i});
 end
 
 fprintf('writing out to %s...\n', data_config.output.intermediate_file_paths{2});
