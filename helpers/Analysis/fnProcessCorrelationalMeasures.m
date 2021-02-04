@@ -1,4 +1,4 @@
-function [active_spike_data_matrix, autocorrelations, partial_autocorrelations, pairwise_xcorrelations] = fnProcessCorrelationalMeasures(spike_data, active_results_indicies, process_config)
+function [active_spike_data_matrix, autocorrelations, partial_autocorrelations, pairwise_xcorrelations] = fnProcessCorrelationalMeasures(spike_data, active_results_indicies, processing_config)
 %CORR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -29,10 +29,10 @@ end
 % 
 % [pairwise_correlations.rho, pairwise_correlations.pval] = corr(temp.smoothed_spike_data_matrix);
 
-pairwise_xcorrelations.lag_offsets = (-process_config.max_xcorr_lag):process_config.max_xcorr_lag;
+pairwise_xcorrelations.lag_offsets = (-processing_config.max_xcorr_lag):processing_config.max_xcorr_lag;
 pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets);
 
-% [pairwise_xcorrelations.xcorr, pairwise_xcorrelations.lags] = xcorr(temp.smoothed_spike_data_matrix, process_config.max_xcorr_lag, 'normalized'); 
+% [pairwise_xcorrelations.xcorr, pairwise_xcorrelations.lags] = xcorr(temp.smoothed_spike_data_matrix, processing_config.max_xcorr_lag, 'normalized'); 
 % xcorr: 13x15876 double ((2 × max_xcorr_lag + 1) × N^2)
 % lags: 1x13 double
 
@@ -42,7 +42,7 @@ pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets
 % parfor unpacking
 smoothed_spike_data_matrix = active_spike_data_matrix;
 unique_electrode_index_pairs = active_results_indicies.unique_electrode_pairs;
-max_xcorr_lag = process_config.max_xcorr_lag;
+max_xcorr_lag = processing_config.max_xcorr_lag;
 
 output_pairwise_xcorrelations = zeros([active_results_indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]);
 parfor i = 1:active_results_indicies.num_unique_pairs

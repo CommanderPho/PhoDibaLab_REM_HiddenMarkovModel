@@ -28,7 +28,7 @@ data_config.output.results_file_path = fullfile(data_config.source_root_path, da
 
 
 %% Configure Graphics and Plotting:
-process_config.show_graphics = false;
+processing_config.show_graphics = false;
 % Options for tightening up the subplots:
 plotting_options.should_use_custom_subplots = true;
 

@@ -4,6 +4,8 @@
 addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
 
+clear temp
+
 if ~exist('data_config','var')
     Config;
 end
@@ -31,7 +33,7 @@ end
 
 
 %% Build the Correlational Results:
-process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
+processing_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
 
 results_array = cell([length(processing_config.step_sizes) 1]);
 
@@ -39,7 +41,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 	temp.curr_timestamps = timesteps_array{current_binning_index};
 	temp.curr_processed = active_processing.processed_array{current_binning_index};
 
-	[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.all.smoothed_spike_data, active_results.indicies, process_config);
+	[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.all.smoothed_spike_data, active_results.indicies, processing_config);
 
 	%% Display the Correlational Results:
 	% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
@@ -52,7 +54,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 		temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
 		% size(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data): 1 x 126
 		[~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data, ...
-			active_results.indicies, process_config);
+			active_results.indicies, processing_config);
 
 		active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes = cell2mat(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data);
 		active_results.aggregates.by_epoch.(temp.curr_epoch_name).across_all_cells.count = sum(active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes, 2);
@@ -64,7 +66,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 
 	%timesteps
 
-	if process_config.show_graphics
+	if processing_config.show_graphics
 		figure(1);
 	end
 
@@ -73,7 +75,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 		temp.curr_state_name =  active_processing.behavioral_state_names{i};
 		
 		[~, active_results.by_state.(temp.curr_state_name).autocorrelations, active_results.by_state.(temp.curr_state_name).partial_autocorrelations, active_results.by_state.(temp.curr_state_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_state.(temp.curr_state_name).smoothed_spike_data, ...
-			active_results.indicies, process_config);
+			active_results.indicies, processing_config);
 
 		active_results.aggregates.by_state.(temp.curr_state_name).spikes = cell2mat(temp.curr_processed.by_state.(temp.curr_state_name).smoothed_spike_data);
 		active_results.aggregates.by_state.(temp.curr_state_name).across_all_cells.count = sum(active_results.aggregates.by_state.(temp.curr_state_name).spikes, 2);
@@ -81,7 +83,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 		
 		fprintf('state: %s\n total_counts: %d\n', temp.curr_state_name, active_results.aggregates.by_state.(temp.curr_state_name).total_counts);
 		
-		if process_config.show_graphics
+		if processing_config.show_graphics
 			subplot(4,1,i);
 			plot(active_results.aggregates.by_state.(temp.curr_state_name).across_all_cells.count);
 			ylabel(temp.curr_state_name);
@@ -89,14 +91,14 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 		end
 	end
 
-	if process_config.show_graphics
+	if processing_config.show_graphics
 		xlim([timesteps(1), timesteps(end)]);
 		title('behavioral state spike counts')
 	end
 
 	results_array{current_binning_index} = active_results;
 	
-end % end binning
+end % end for processing_config.step_sizes loop
 
 fprintf('writing out results to %s...\n', data_config.output.results_file_path);
 save(data_config.output.results_file_path, 'results_array');
