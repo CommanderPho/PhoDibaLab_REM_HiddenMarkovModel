@@ -17,12 +17,17 @@ partial_autocorrelations = cellfun((@(spike_timestamps) parcorr(spike_timestamps
 %% Cross-Correlations:
 
 %% Extract all timeseries in the appropriate matrix format:
-active_spike_data_matrix = cell2mat(spike_data'); % 35351x126 double
+% 1 x 126 cell should not be transposed.
+% 126 x 1 cell should
+if (size(spike_data, 1) > size(spike_data, 2))
+   active_spike_data_matrix = cell2mat(spike_data'); % 35351x126 double
+else
+   active_spike_data_matrix = cell2mat(spike_data); % 35351x126 double
+end
 
 % rho: Pairwise linear correlation coefficient
 % 
 % [pairwise_correlations.rho, pairwise_correlations.pval] = corr(temp.smoothed_spike_data_matrix);
-
 
 pairwise_xcorrelations.lag_offsets = (-process_config.max_xcorr_lag):process_config.max_xcorr_lag;
 pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets);

@@ -1,4 +1,5 @@
-% Requires the datastructures from "PhoDibaAnalyze.m" to be loaded
+% Requires the datastructures from "PhoDibaPrepare_Stage0.m" to be loaded
+% Stage 1 of the processing pipeline
 
 addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
@@ -29,7 +30,7 @@ data_config.output.intermediate_file_path = fullfile(data_config.source_root_pat
 
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
     fprintf('loading from %s...\n', data_config.output.intermediate_file_path);
-    load(data_config.output.intermediate_file_path, 'data_config', 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps');
+    load(data_config.output.intermediate_file_path, 'data_config', 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');
     fprintf('done.\n');
 else
     fprintf('active_processing already exists in workspace. Using extant data.\n');
@@ -56,7 +57,7 @@ end
 
 %% Build the Correlational Results:
 process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
-[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.smoothed_spike_data, active_results.indicies, process_config);
+[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.all.smoothed_spike_data, active_results.indicies, process_config);
 
 %% Display the Correlational Results:
 % [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
@@ -71,7 +72,7 @@ process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correla
 %% Split based on experiment epoch:
 for i = 1:length(data_config.behavioral_epoch_names)
     temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
-    
+    % size(active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data): 1 x 126
     [~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data, ...
         active_results.indicies, process_config);
 
