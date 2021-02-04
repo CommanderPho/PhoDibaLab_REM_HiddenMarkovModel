@@ -2,9 +2,31 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
 %fnPreProcessSpikeData Summary of this function goes here
 %   Detailed explanation goes here
 
-	%% Processing:
-	output.all.spike_data = cell([1, num_of_electrodes]);
+    output_cell_size = [1, num_of_electrodes];
+    
+	
+    
+    
+    %% Pre-allocation of output variables:
+	output.all.spike_data = cell(output_cell_size);
+    output.all.smoothed_spike_data = cell(output_cell_size);
+    %% Split based on experiment epoch:
+    for i = 1:length(data_config.behavioral_epoch_names)
+        temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+        output.by_epoch.(temp.curr_epoch_name).spike_data = cell(output_cell_size);
+        output.by_epoch.(temp.curr_epoch_name).smoothed_spike_data = cell(output_cell_size);
+    end
 
+    %% Split based on behavioral state:
+    for i = 1:length(active_processing.behavioral_state_names)
+        temp.curr_state_name =  active_processing.behavioral_state_names{i};
+        output.by_state.(temp.curr_state_name).spike_data = cell(output_cell_size);
+        output.by_state.(temp.curr_state_name).smoothed_spike_data = cell(output_cell_size);
+    end
+        
+        
+        
+    %% Processing:    
 	for electrode_index = 1:num_of_electrodes
 		% Convert spike times to relative to expt start and scale to seconds. 
 		fprintf('fnPreProcessSpikeData: electrode progress: %d/%d\n', electrode_index, num_of_electrodes);
@@ -13,20 +35,20 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
 			'VariableNames',{'behavioral_epoch','behavioral_state','behavioral_period_index'});
 		
 		output.all.spike_data{electrode_index} = temp.curr_timetable;
-		output.all.smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), output.all.spike_data, 'UniformOutput', false);
+		output.all.smoothed_spike_data{electrode_index} = histcounts(output.all.spike_data{electrode_index}.Time, timesteps)';
 
 		%% Split based on experiment epoch:
 		for i = 1:length(data_config.behavioral_epoch_names)
 			temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
 			output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
-			output.by_epoch.(temp.curr_epoch_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index}, 'UniformOutput', false);
+			output.by_epoch.(temp.curr_epoch_name).smoothed_spike_data{electrode_index} = histcounts(output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index}.Time, timesteps)';
 		end
 		
 		%% Split based on behavioral state:
 		for i = 1:length(active_processing.behavioral_state_names)
 			temp.curr_state_name =  active_processing.behavioral_state_names{i};
 			output.by_state.(temp.curr_state_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_state == temp.curr_state_name), :);
-			output.by_state.(temp.curr_state_name).smoothed_spike_data = cellfun((@(ttable) histcounts(ttable.Time, timesteps)'), output.by_state.(temp.curr_state_name).spike_data, 'UniformOutput', false);
+			output.by_state.(temp.curr_state_name).smoothed_spike_data{electrode_index} = histcounts(output.by_state.(temp.curr_state_name).spike_data{electrode_index}.Time, timesteps)';
 		end
 
 	end % end for
