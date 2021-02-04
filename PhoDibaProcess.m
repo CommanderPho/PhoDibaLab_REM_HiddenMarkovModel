@@ -56,7 +56,7 @@ end
 
 %% Build the Correlational Results:
 process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
-[active_results] = fnProcessCorrelationalMeasures(active_processing.processed.smoothed_spike_data, active_results, process_config);
+[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.smoothed_spike_data, active_results.indicies, process_config);
 
 %% Display the Correlational Results:
 [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results, plottingOptions);
@@ -71,8 +71,11 @@ process_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correla
 %% Split based on experiment epoch:
 for i = 1:length(data_config.behavioral_epoch_names)
     temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
-    active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes = cell2mat(active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data);
     
+    [~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data, ...
+        active_results.indicies, process_config);
+
+    active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes = cell2mat(active_processing.processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data);
     active_results.aggregates.by_epoch.(temp.curr_epoch_name).across_all_cells.count = sum(active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes, 2);
     active_results.aggregates.by_epoch.(temp.curr_epoch_name).total_counts = sum(active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes, 'all');
     
@@ -89,9 +92,13 @@ end
 %% Split based on behavioral state:
 for i = 1:length(active_processing.behavioral_state_names)
     temp.curr_state_name =  active_processing.behavioral_state_names{i};
+    
+    
+    [~, active_results.by_state.(temp.curr_state_name).autocorrelations, active_results.by_state.(temp.curr_state_name).partial_autocorrelations, active_results.by_state.(temp.curr_state_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(active_processing.processed.by_state.(temp.curr_state_name).smoothed_spike_data, ...
+        active_results.indicies, process_config);
+
+    
     active_results.aggregates.by_state.(temp.curr_state_name).spikes = cell2mat(active_processing.processed.by_state.(temp.curr_state_name).smoothed_spike_data);
-    
-    
     active_results.aggregates.by_state.(temp.curr_state_name).across_all_cells.count = sum(active_results.aggregates.by_state.(temp.curr_state_name).spikes, 2);
     active_results.aggregates.by_state.(temp.curr_state_name).total_counts = sum(active_results.aggregates.by_state.(temp.curr_state_name).spikes, 'all');
     
