@@ -70,31 +70,6 @@ active_processing.spikes.behavioral_states = temp.spikes_behavioral_states;
 active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch;
 
 
-%% Processing:
-active_processing.processed.all.spike_data = cell([1, num_of_electrodes]);
-
-for electrode_index = 1:num_of_electrodes
-    % Convert spike times to relative to expt start and scale to seconds. 
-    fprintf('electrode progress: %d/%d\n', electrode_index, num_of_electrodes);
-    
-    temp.curr_timetable = timetable(seconds(active_processing.spikes.time{electrode_index}'), active_processing.spikes.behavioral_epoch{electrode_index}, active_processing.spikes.behavioral_states{electrode_index}, active_processing.spikes.behavioral_duration_indicies{electrode_index}, ...
-        'VariableNames',{'behavioral_epoch','behavioral_state','behavioral_period_index'});
-    
-    active_processing.processed.all.spike_data{electrode_index} = temp.curr_timetable;
-   
-    %% Split based on experiment epoch:
-    for i = 1:length(data_config.behavioral_epoch_names)
-        temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
-        active_processing.processed.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
-    end
-    
-    %% Split based on behavioral state:
-    for i = 1:length(active_processing.behavioral_state_names)
-        temp.curr_state_name =  active_processing.behavioral_state_names{i};
-        active_processing.processed.by_state.(temp.curr_state_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_state == temp.curr_state_name), :);
-    end
-
-end
 
 fprintf('writing out to %s...\n', data_config.output.intermediate_file_paths{1});
 save(data_config.output.intermediate_file_paths{1}, 'active_processing', 'data_config', 'processing_config', 'num_of_electrodes', 'source_data');
@@ -112,7 +87,8 @@ active_processing.processed_array = cell([processing_config.num_step_sizes 1]);
 
 for i = 1:length(processing_config.step_sizes)
 	% timesteps_array{i} = seconds(active_processing.behavioral_epochs.start_seconds(1):processing_config.step_sizes{i}:active_processing.behavioral_epochs.end_seconds(end));
-	[active_processing.processed_array{i}] = fnBinSpikeData(active_processing, data_config, timesteps_array{i});
+	[active_processing.processed_array{i}] = fnPreProcessSpikeData(active_processing, data_config, num_of_electrodes, timesteps_array{i});
+	% [active_processing.processed_array{i}] = fnBinSpikeData(active_processing, data_config, timesteps_array{i});
 end
 
 fprintf('writing out to %s...\n', data_config.output.intermediate_file_paths{2});
