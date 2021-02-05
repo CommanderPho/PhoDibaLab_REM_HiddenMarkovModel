@@ -1,14 +1,17 @@
 %% Config.m
 % Specifies the configuration variables used by the pipeline scripts
 
-data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject';
-data_config.source_data_prefix = 'Hiro_Datasets';
+data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+data_config.source_data_prefix = 'src';
+data_config.output_data_prefix = 'Results';
+
 
 data_config.output.intermediate_file_names = {'PhoIntermediate_Stage0_0.mat', 'PhoIntermediate_Stage0_1.mat'};
 
 
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
-data_config.output.intermediate_file_paths = cellfun((@(filename) fullfile(data_config.source_root_path, filename)), data_config.output.intermediate_file_names, 'UniformOutput', false);
+data_config.output.root_path = fullfile(data_config.root_parent_path, data_config.output_data_prefix);
+data_config.output.intermediate_file_paths = cellfun((@(filename) fullfile(data_config.output.root_path, filename)), data_config.output.intermediate_file_names, 'UniformOutput', false);
 
 % microseconds (10^6): 1000000
 % nanoseconds (10^9): 1000000000
@@ -23,7 +26,7 @@ processing_config.num_step_sizes = length(processing_config.step_sizes);
 %% Results:
 % Add the results file path:
 data_config.output.results_file_name = 'PhoResults.mat';
-data_config.output.results_file_path = fullfile(data_config.source_root_path, data_config.output.results_file_name);
+data_config.output.results_file_path = fullfile(data_config.output.root_path, data_config.output.results_file_name);
 
 
 
