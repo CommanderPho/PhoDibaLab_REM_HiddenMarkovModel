@@ -56,18 +56,28 @@ temp.flattened_across_all_units.spike_epoch = cat(1, active_processing.spikes.be
 num_of_behavioral_state_periods = height(active_processing.curr_activity_table);
 temp.edges = 1:num_of_behavioral_state_periods;
 
-temp.num_results = zeros([num_of_behavioral_state_periods num_of_electrodes]); 
+temp.per_behavioral_state_period.num_spikes_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
+temp.per_behavioral_state_period.spike_rate_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
+
+
 for unit_index = 1:num_of_electrodes
 
-% temp.edges = unique(active_processing.spikes.behavioral_duration_indicies{unit_index});
-temp.counts = histc(active_processing.spikes.behavioral_duration_indicies{unit_index}(:), temp.edges);
-temp.num_results(:, unit_index) = temp.counts;
+    % temp.edges = unique(active_processing.spikes.behavioral_duration_indicies{unit_index});
+    temp.counts = histc(active_processing.spikes.behavioral_duration_indicies{unit_index}(:), temp.edges);
+    temp.per_behavioral_state_period.num_spikes_per_unit(:, unit_index) = temp.counts;
+    temp.per_behavioral_state_period.spike_rate_per_unit(:, unit_index) = temp.counts ./ active_processing.curr_activity_table.duration;
+    % active_processing.spikes.behavioral_duration_indicies{unit_index}
 
-% active_processing.spikes.behavioral_duration_indicies{unit_index}
-
-% curr_activity_table.duration
+    % curr_activity_table.duration
 
 end
+
+
+
+heatmap(temp.per_behavioral_state_period.spike_rate_per_unit);
+title('Behavioral State Period vs. Unit Spike Rate')
+xlabel('Unit Index')
+ylabel('Behavioral State Period Index');ss
 
 for current_binning_index = 1:length(processing_config.step_sizes)
 	temp.curr_timestamps = timesteps_array{current_binning_index};
