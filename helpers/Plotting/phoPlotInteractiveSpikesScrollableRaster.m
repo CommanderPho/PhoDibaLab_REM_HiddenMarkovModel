@@ -1,7 +1,10 @@
 % phoPlotInteractiveSpikesScrollableRaster.m
 % Pho Hale, 02/05/2021
 
-plotting_options.window_duration = 10; % 10 seconds
+% Produces a raster plot that displays the spike trains for each unit in a window of customizable length.
+%   Spawns an interactive slider that allows you to specify the current window to look at, acting as a paginated manner.
+
+plotting_options.window_duration = 3; % 10 seconds
 
 plotting_options.active_timesteps = timesteps_array{1};
 plotting_options.total_duration = plotting_options.active_timesteps(end) - plotting_options.active_timesteps(1);
@@ -42,21 +45,6 @@ iscInfo.NumberOfSeries = plotting_options.num_windows;
 
 
 
-% 
-% figure(3)
-% 
-% % RelSpikeStartTime: x-axis offset from the left edge of the plot
-% % rasterWindowOffset: x-axis window start time
-% 
-% 
-% plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', 0.01,'XLimForCell',[0 0.201]);
-% xlabel('Time [seconds]')
-% ylabel('Unit Index')
-% title('Vertical Lines With Spike Offset of 10ms (Not Typical; for Demo Purposes)');
-% set(gca,'XTick',[]);
-
-
-% slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(extantFigH, curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 extantFigH = figure(3);
 
 slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
@@ -68,14 +56,18 @@ function plotted_figH = pho_plot_spikeRaster(active_processing, plotting_options
     else
         plotted_figH = figure(3);
     end
+    clf
     curr_rasterWindowOffset = double(curr_windowIndex - 1) * plotting_options.window_duration;
     curr_window = [0 plotting_options.window_duration];
+    curr_window = curr_window + curr_rasterWindowOffset;
     % RelSpikeStartTime: x-axis offset from the left edge of the plot
     % rasterWindowOffset: x-axis window start time
+%     hold off
     plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
     xlabel('Time [seconds]')
     ylabel('Unit Index')
-    title('Vertical Lines With Spike Offset of 10ms (Not Typical; for Demo Purposes)');
+    title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     set(gca,'XTick',[]);
+    drawnow;
 
 end
