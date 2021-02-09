@@ -44,13 +44,19 @@ iscInfo.NumberOfSeries = plotting_options.num_windows;
 % slider_controller = PhoInteractiveCallbackSliderDefault.getInstance(iscInfo, plot_manager_cellRoiPlot, valid_only_quality');
 
 
-
 extantFigH = figure(3);
 
-slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 
+%% Scrollplot mode:
+curr_i = 1;
+[extantFigH, currPlot] = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i);
+scrollHandles = scrollplot(currPlot, 'WindowSizeX', plotting_options.window_duration);
+
+% %% Pho Scrollable Mode:
+% slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
+% 
 %% Plot function called as a callback on update
-function plotted_figH = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_windowIndex)
+function [plotted_figH, plotHandle] = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_windowIndex)
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else
@@ -63,11 +69,12 @@ function plotted_figH = pho_plot_spikeRaster(active_processing, plotting_options
     % RelSpikeStartTime: x-axis offset from the left edge of the plot
     % rasterWindowOffset: x-axis window start time
 %     hold off
-    plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+    
+    [~, ~, plotHandle] = plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+    
     xlabel('Time [seconds]')
     ylabel('Unit Index')
     title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     set(gca,'XTick',[]);
     drawnow;
-
 end
