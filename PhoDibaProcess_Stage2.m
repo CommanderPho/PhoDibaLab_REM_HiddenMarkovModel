@@ -96,7 +96,6 @@ for unit_index = 1:num_of_electrodes
 end
 
 
-phoPlotSpikeRateHeatmap;
 
 
 % 
