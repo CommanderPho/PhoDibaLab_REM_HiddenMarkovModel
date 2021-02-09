@@ -1,4 +1,4 @@
-function [fig, h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plottingOptions)
+function [fig, h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plottingOptions, extantFigure)
 %FNPHOPLOTCORRELATIONALRESULTS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,7 +10,11 @@ num_of_electrodes = size(active_results.indicies.reverse_lookup_unique_electrode
 
 %% Display the Correlational Results:
 %%%%%%%%%%%%%%%%%%%%%
-fig = figure(3);
+if ~exist('extantFigure','var')
+   fig = figure(3);
+else
+   fig = figure(extantFigure); 
+end
 clf
 
 

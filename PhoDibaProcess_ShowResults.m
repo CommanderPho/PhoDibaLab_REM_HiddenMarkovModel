@@ -42,12 +42,20 @@ active_results = results_array{current_binning_index};
 
 fprintf('Plotting results with bin resolution set to %d.\n', active_binning_resolution);
 
-% plotting_options.timestamps = temp.curr_timestamps;
+
 
 
 %% Display the Correlational Results:
-[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options);
+xcorr_fig = figure(4);
+plotting_options.plotMode = 'xcorr';
+[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, xcorr_fig);
     
+autocorr_fig = figure(5);
+% plotting_options.timestamps = temp.curr_timestamps;
+plotting_options.plotMode = 'autocorr';
+[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, autocorr_fig);
+
+
     %% Display the Correlational Results:
 	% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
     
