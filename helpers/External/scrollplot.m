@@ -367,7 +367,7 @@ function hScroll = addScrollPlot(hAx,axName)
     uimenu(hMenu, 'Label',msg{2}, 'Callback',@moveCursor, 'UserData', hPatch);
 
 	%% TODO: Context Menu Move
-	uimenu(hMenu, 'Label', 'Center Window Here', 'Callback', @contextMenuMoveToCallback, 'UserData', hFig);
+	% uimenu(hMenu, 'Label', 'Center Window Here', 'Callback', @contextMenuMoveToCallback, 'UserData', hFig);
 
 
     % Set the mouse callbacks

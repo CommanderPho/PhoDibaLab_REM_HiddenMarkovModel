@@ -27,6 +27,18 @@ num_of_electrodes = height(active_processing.spikes);
 %% Partition spikes based on behavioral state:
 temp.curr_num_of_behavioral_states = height(active_processing.curr_activity_table);
 
+%% Compute ISIs:
+active_processing.spikes.ISIs = cellfun((@(spikes_timestamps) diff(spikes_timestamps)), ...
+ active_processing.spikes.time, 'UniformOutput', false);
+
+active_processing.spikes.meanISI = cellfun((@(spikes_ISIs) mean(spikes_ISIs)), ...
+ active_processing.spikes.ISIs, 'UniformOutput', false);
+
+active_processing.spikes.ISIVariance = cellfun((@(spikes_ISIs) var(spikes_ISIs)), ...
+ active_processing.spikes.ISIs, 'UniformOutput', false);
+
+
+
 temp.spikes_behavioral_states = cell([num_of_electrodes, 1]);
 temp.spikes_behavioral_epoch = cell([num_of_electrodes, 1]);
 

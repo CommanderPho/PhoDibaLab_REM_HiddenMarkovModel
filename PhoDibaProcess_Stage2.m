@@ -96,11 +96,9 @@ for unit_index = 1:num_of_electrodes
 end
 
 
+phoPlotSpikeRateHeatmap;
 
-% heatmap(temp.per_behavioral_state_period.spike_rate_per_unit);
-% title('Behavioral State Period vs. Unit Spike Rate')
-% xlabel('Unit Index')
-% ylabel('Behavioral State Period Index');
+
 % 
 % 
 % % Take the above figure and collapse the y-axis by behavioral state.
