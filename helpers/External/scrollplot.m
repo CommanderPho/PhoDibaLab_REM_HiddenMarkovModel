@@ -1123,15 +1123,14 @@ function mouseScrollCallback(hFig, src)
 			ylim = get(hAx,'Ylim');
 			limits = get(hAx, limStr);
 
-			disp(src)
+			% disp(src)
 			%     src.VerticalScrollCount > 0
 
 			nudge_multiplier = 1.0;
 			nudge_amount = src.VerticalScrollCount * nudge_multiplier;
-			updated_cx = cx + nudge_amount;
-			
+			fprintf('original point: %.3f\n',[cx])
 			fprintf('nudge amount: %.3f\n',[nudge_amount])
-
+			
 
 
             % isOverBar = 0;
@@ -1170,41 +1169,70 @@ function mouseScrollCallback(hFig, src)
                 %     cx = 10^cx;  % used below
                 % end
 
-				oldPatchXs = get(scrollPatch, dataStr);
+% 				oldPatchXs = get(scrollPatch, dataStr);
 				axLimits = get(hAx, limStr);
-				updated_cx = min(max(updated_cx, axLimits(1)), axLimits(2));
-				originalX = getappdata(hFig, 'scrollplot_originalX');
-                originalLimits = getappdata(hFig, 'scrollplot_originalLimits');
-                if ~isempty(originalLimits)
-                    allowedDelta = [min(0,axLimits(1)-originalLimits(1)), max(0,axLimits(2)-originalLimits(2))];
-                    deltaX = min(max(updated_cx-originalX, allowedDelta(1)), allowedDelta(2));
-                    if strcmpi(get(hAx,[axName 'Scale']), 'log')
-                        newLimits = 10.^(log10(originalLimits) + deltaX);
-                    else  % linear axis scale
-                        newLimits = originalLimits + deltaX;
-                    end
-                    %fprintf('%.3f ',[cx-originalX, deltaX, originalLimits(1), newLimits(1), allowedDelta])
-                    %fprintf('\n');
-                    if strcmpi(axName,'x')
-                        set(scrollPatch, dataStr, newLimits([1,1,2,2]));
-                    else
-                        set(scrollPatch, dataStr, newLimits([1,2,2,1]));
-                    end
-                    set(scrollBars(1), dataStr, newLimits([1,1]));
-                    set(scrollBars(2), dataStr, newLimits([2,2]));
-                    setappdata(hFig, 'scrollplot_originalLimits', newLimits);
-                    setappdata(hFig, 'scrollplot_originalX', updated_cx);
-                    if deltaX ~= 0
-                        delete(findall(0,'tag','scrollHelp'));
-                    end
+                
+                originalX = cx;
+                if strcmpi(axName,'x')
+                    originalLimits([1,1,2,2]) = get(scrollPatch, dataStr);  % for some reason this is a 4x1 double [0;0;35354.0041003333;35354.0041003333]
+                else
+                    originalLimits([1,2,2,1]) = get(scrollPatch, dataStr);
                 end
+                
+                originalLimits([1,1]) = get(scrollBars(1), dataStr);
+                originalLimits([2,2]) = get(scrollBars(2), dataStr);
+                
+                      
+                updated_cx = cx + nudge_amount;              
+				updated_cx = min(max(updated_cx, axLimits(1)), axLimits(2));
+                
+                fprintf('updated point: %.3f\n',[updated_cx])
+                
+% 				originalX = getappdata(hFig, 'scrollplot_originalX');
+%                 originalLimits = getappdata(hFig, 'scrollplot_originalLimits');
+                
+                allowedDelta = [min(0,axLimits(1)-originalLimits(1)), max(0,axLimits(2)-originalLimits(2))];
+                deltaX = min(max(updated_cx-originalX, allowedDelta(1)), allowedDelta(2));
+                if strcmpi(get(hAx,[axName 'Scale']), 'log')
+                    newLimits = 10.^(log10(originalLimits) + [deltaX deltaX]);
+                else  % linear axis scale
+                    newLimits = originalLimits + [deltaX deltaX];
+                end
+                %fprintf('%.3f ',[cx-originalX, deltaX, originalLimits(1), newLimits(1), allowedDelta])
+                %fprintf('\n');
+                if strcmpi(axName,'x')
+                    set(scrollPatch, dataStr, newLimits([1,1,2,2]));
+                else
+                    set(scrollPatch, dataStr, newLimits([1,2,2,1]));
+                end
+                set(scrollBars(1), dataStr, newLimits([1,1]));
+                set(scrollBars(2), dataStr, newLimits([2,2]));
+%                 setappdata(hFig, 'scrollplot_originalLimits', newLimits);
+%                 setappdata(hFig, 'scrollplot_originalX', updated_cx);
+                if deltaX ~= 0
+                    delete(findall(0,'tag','scrollHelp'));
+                end
+                
 
+
+				% Modify the parent axes accordingly
+				parentAx = getappdata(hAx, 'parent');
+				newXLim = unique(get(scrollPatch,dataStr));
+				if length(newXLim) == 2  % might be otherwise if bars merge!
+					if size(newXLim,1)==2,  newXLim = newXLim';  end  % needs to be a column array
+					set(parentAx, limStr,newXLim);
+				end
+
+				drawnow;
 
 				% done
 				rmappdataIfExists(hFig,'scrollBar_inProgress');
+
+
 			end % end ~isempty(scrollPatch)
 
 		end % end ~isempty(hAx)
+
 
 		% Try to chain the original WindowScrollWheelFcn (if available)
 		oldFcn = getappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn');
