@@ -21,7 +21,7 @@ end
 
 if ~exist('results_array','var') %TEMP: cache the loaded data to rapidly prototype the script
     fprintf('loading results from %s...\n', data_config.output.results_file_path);
-    load(data_config.output.results_file_path, 'results_array');
+    load(data_config.output.results_file_path, 'results_array', 'generalResults');
     fprintf('done. Contains results for %d different bin sizes.\n', length(results_array));
 else
     fprintf('results_array already exists in workspace. Contains results for %d different bin sizes. Using extant data.\n', length(results_array));
@@ -54,6 +54,15 @@ autocorr_fig = figure(5);
 % plotting_options.timestamps = temp.curr_timestamps;
 plotting_options.plotMode = 'autocorr';
 [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, autocorr_fig);
+
+
+
+%% Display Unit Spike Rate Heatmap:
+phoPlotSpikeRateHeatmap;
+
+
+%% Display like interactive spike raster:
+phoPlotInteractiveSpikesScrollableRaster;
 
 
     %% Display the Correlational Results:

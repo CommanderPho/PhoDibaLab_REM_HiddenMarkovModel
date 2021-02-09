@@ -4,7 +4,7 @@
 % Produces a heatmap ...
 plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
 
-extantFigH = figure(4);
+extantFigH = figure(9);
 if plotting_options.showOnlyAlwaysStableCells
     isAlwaysStable = (active_processing.spikes.stability_count == 3);
     numAlwaysStableCells = sum(isAlwaysStable, 'all');

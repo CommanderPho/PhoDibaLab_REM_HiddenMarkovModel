@@ -18,7 +18,7 @@ iscInfo.curr_i = 1;
 iscInfo.NumberOfSeries = plotting_options.num_windows;
 
 
-extantFigH = figure(3);
+extantFigH = figure(12);
 
 %% Scrollplot mode:
 curr_i = 1;
@@ -33,7 +33,7 @@ function [plotted_figH, plotHandle] = pho_plot_spikeRaster(active_processing, pl
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else
-        plotted_figH = figure(3);
+        plotted_figH = figure(12);
     end
     clf
     curr_rasterWindowOffset = double(curr_windowIndex - 1) * plotting_options.window_duration;

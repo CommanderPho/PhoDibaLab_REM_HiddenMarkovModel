@@ -61,34 +61,34 @@ active_processing.spikes.ISIVariance = cellfun((@(spikes_ISIs) var(spikes_ISIs))
 % active_processing.curr_activity_table.behavioral_epochs.duration
 
 % Get the duration of the states 
-temp.GroupedByState.groups = findgroups(active_processing.curr_activity_table.type);
-temp.GroupedByState.durations = splitapply(@sum, active_processing.curr_activity_table.duration, temp.GroupedByState.groups);
+generalResults.GroupedByState.groups = findgroups(active_processing.curr_activity_table.type);
+generalResults.GroupedByState.durations = splitapply(@sum, active_processing.curr_activity_table.duration, generalResults.GroupedByState.groups);
 
 % active_processing.spikes.behavioral_duration_indicies
 
 %% Across all cells:
-temp.flattened_across_all_units.spike_timestamp = cat(2, active_processing.spikes.time{:});
-temp.flattened_across_all_units.spike_state_index = cat(1, active_processing.spikes.behavioral_duration_indicies{:});
-temp.flattened_across_all_units.spike_state = cat(1, active_processing.spikes.behavioral_states{:});
-temp.flattened_across_all_units.spike_epoch = cat(1, active_processing.spikes.behavioral_epoch{:});
+generalResults.flattened_across_all_units.spike_timestamp = cat(2, active_processing.spikes.time{:});
+generalResults.flattened_across_all_units.spike_state_index = cat(1, active_processing.spikes.behavioral_duration_indicies{:});
+generalResults.flattened_across_all_units.spike_state = cat(1, active_processing.spikes.behavioral_states{:});
+generalResults.flattened_across_all_units.spike_epoch = cat(1, active_processing.spikes.behavioral_epoch{:});
 
 
 %% For each behavioral state period, every unit fires a given number of spikes.
 %	The average firing rate for each unit within that period is given by this number of spikes divided by the duration of that period.
     
 num_of_behavioral_state_periods = height(active_processing.curr_activity_table);
-temp.edges = 1:num_of_behavioral_state_periods;
+generalResults.edges = 1:num_of_behavioral_state_periods;
 
-temp.per_behavioral_state_period.num_spikes_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
-temp.per_behavioral_state_period.spike_rate_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
+generalResults.per_behavioral_state_period.num_spikes_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
+generalResults.per_behavioral_state_period.spike_rate_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
 
 
 for unit_index = 1:num_of_electrodes
 
     % temp.edges = unique(active_processing.spikes.behavioral_duration_indicies{unit_index});
-    temp.counts = histc(active_processing.spikes.behavioral_duration_indicies{unit_index}(:), temp.edges);
-    temp.per_behavioral_state_period.num_spikes_per_unit(:, unit_index) = temp.counts;
-    temp.per_behavioral_state_period.spike_rate_per_unit(:, unit_index) = temp.counts ./ active_processing.curr_activity_table.duration;
+    generalResults.counts = histc(active_processing.spikes.behavioral_duration_indicies{unit_index}(:), generalResults.edges);
+    generalResults.per_behavioral_state_period.num_spikes_per_unit(:, unit_index) = generalResults.counts;
+    generalResults.per_behavioral_state_period.spike_rate_per_unit(:, unit_index) = generalResults.counts ./ active_processing.curr_activity_table.duration;
     % active_processing.spikes.behavioral_duration_indicies{unit_index}
 
     % curr_activity_table.duration
@@ -130,9 +130,9 @@ end
 % 	
 % end % end for processing_config.step_sizes loop
 
-% fprintf('writing out results to %s...\n', data_config.output.results_file_path);
-% save(data_config.output.results_file_path, 'results_array');
-% fprintf('done.\n');
+fprintf('writing out results to %s...\n', data_config.output.results_file_path);
+save(data_config.output.results_file_path, 'results_array', 'generalResults');
+fprintf('done.\n');
 
 fprintf('PhoDibaProcess_Stage2 complete!\n');
 
