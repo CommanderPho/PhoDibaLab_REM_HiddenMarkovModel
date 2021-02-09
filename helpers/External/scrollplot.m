@@ -364,10 +364,10 @@ function hScroll = addScrollPlot(hAx,axName)
     hMenu = uicontextmenu;
     set(hScroll, 'UIContextMenu',hMenu);
     uimenu(hMenu, 'Label',msg{1}, 'Callback',@moveCursor, 'UserData', hBars(2));
-    uimenu(hMenu, 'Label',msg{2}, 'Callback',@moveCursor, 'UserData',hPatch);
+    uimenu(hMenu, 'Label',msg{2}, 'Callback',@moveCursor, 'UserData', hPatch);
 
 	%% TODO: Context Menu Move
-	uimenu(hMenu, 'Label', 'Center Window Here', 'Callback', @moveCursor, 'UserData',hPatch);
+	uimenu(hMenu, 'Label', 'Center Window Here', 'Callback', @contextMenuMoveToCallback, 'UserData', hFig);
 
 
     % Set the mouse callbacks
@@ -1126,6 +1126,8 @@ function mouseScrollCallback(hFig, src)
     end
 %end  % mouseScrollCallback  %#ok for Matlab 6 compatibility
 
+
+
 %% Helper: performMoveWindow 
 function performMoveWindowBy(hFig, newDelta)
 	try
@@ -1169,13 +1171,19 @@ function performMoveWindowTo(hFig, newPosition, isDelta)
 						temp_delta = newPosition(1);
 						newPosition = cp;
 						newPosition(1,1) = newPosition(1,1) + temp_delta;
-%                         newPosition(2,1) = newPosition(2,1) + temp_delta;
+		%                         newPosition(2,1) = newPosition(2,1) + temp_delta;
 					else
 						temp_delta = newPosition(2);
 						newPosition = cp;
 						newPosition(1,2) = newPosition(1,2) + temp_delta;
-%                         newPosition(2,2) = newPosition(2,2) + temp_delta;
+	%                         newPosition(2,2) = newPosition(2,2) + temp_delta;
 					end
+
+				elseif (size(newPosition) == size(cp))
+					newPosition = cp + newPosition;
+				elseif (size(newPosition, 2) == size(cp, 2))
+					num_repetitions = size(cp, 1) / size(newPosition, 2);
+					newPosition = cp + repmat(newPosition, [num_repetitions 1]);	
 				else
 					newPosition = cp + [newPosition; newPosition];
 				end
@@ -1190,10 +1198,10 @@ function performMoveWindowTo(hFig, newPosition, isDelta)
                 originalPoint = cp;
                 % originalLimits: 1x2 
                 if strcmpi(axName,'x')
-%                     originalX = cx;
+	%                     originalX = cx;
                     originalLimits([1,1,2,2]) = get(scrollPatch, dataStr);  % for some reason this is a 4x1 double [0;0;35354.0041003333;35354.0041003333]
                 else
-%                     originalX = cy;
+	%                     originalX = cy;
                     originalLimits([1,2,2,1]) = get(scrollPatch, dataStr);
                 end
                 originalLimits([1,1]) = get(scrollBars(1), dataStr);
@@ -1226,7 +1234,7 @@ function performMoveWindowTo(hFig, newPosition, isDelta)
 					set(parentAx, limStr, newXLim);
 				end
 
-% 				drawnow;
+
 
 				% done
 				rmappdataIfExists(hFig,'scrollBar_inProgress');
@@ -1491,6 +1499,26 @@ function moveptr(hAx, x, y)
     % Move the pointer
     set(0,'PointerLocation',NewLoc);
 %end  % moveptr  %#ok for Matlab 6 compatibility
+
+%% UiContextMenu callback - 
+function contextMenuMoveToCallback(varargin)
+	% cp = get(hFig, 'CurrentPoint');  % in Matlab pixels
+	try
+        % Get the x,y location of the center of the requested object
+        hScroll = handle(gca);
+        hObj = get(gcbo,'UserData'); % should be a figure
+		hFig = hObj;
+		cp = get(hFig, 'CurrentPoint');  % in Matlab pixels
+		disp(cp);
+		performMoveWindowTo(hFig, cp, false);
+        drawnow;
+    catch
+        % Never mind...
+        disp(lasterr);
+    end
+
+%end  % contextMenuMoveToCallback  %#ok for Matlab 6 compatibility
+
 
 %% UiContextMenu callback - Move cursor to center of requested element
 function moveCursor(varargin)
