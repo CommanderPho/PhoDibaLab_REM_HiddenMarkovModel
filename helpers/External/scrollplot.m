@@ -711,13 +711,8 @@ function mouseOutsidePatch(hFig,inDragMode,hAx)  %#ok Hax is unused
         
         % Restore the original WindowScrollWheelFcn callback
         if isappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn')
-            oldButtonUpFcn = getappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn');
-            axisComponent  = getappdata(hFig, 'scrollplot_oldButtonUpObj');
-            if ~isempty(axisComponent)
-                set(axisComponent, 'MouseReleasedCallback', oldButtonUpFcn);
-            else
-                set(hFig, 'WindowScrollWheelFcn', oldButtonUpFcn);
-            end
+            oldWindowScrollWheelFcn = getappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn');
+            set(hFig, 'WindowScrollWheelFcn', oldWindowScrollWheelFcn);           
             rmappdataIfExists(hFig, 'scrollplot_oldWindowScrollWheelFcn');
         end
         
@@ -775,6 +770,20 @@ function mouseWithinPatch(hFig,inDragMode,hAx,scrollPatch,cx,isOverBar)
                 rmappdataIfExists(hFig, 'scrollplot_clickedBarIdx');
             end
         end
+        
+        %% Scrollwheel Function
+        winScrollFcn = get(hFig,'WindowScrollWheelFcn');
+        if isempty(winScrollFcn) | (~isequal(winScrollFcn, @mouseScrollCallback) & (~iscell(winScrollFcn) | ~isequal(winScrollFcn{1},@mouseScrollCallback)))  %#ok for Matlab 6 compatibility
+            % Set the ButtonUpFcn callbacks
+            if ~isempty(winScrollFcn)
+                setappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn', winScrollFcn);
+            end
+            
+            oldWarn = warning('off','MATLAB:modes:mode:InvalidPropertySet');
+            set(hFig, 'WindowScrollWheelFcn',@mouseScrollCallback);
+            warning(oldWarn);
+        end
+        
 
         % If this is a drag movement (i.e., mouse button is clicked)
         if inDragMode
@@ -1093,16 +1102,20 @@ function mouseUpCallback(varargin)
 %end  % mouseUpCallback  %#ok for Matlab 6 compatibility
 
 %% Mouse scrollwheel callback function
-function mouseScrollCallback(obj, src)
-st = dbstack;%make sure not overloading thestateeditor
-if length(st)>1
-    for idx = 2:length(st)
-        if strmatch (st(idx).file,'TheStateEditor.m')%if state editor is already running
-            disp('You scrolled while TheStateEditor was still running, click later')
-            return
+function mouseScrollCallback(hFig, src)
+    
+    disp(src)
+    %     src.VerticalScrollCount > 0
+
+    % Try to chain the original WindowScrollWheelFcn (if available)
+    oldFcn = getappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn');
+    if ~isempty(oldFcn) & ~isequal(oldFcn,@mouseScrollCallback) & (~iscell(oldFcn) | ~isequal(oldFcn{1},@mouseScrollCallback))  %#ok for Matlab 6 compatibility
+        try
+            hgfeval(oldFcn);
+        catch
+            %hgfeval(oldFcn,hFig,[]);
         end
     end
-end
 %end  % mouseScrollCallback  %#ok for Matlab 6 compatibility
 
 %% Remove appdata if available
@@ -1120,8 +1133,11 @@ function axisComponent = getAxisComponent(hFig)
         else
             axisComponent = [];
             try oldWarn = warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame'); catch, end
-            try oldWarningState = warning('off', 'MATLAB:ui:javacomponent:FunctionToBeRemoved'); catch, end
-
+            try oldFunctionWarningState = warning('off', 'MATLAB:ui:javacomponent:FunctionToBeRemoved'); catch, end
+            try oldPropertyWarningState = warning('off', 'MATLAB:ui:javaframe:PropertyToBeRemoved'); catch, end
+            
+            
+            
             javaFrame = get(hFig,'JavaFrame');
             axisComponent = get(javaFrame,'AxisComponent');
             axisComponent = handle(axisComponent, 'CallbackProperties');
@@ -1134,9 +1150,11 @@ function axisComponent = getAxisComponent(hFig)
     catch
         % never mind...
     end
+     % revert to displaying the warnings
     try warning(oldWarn); catch, end
-    try warning(oldWarningState); catch, end  % revert to displaying the warning
-
+    try warning(oldFunctionWarningState); catch, end 
+    try warning(oldPropertyWarningState); catch, end
+    
 %end  % getAxisComponent  %#ok for Matlab 6 compatibility
 
 %% Get the scroll axes that the mouse is currently over
