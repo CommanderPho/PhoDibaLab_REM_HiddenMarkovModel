@@ -1226,7 +1226,7 @@ function performMoveWindowTo(hFig, newPosition, isDelta)
 					set(parentAx, limStr, newXLim);
 				end
 
-				drawnow;
+% 				drawnow;
 
 				% done
 				rmappdataIfExists(hFig,'scrollBar_inProgress');
