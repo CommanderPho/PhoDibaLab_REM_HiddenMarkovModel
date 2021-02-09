@@ -97,7 +97,7 @@ function scrollHandles = scrollplot(varargin)
 % referenced and attributed as such. The original author maintains the right to be solely associated with this work.
 
 % Programmed and Copyright by Yair M. Altman: altmany(at)gmail.com
-% $Revision: 1.7 $  $Date: 2015/07/16 12:22:32 $
+% $Revision: 1.8 $  $Date: 2021/02/09 12:22:32 $
 
     try
         % Note: on some systems with Matlab 6, an OpenGL warning is displayed due to semi-
@@ -716,9 +716,6 @@ function mouseOutsidePatch(hFig,inDragMode,hAx)  %#ok Hax is unused
             rmappdataIfExists(hFig, 'scrollplot_oldWindowScrollWheelFcn');
         end
         
-        
-        
-        
         % Additional cleanup
         rmappdataIfExists(hFig, 'scrollplot_mouseDownPointer');
         if ~inDragMode
@@ -792,7 +789,7 @@ function mouseWithinPatch(hFig,inDragMode,hAx,scrollPatch,cx,isOverBar)
             if isempty(scrollPatch)
                 scrollPatch = findobj(hAx, 'tag','scrollPatch');
             end
-            scrollBarIdx = getappdata(hFig, 'scrollplot_clickedBarIdx');
+            scrollBarIdx = getappdata(hFig, 'scrollplot_clickedBarIdx'); % This is the (left, right, none) bar that can be grabbed and dragged
             scrollBars = sort(findobj(hAx, 'tag','scrollBar'));
             %barsXs = cellfun(@(c)c(1),get(scrollBars,dataStr));  % cellfun is very limited on Matlab 6...
             barsXs = getFirstVals(get(scrollBars,dataStr));
@@ -817,12 +814,12 @@ function mouseWithinPatch(hFig,inDragMode,hAx,scrollPatch,cx,isOverBar)
                     %fprintf('%.3f ',[cx-originalX, deltaX, originalLimits(1), newLimits(1), allowedDelta])
                     %fprintf('\n');
                     if strcmpi(axName,'x')
-                        set(scrollPatch,   dataStr,newLimits([1,1,2,2]));
+                        set(scrollPatch, dataStr, newLimits([1,1,2,2]));
                     else
-                        set(scrollPatch,   dataStr,newLimits([1,2,2,1]));
+                        set(scrollPatch, dataStr, newLimits([1,2,2,1]));
                     end
-                    set(scrollBars(1), dataStr,newLimits([1,1]));
-                    set(scrollBars(2), dataStr,newLimits([2,2]));
+                    set(scrollBars(1), dataStr, newLimits([1,1]));
+                    set(scrollBars(2), dataStr, newLimits([2,2]));
                     setappdata(hFig, 'scrollplot_originalLimits', newLimits);
                     setappdata(hFig, 'scrollplot_originalX', cx);
                     if deltaX ~= 0
@@ -830,11 +827,11 @@ function mouseWithinPatch(hFig,inDragMode,hAx,scrollPatch,cx,isOverBar)
                     end
                 end
             elseif (scrollBarIdx == 1)  % left/bottom bar drag
-                set(scrollBars(scrollBarIdx), dataStr,[cx,cx]);
+                set(scrollBars(scrollBarIdx), dataStr, [cx,cx]);
                 if strcmpi(axName,'x')
-                    set(scrollPatch, dataStr,[cx,cx, max(oldPatchXs)*[1,1]]);
+                    set(scrollPatch, dataStr, [cx,cx, max(oldPatchXs)*[1,1]]);
                 else
-                    set(scrollPatch, dataStr,[cx, max(oldPatchXs)*[1,1], cx]);
+                    set(scrollPatch, dataStr, [cx, max(oldPatchXs)*[1,1], cx]);
                 end
                 delete(findall(0,'tag','scrollHelp'));
             else  % right/top bar drag
@@ -1103,18 +1100,125 @@ function mouseUpCallback(varargin)
 
 %% Mouse scrollwheel callback function
 function mouseScrollCallback(hFig, src)
-    
-    disp(src)
-    %     src.VerticalScrollCount > 0
+    try
+		if isempty(hFig) | ~ishandle(hFig),  return;  end  %#ok just in case..
+		hAx = getCurrentScrollAx(hFig);
+		inDragMode = isappdata(hFig, 'scrollplot_clickedBarIdx');
 
-    % Try to chain the original WindowScrollWheelFcn (if available)
-    oldFcn = getappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn');
-    if ~isempty(oldFcn) & ~isequal(oldFcn,@mouseScrollCallback) & (~iscell(oldFcn) | ~isequal(oldFcn{1},@mouseScrollCallback))  %#ok for Matlab 6 compatibility
-        try
-            hgfeval(oldFcn);
-        catch
-            %hgfeval(oldFcn,hFig,[]);
-        end
+ 		% Exit if already in progress - don't want to mess everything...
+        if isappdata(hFig,'scrollBar_inProgress'),  return;  end
+
+		% If mouse pointer is not currently over any scroll axes
+        if ~isempty(hAx) %& ~inDragMode  %#ok for Matlab 6 compatibility
+        	% Check whether the cursor is over any side bar
+            scrollPatch = findobj(hAx, 'tag','scrollPatch');
+            scrollBars = sort(findobj(hAx, 'tag','scrollBar'));
+			axName = get(hAx,'userdata');
+			dataStr = [axName 'Data'];
+        	limStr  = [axName 'Lim'];
+			cp = get(hAx,'CurrentPoint');
+			cx = cp(1,1);
+			cy = cp(1,2);
+			xlim = get(hAx,'Xlim');
+			ylim = get(hAx,'Ylim');
+			limits = get(hAx, limStr);
+
+			disp(src)
+			%     src.VerticalScrollCount > 0
+
+			nudge_multiplier = 1.0;
+			nudge_amount = src.VerticalScrollCount * nudge_multiplier;
+			updated_cx = cx + nudge_amount;
+			
+			fprintf('nudge amount: %.3f\n',[nudge_amount])
+
+
+
+            % isOverBar = 0;
+            % cx = [];
+            if ~isempty(scrollPatch)
+				% From this moment on, don't allow any interruptions
+            	setappdata(hFig,'scrollBar_inProgress',1);
+
+                scrollPatch = scrollPatch(1);
+                
+                % barXs = unique(get(scrollPatch, dataStr));
+				% if strcmpi(get(hAx,[axName 'Scale']), 'log')
+                %     fuzz = 0.01 * diff(log(abs(limits)));  % tolerances (1%) in axes units
+                %     barXs = log10(barXs);
+                %     if strcmpi(axName,'x')
+                %         cx = log10(cx);
+                %     else
+                %         cy = log10(cy);
+                %     end
+                % else
+                %     fuzz = 0.01 * diff(limits);  % tolerances (1%) in axes units
+                % end
+                % if isempty(barXs),  return;  end
+                % if strcmpi(axName,'x')
+                %     inXTest = any(barXs-fuzz < cx) & any(cx < barXs+fuzz);
+                %     inYTest = (ylim(1) < cy) & (cy < ylim(2));
+                %     isOverBar = any(abs(cx-barXs)<fuzz); %(barXs-fuzz < cx) & (cx < barXs+fuzz));
+                % else  % Y scroll
+                %     inXTest = (xlim(1) < cx) & (cx < xlim(2));
+                %     inYTest = any(barXs-fuzz < cy) & any(cy < barXs+fuzz);
+                %     isOverBar = any(abs(cy-barXs)<fuzz); %(barXs-fuzz < cy) & (cy < barXs+fuzz));
+                %     cx = cy;  % for use in mouseWithinPatch below
+                % end
+                % scrollPatch = scrollPatch(inXTest & inYTest);
+                % if strcmpi(get(hAx,[axName 'Scale']), 'log')
+                %     cx = 10^cx;  % used below
+                % end
+
+				oldPatchXs = get(scrollPatch, dataStr);
+				axLimits = get(hAx, limStr);
+				updated_cx = min(max(updated_cx, axLimits(1)), axLimits(2));
+				originalX = getappdata(hFig, 'scrollplot_originalX');
+                originalLimits = getappdata(hFig, 'scrollplot_originalLimits');
+                if ~isempty(originalLimits)
+                    allowedDelta = [min(0,axLimits(1)-originalLimits(1)), max(0,axLimits(2)-originalLimits(2))];
+                    deltaX = min(max(updated_cx-originalX, allowedDelta(1)), allowedDelta(2));
+                    if strcmpi(get(hAx,[axName 'Scale']), 'log')
+                        newLimits = 10.^(log10(originalLimits) + deltaX);
+                    else  % linear axis scale
+                        newLimits = originalLimits + deltaX;
+                    end
+                    %fprintf('%.3f ',[cx-originalX, deltaX, originalLimits(1), newLimits(1), allowedDelta])
+                    %fprintf('\n');
+                    if strcmpi(axName,'x')
+                        set(scrollPatch, dataStr, newLimits([1,1,2,2]));
+                    else
+                        set(scrollPatch, dataStr, newLimits([1,2,2,1]));
+                    end
+                    set(scrollBars(1), dataStr, newLimits([1,1]));
+                    set(scrollBars(2), dataStr, newLimits([2,2]));
+                    setappdata(hFig, 'scrollplot_originalLimits', newLimits);
+                    setappdata(hFig, 'scrollplot_originalX', updated_cx);
+                    if deltaX ~= 0
+                        delete(findall(0,'tag','scrollHelp'));
+                    end
+                end
+
+
+				% done
+				rmappdataIfExists(hFig,'scrollBar_inProgress');
+			end % end ~isempty(scrollPatch)
+
+		end % end ~isempty(hAx)
+
+		% Try to chain the original WindowScrollWheelFcn (if available)
+		oldFcn = getappdata(hFig, 'scrollplot_oldWindowScrollWheelFcn');
+		if ~isempty(oldFcn) & ~isequal(oldFcn,@mouseScrollCallback) & (~iscell(oldFcn) | ~isequal(oldFcn{1},@mouseScrollCallback))  %#ok for Matlab 6 compatibility
+			try
+				hgfeval(oldFcn);
+			catch
+				%hgfeval(oldFcn,hFig,[]);
+			end
+		end
+    catch
+        % never mind...
+        disp(lasterr);
+		rmappdataIfExists(hFig,'scrollBar_inProgress');
     end
 %end  % mouseScrollCallback  %#ok for Matlab 6 compatibility
 
