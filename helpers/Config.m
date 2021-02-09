@@ -45,3 +45,6 @@ else
     subplot_cmd = @(m,n,p) subplot(m, n, p);
 end
 
+
+% showOnlyAlwaysStableCells: shows only cells that are stable across all three behavioral epochs
+processing_config.showOnlyAlwaysStableCells = true;

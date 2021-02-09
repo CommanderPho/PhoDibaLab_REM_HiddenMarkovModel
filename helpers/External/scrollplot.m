@@ -1128,8 +1128,8 @@ function mouseScrollCallback(hFig, src)
 
 			nudge_multiplier = 1.0;
 			nudge_amount = src.VerticalScrollCount * nudge_multiplier;
-			fprintf('original point: %.3f\n',[cx])
-			fprintf('nudge amount: %.3f\n',[nudge_amount])
+% 			fprintf('original point: %.3f\n',[cx]);
+% 			fprintf('nudge amount: %.3f\n',[nudge_amount]);
 			
 
 
@@ -1140,36 +1140,7 @@ function mouseScrollCallback(hFig, src)
             	setappdata(hFig,'scrollBar_inProgress',1);
 
                 scrollPatch = scrollPatch(1);
-                
-                % barXs = unique(get(scrollPatch, dataStr));
-				% if strcmpi(get(hAx,[axName 'Scale']), 'log')
-                %     fuzz = 0.01 * diff(log(abs(limits)));  % tolerances (1%) in axes units
-                %     barXs = log10(barXs);
-                %     if strcmpi(axName,'x')
-                %         cx = log10(cx);
-                %     else
-                %         cy = log10(cy);
-                %     end
-                % else
-                %     fuzz = 0.01 * diff(limits);  % tolerances (1%) in axes units
-                % end
-                % if isempty(barXs),  return;  end
-                % if strcmpi(axName,'x')
-                %     inXTest = any(barXs-fuzz < cx) & any(cx < barXs+fuzz);
-                %     inYTest = (ylim(1) < cy) & (cy < ylim(2));
-                %     isOverBar = any(abs(cx-barXs)<fuzz); %(barXs-fuzz < cx) & (cx < barXs+fuzz));
-                % else  % Y scroll
-                %     inXTest = (xlim(1) < cx) & (cx < xlim(2));
-                %     inYTest = any(barXs-fuzz < cy) & any(cy < barXs+fuzz);
-                %     isOverBar = any(abs(cy-barXs)<fuzz); %(barXs-fuzz < cy) & (cy < barXs+fuzz));
-                %     cx = cy;  % for use in mouseWithinPatch below
-                % end
-                % scrollPatch = scrollPatch(inXTest & inYTest);
-                % if strcmpi(get(hAx,[axName 'Scale']), 'log')
-                %     cx = 10^cx;  % used below
-                % end
-
-% 				oldPatchXs = get(scrollPatch, dataStr);
+             
 				axLimits = get(hAx, limStr);
                 
                 originalX = cx;
@@ -1182,15 +1153,10 @@ function mouseScrollCallback(hFig, src)
                 originalLimits([1,1]) = get(scrollBars(1), dataStr);
                 originalLimits([2,2]) = get(scrollBars(2), dataStr);
                 
-                      
                 updated_cx = cx + nudge_amount;              
 				updated_cx = min(max(updated_cx, axLimits(1)), axLimits(2));
-                
-                fprintf('updated point: %.3f\n',[updated_cx])
-                
-% 				originalX = getappdata(hFig, 'scrollplot_originalX');
-%                 originalLimits = getappdata(hFig, 'scrollplot_originalLimits');
-                
+%                 fprintf('updated point: %.3f\n',[updated_cx])
+               
                 allowedDelta = [min(0,axLimits(1)-originalLimits(1)), max(0,axLimits(2)-originalLimits(2))];
                 deltaX = min(max(updated_cx-originalX, allowedDelta(1)), allowedDelta(2));
                 if strcmpi(get(hAx,[axName 'Scale']), 'log')
@@ -1198,8 +1164,6 @@ function mouseScrollCallback(hFig, src)
                 else  % linear axis scale
                     newLimits = originalLimits + [deltaX deltaX];
                 end
-                %fprintf('%.3f ',[cx-originalX, deltaX, originalLimits(1), newLimits(1), allowedDelta])
-                %fprintf('\n');
                 if strcmpi(axName,'x')
                     set(scrollPatch, dataStr, newLimits([1,1,2,2]));
                 else
@@ -1207,14 +1171,10 @@ function mouseScrollCallback(hFig, src)
                 end
                 set(scrollBars(1), dataStr, newLimits([1,1]));
                 set(scrollBars(2), dataStr, newLimits([2,2]));
-%                 setappdata(hFig, 'scrollplot_originalLimits', newLimits);
-%                 setappdata(hFig, 'scrollplot_originalX', updated_cx);
                 if deltaX ~= 0
                     delete(findall(0,'tag','scrollHelp'));
                 end
                 
-
-
 				% Modify the parent axes accordingly
 				parentAx = getappdata(hAx, 'parent');
 				newXLim = unique(get(scrollPatch,dataStr));
@@ -1227,7 +1187,6 @@ function mouseScrollCallback(hFig, src)
 
 				% done
 				rmappdataIfExists(hFig,'scrollBar_inProgress');
-
 
 			end % end ~isempty(scrollPatch)
 

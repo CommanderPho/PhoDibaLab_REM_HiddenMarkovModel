@@ -31,6 +31,13 @@ end
 fprintf('PhoDibaProcess_Stage2 ready to process!\n');
 
 
+%% Find units that are stable across all sessions:
+active_processing.spikes.stability_count = sum(active_processing.spikes.isStable, 2);
+isAlwaysStable = (active_processing.spikes.stability_count == 3);
+numAlwaysStableCells = sum(isAlwaysStable, 'all');
+
+
+
 
 %% Compute ISIs:
 active_processing.spikes.ISIs = cellfun((@(spikes_timestamps) diff(spikes_timestamps)), ...

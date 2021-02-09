@@ -8,6 +8,7 @@ plotting_options.window_duration = 3; % 10 seconds
 
 plotting_options.active_timesteps = timesteps_array{1};
 plotting_options.total_duration = plotting_options.active_timesteps(end) - plotting_options.active_timesteps(1);
+plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
 
 
 % temp.num_whole_windows = floor(plotting_options.total_duration / plotting_options.window_duration);
@@ -70,11 +71,20 @@ function [plotted_figH, plotHandle] = pho_plot_spikeRaster(active_processing, pl
     % rasterWindowOffset: x-axis window start time
 %     hold off
     
-    [~, ~, plotHandle] = plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
-    
+    if plotting_options.showOnlyAlwaysStableCells
+        isAlwaysStable = (active_processing.spikes.stability_count == 3);
+        numAlwaysStableCells = sum(isAlwaysStable, 'all');
+        [~, ~, plotHandle] = plotSpikeRaster(active_processing.spikes.time(isAlwaysStable),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        ylabel('Stable Unit Index')
+        title(sprintf('Spike Train for Always Stable Units (%d of %d total)', numAlwaysStableCells, length(active_processing.spikes.time)));
+    else
+        [~, ~, plotHandle] = plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        ylabel('Unit Index')
+        title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
+    end
     xlabel('Time [seconds]')
-    ylabel('Unit Index')
-    title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
+    
+    
     set(gca,'XTick',[]);
     drawnow;
 end
