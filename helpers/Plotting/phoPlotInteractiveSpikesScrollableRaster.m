@@ -85,6 +85,6 @@ function [plotted_figH, plotHandle] = pho_plot_spikeRaster(active_processing, pl
     xlabel('Time [seconds]')
     
     
-    set(gca,'XTick',[]);
+%     set(gca,'XTick',[]);
     drawnow;
 end
