@@ -6,7 +6,7 @@ function [fig, h] = fnPhoPlotCorrelationalResults(active_processing, active_resu
 % temp.active_idx = num_of_electrodes-5:num_of_electrodes;
 temp.active_idx = 2; % used only for xcorr mode
 
-num_of_electrodes = size(active_results.indicies.reverse_lookup_unique_electrode_pairs, 1);
+num_of_electrodes = size(general_results.indicies.reverse_lookup_unique_electrode_pairs, 1);
 
 %% Display the Correlational Results:
 %%%%%%%%%%%%%%%%%%%%%
@@ -106,7 +106,7 @@ elseif strcmpi(plottingOptions.plotMode,'xcorr')
         plottingOptions.ylabel = 'xcorr'; 
     end
 
-    temp.found_lin_idx = active_results.indicies.reverse_lookup_unique_electrode_pairs(temp.active_idx, :); % 1x126 double
+    temp.found_lin_idx = general_results.indicies.reverse_lookup_unique_electrode_pairs(temp.active_idx, :); % 1x126 double
     temp.preview_subset = 1:num_of_electrodes;
     temp.preview_subset_size = length(temp.preview_subset);
     temp.active_found_lin_idx = temp.found_lin_idx(temp.preview_subset);
