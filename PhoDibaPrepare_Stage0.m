@@ -5,7 +5,6 @@ addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
 clear all;
 
-
 if ~exist('data_config','var')
     Config;
 end
@@ -24,21 +23,13 @@ num_of_electrodes = height(active_processing.spikes);
 %% Any spikes that occur within that period
 %% the experimental_phase it belongs in {pre_sleep, track, post_sleep}
 
-
-
-
-
-
-
-
-
 %%
 %%%%% spikes table pre-processing:
 
 %% Find units that are stable across all sessions:
 active_processing.spikes.stability_count = sum(active_processing.spikes.isStable, 2);
 active_processing.spikes.isAlwaysStable = (active_processing.spikes.stability_count == 3);
-numAlwaysStableCells = sum(isAlwaysStable, 'all');
+numAlwaysStableCells = sum(active_processing.spikes.isAlwaysStable, 'all');
 
 
 %% Compute ISIs:

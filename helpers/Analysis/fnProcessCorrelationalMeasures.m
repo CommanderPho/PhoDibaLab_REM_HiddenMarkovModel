@@ -40,16 +40,19 @@ pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets
 % pre-allocate output
 
 % parfor unpacking
-smoothed_spike_data_matrix = active_spike_data_matrix;
+smoothed_spike_data_matrix = active_spike_data_matrix; % 353510x126 double
 unique_electrode_index_pairs = active_results_indicies.unique_electrode_pairs;
-max_xcorr_lag = processing_config.max_xcorr_lag;
 
-output_pairwise_xcorrelations = zeros([active_results_indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]);
-parfor i = 1:active_results_indicies.num_unique_pairs
+%% max_xcorr_lag must be specified in terms of samples (num unit timesteps), not seconds, so we must convert by dividing by the currStepSize
+max_xcorr_lag_unit_time = processing_config.max_xcorr_lag / currStepSize;
+
+output_pairwise_xcorrelations = zeros([active_results_indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]); % 7875x181 double
+for i = 1:active_results_indicies.num_unique_pairs
 %    temp.curr_pair = active_result.indicies.unique_electrode_pairs(i,:);
+    % smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,1)): 353510x1 double
    output_pairwise_xcorrelations(i,:) = xcorr(smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,1)), ...
        smoothed_spike_data_matrix(:, unique_electrode_index_pairs(i,2)), ...
-       max_xcorr_lag,'normalized');
+       max_xcorr_lag_unit_time,'normalized'); % 181x1 double
 end
 
 pairwise_xcorrelations.xcorr = output_pairwise_xcorrelations;
