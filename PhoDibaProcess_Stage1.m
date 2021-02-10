@@ -18,18 +18,24 @@ else
     fprintf('active_processing already exists in workspace. Using extant data.\n');
 end
 
+
 %% Pairwise Indexing:
 % Generates all unique pairs of indicies for pairwise comparisons (without replacement or repetition)
-active_results.indicies.unique_electrode_pairs = nchoose2([1:num_of_electrodes]);
-active_results.indicies.num_unique_pairs = length(active_results.indicies.unique_electrode_pairs);
+general_results.indicies.unique_electrode_pairs = nchoose2([1:num_of_electrodes]);
+general_results.indicies.num_unique_pairs = length(general_results.indicies.unique_electrode_pairs);
 
 % Build a reverse lookup matrix
-active_results.indicies.reverse_lookup_unique_electrode_pairs = zeros(num_of_electrodes);
-for linear_pair_idx = 1:active_results.indicies.num_unique_pairs
-	curr_pair = active_results.indicies.unique_electrode_pairs(linear_pair_idx,:);
-	active_results.indicies.reverse_lookup_unique_electrode_pairs(curr_pair(1), curr_pair(2)) = linear_pair_idx;
-	active_results.indicies.reverse_lookup_unique_electrode_pairs(curr_pair(2), curr_pair(1)) = linear_pair_idx;
+general_results.indicies.reverse_lookup_unique_electrode_pairs = zeros(num_of_electrodes);
+for linear_pair_idx = 1:general_results.indicies.num_unique_pairs
+	curr_pair = general_results.indicies.unique_electrode_pairs(linear_pair_idx,:);
+	general_results.indicies.reverse_lookup_unique_electrode_pairs(curr_pair(1), curr_pair(2)) = linear_pair_idx;
+	general_results.indicies.reverse_lookup_unique_electrode_pairs(curr_pair(2), curr_pair(1)) = linear_pair_idx;
 end
+
+
+%% Get the duration of the states 
+general_results.GroupedByState.groups = findgroups(active_processing.behavioral_periods_table.type);
+general_results.GroupedByState.durations = splitapply(@sum, active_processing.behavioral_periods_table.duration, general_results.GroupedByState.groups);
 
 
 %% Build the Correlational Results:
@@ -37,15 +43,14 @@ processing_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-corr
 
 results_array = cell([length(processing_config.step_sizes) 1]);
 
+
+%% Loop through each listed binning/step size and built an "results_array"
 for current_binning_index = 1:length(processing_config.step_sizes)
 	temp.curr_timestamps = timesteps_array{current_binning_index};
 	temp.curr_processed = active_processing.processed_array{current_binning_index};
-
-	[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.all.smoothed_spike_data, active_results.indicies, processing_config);
-
-	%% Display the Correlational Results:
-	% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
-
+    temp.curr_step_size = processing_config.step_sizes{current_binning_index};
+    
+	[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.all.smoothed_spike_data, general_results.indicies, processing_config, temp.curr_step_size);
 
 	%% Aggregate Measures:
 
@@ -54,7 +59,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 		temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
 		% size(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data): 1 x 126
 		[~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data, ...
-			active_results.indicies, processing_config);
+			general_results.indicies, processing_config, temp.curr_step_size);
 
 		active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes = cell2mat(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data);
 		active_results.aggregates.by_epoch.(temp.curr_epoch_name).across_all_cells.count = sum(active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes, 2);
@@ -75,7 +80,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 		temp.curr_state_name =  active_processing.behavioral_state_names{i};
 		
 		[~, active_results.by_state.(temp.curr_state_name).autocorrelations, active_results.by_state.(temp.curr_state_name).partial_autocorrelations, active_results.by_state.(temp.curr_state_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_state.(temp.curr_state_name).smoothed_spike_data, ...
-			active_results.indicies, processing_config);
+			general_results.indicies, processing_config, temp.curr_step_size);
 
 		active_results.aggregates.by_state.(temp.curr_state_name).spikes = cell2mat(temp.curr_processed.by_state.(temp.curr_state_name).smoothed_spike_data);
 		active_results.aggregates.by_state.(temp.curr_state_name).across_all_cells.count = sum(active_results.aggregates.by_state.(temp.curr_state_name).spikes, 2);
@@ -101,7 +106,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 end % end for processing_config.step_sizes loop
 
 fprintf('writing out results to %s...\n', data_config.output.results_file_path);
-save(data_config.output.results_file_path, 'results_array');
+save(data_config.output.results_file_path, 'general_results', 'results_array');
 fprintf('done.\n');
 
 fprintf('PhoDibaProcess_Stage1 complete!\n');

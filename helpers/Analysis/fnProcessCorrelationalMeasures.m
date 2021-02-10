@@ -1,4 +1,4 @@
-function [active_spike_data_matrix, autocorrelations, partial_autocorrelations, pairwise_xcorrelations] = fnProcessCorrelationalMeasures(spike_data, active_results_indicies, processing_config)
+function [active_spike_data_matrix, autocorrelations, partial_autocorrelations, pairwise_xcorrelations] = fnProcessCorrelationalMeasures(spike_data, active_results_indicies, processing_config, currStepSize)
 %CORR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -29,7 +29,7 @@ end
 % 
 % [pairwise_correlations.rho, pairwise_correlations.pval] = corr(temp.smoothed_spike_data_matrix);
 
-pairwise_xcorrelations.lag_offsets = (-processing_config.max_xcorr_lag):processing_config.max_xcorr_lag;
+pairwise_xcorrelations.lag_offsets = (-processing_config.max_xcorr_lag):currStepSize:processing_config.max_xcorr_lag;
 pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets);
 
 % [pairwise_xcorrelations.xcorr, pairwise_xcorrelations.lags] = xcorr(temp.smoothed_spike_data_matrix, processing_config.max_xcorr_lag, 'normalized'); 

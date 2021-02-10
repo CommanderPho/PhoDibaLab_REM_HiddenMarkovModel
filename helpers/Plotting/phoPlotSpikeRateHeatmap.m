@@ -10,12 +10,12 @@ extantFigH = figure(9);
 if plotting_options.showOnlyAlwaysStableCells
     isAlwaysStable = (active_processing.spikes.stability_count == 3);
     numAlwaysStableCells = sum(isAlwaysStable, 'all');
-    plotHandle = heatmap(generalResults.per_behavioral_state_period.spike_rate_per_unit);
+    plotHandle = heatmap(general_results.per_behavioral_state_period.spike_rate_per_unit);
 
     xlabel('Stable Unit Index')
     title(sprintf('Behavioral State Period vs. Unit Spike Rate (for Always Stable Units (%d of %d total))', numAlwaysStableCells, length(active_processing.spikes.time)));
 else
-    plotHandle = heatmap(generalResults.per_behavioral_state_period.spike_rate_per_unit);
+    plotHandle = heatmap(general_results.per_behavioral_state_period.spike_rate_per_unit);
     xlabel('Unit Index')
     title('Behavioral State Period vs. Unit Spike Rate');
 end

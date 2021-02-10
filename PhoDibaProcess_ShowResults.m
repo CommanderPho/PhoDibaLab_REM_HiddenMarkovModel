@@ -21,7 +21,7 @@ end
 
 if ~exist('results_array','var') %TEMP: cache the loaded data to rapidly prototype the script
     fprintf('loading results from %s...\n', data_config.output.results_file_path);
-    load(data_config.output.results_file_path, 'results_array', 'generalResults');
+    load(data_config.output.results_file_path, 'results_array', 'general_results');
     fprintf('done. Contains results for %d different bin sizes.\n', length(results_array));
 else
     fprintf('results_array already exists in workspace. Contains results for %d different bin sizes. Using extant data.\n', length(results_array));
@@ -46,11 +46,11 @@ fprintf('Plotting results with bin resolution set to %d.\n', active_binning_reso
 
 
 %% Display the Correlational Results:
-xcorr_fig = figure(4);
+xcorr_fig = figure(14);
 plotting_options.plotMode = 'xcorr';
 [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, xcorr_fig);
     
-autocorr_fig = figure(5);
+autocorr_fig = figure(15);
 % plotting_options.timestamps = temp.curr_timestamps;
 plotting_options.plotMode = 'autocorr';
 [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, autocorr_fig);
@@ -65,9 +65,9 @@ phoPlotSpikeRateHeatmap;
 phoPlotInteractiveSpikesScrollableRaster;
 
 
-    %% Display the Correlational Results:
-	% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
-    
+%% Display the Correlational Results:
+% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_results);
+
     
 
 % phoPlotSpikeRateHeatmap;

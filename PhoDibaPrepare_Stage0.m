@@ -19,13 +19,27 @@ end
 % Each entry in active_processing.spikes has a variable number of double entries, indicating the relative offset (in seconds) the spike occured for each unit.
 num_of_electrodes = height(active_processing.spikes);
 
-%% For each behavioral period in curr_activity_table:
+%% For each behavioral period in behavioral_periods_table:
 % we want to be able to extract:
 %% Any spikes that occur within that period
 %% the experimental_phase it belongs in {pre_sleep, track, post_sleep}
 
-%% Partition spikes based on behavioral state:
-temp.curr_num_of_behavioral_states = height(active_processing.curr_activity_table);
+
+
+
+
+
+
+
+
+%%
+%%%%% spikes table pre-processing:
+
+%% Find units that are stable across all sessions:
+active_processing.spikes.stability_count = sum(active_processing.spikes.isStable, 2);
+active_processing.spikes.isAlwaysStable = (active_processing.spikes.stability_count == 3);
+numAlwaysStableCells = sum(isAlwaysStable, 'all');
+
 
 %% Compute ISIs:
 active_processing.spikes.ISIs = cellfun((@(spikes_timestamps) diff(spikes_timestamps)), ...
@@ -38,7 +52,8 @@ active_processing.spikes.ISIVariance = cellfun((@(spikes_ISIs) var(spikes_ISIs))
  active_processing.spikes.ISIs, 'UniformOutput', false);
 
 
-
+%% Partition spikes based on behavioral state:
+temp.curr_num_of_behavioral_states = height(active_processing.behavioral_periods_table);
 temp.spikes_behavioral_states = cell([num_of_electrodes, 1]);
 temp.spikes_behavioral_epoch = cell([num_of_electrodes, 1]);
 
@@ -53,10 +68,10 @@ end
 
 % Loop over behavioral activities
 for state_index = 1:temp.curr_num_of_behavioral_states
-    temp.curr_state_start = active_processing.curr_activity_table.epoch_start_seconds(state_index);
-    temp.curr_state_end = active_processing.curr_activity_table.epoch_end_seconds(state_index);
-    temp.curr_state_type = active_processing.curr_activity_table.type(state_index);
-    temp.curr_epoch_type = active_processing.curr_activity_table.behavioral_epoch(state_index);
+    temp.curr_state_start = active_processing.behavioral_periods_table.epoch_start_seconds(state_index);
+    temp.curr_state_end = active_processing.behavioral_periods_table.epoch_end_seconds(state_index);
+    temp.curr_state_type = active_processing.behavioral_periods_table.type(state_index);
+    temp.curr_epoch_type = active_processing.behavioral_periods_table.behavioral_epoch(state_index);
     
     fprintf('behavioral state progress: %d/%d\n', state_index, temp.curr_num_of_behavioral_states);
     
