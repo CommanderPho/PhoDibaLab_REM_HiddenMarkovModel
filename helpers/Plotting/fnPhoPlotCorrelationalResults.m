@@ -1,4 +1,4 @@
-function [fig, h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plottingOptions, extantFigure)
+function [fig, h] = fnPhoPlotCorrelationalResults(active_processing, general_results, active_results, plottingOptions, extantFigure)
 %FNPHOPLOTCORRELATIONALRESULTS Summary of this function goes here
 %   Detailed explanation goes here
 

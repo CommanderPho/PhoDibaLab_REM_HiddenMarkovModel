@@ -48,12 +48,12 @@ fprintf('Plotting results with bin resolution set to %d.\n', active_binning_reso
 %% Display the Correlational Results:
 xcorr_fig = figure(14);
 plotting_options.plotMode = 'xcorr';
-[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, xcorr_fig);
+[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, general_results, active_results, plotting_options, xcorr_fig);
     
 autocorr_fig = figure(15);
 % plotting_options.timestamps = temp.curr_timestamps;
 plotting_options.plotMode = 'autocorr';
-[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, active_results, plotting_options, autocorr_fig);
+[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, general_results, active_results, plotting_options, autocorr_fig);
 
 
 
