@@ -50,18 +50,18 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 	temp.curr_processed = active_processing.processed_array{current_binning_index};
     temp.curr_step_size = processing_config.step_sizes{current_binning_index};
     
-	[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.all.smoothed_spike_data, general_results.indicies, processing_config, temp.curr_step_size);
+	[~, active_results.all.autocorrelations, active_results.all.partial_autocorrelations, active_results.all.pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.all.binned_spike_counts, general_results.indicies, processing_config, temp.curr_step_size);
 
 	%% Aggregate Measures:
 
 	%% Split based on experiment epoch:
 	for i = 1:length(data_config.behavioral_epoch_names)
 		temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
-		% size(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data): 1 x 126
-		[~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data, ...
+		% size(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts): 1 x 126
+		[~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts, ...
 			general_results.indicies, processing_config, temp.curr_step_size);
 
-		active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes = cell2mat(temp.curr_processed.by_epoch.(temp.curr_epoch_name).smoothed_spike_data);
+		active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes = cell2mat(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts);
 		active_results.aggregates.by_epoch.(temp.curr_epoch_name).across_all_cells.count = sum(active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes, 2);
 		active_results.aggregates.by_epoch.(temp.curr_epoch_name).total_counts = sum(active_results.aggregates.by_epoch.(temp.curr_epoch_name).spikes, 'all');
 		
@@ -79,10 +79,10 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 	for i = 1:length(active_processing.behavioral_state_names)
 		temp.curr_state_name =  active_processing.behavioral_state_names{i};
 		
-		[~, active_results.by_state.(temp.curr_state_name).autocorrelations, active_results.by_state.(temp.curr_state_name).partial_autocorrelations, active_results.by_state.(temp.curr_state_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_state.(temp.curr_state_name).smoothed_spike_data, ...
+		[~, active_results.by_state.(temp.curr_state_name).autocorrelations, active_results.by_state.(temp.curr_state_name).partial_autocorrelations, active_results.by_state.(temp.curr_state_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_state.(temp.curr_state_name).binned_spike_counts, ...
 			general_results.indicies, processing_config, temp.curr_step_size);
 
-		active_results.aggregates.by_state.(temp.curr_state_name).spikes = cell2mat(temp.curr_processed.by_state.(temp.curr_state_name).smoothed_spike_data);
+		active_results.aggregates.by_state.(temp.curr_state_name).spikes = cell2mat(temp.curr_processed.by_state.(temp.curr_state_name).binned_spike_counts);
 		active_results.aggregates.by_state.(temp.curr_state_name).across_all_cells.count = sum(active_results.aggregates.by_state.(temp.curr_state_name).spikes, 2);
 		active_results.aggregates.by_state.(temp.curr_state_name).total_counts = sum(active_results.aggregates.by_state.(temp.curr_state_name).spikes, 'all');
 		

@@ -9,19 +9,19 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
     
     %% Pre-allocation of output variables:
 	output.all.spike_data = cell(output_cell_size);
-    output.all.smoothed_spike_data = cell(output_cell_size);
+    output.all.binned_spike_counts = cell(output_cell_size);
     %% Split based on experiment epoch:
     for i = 1:length(data_config.behavioral_epoch_names)
         temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
         output.by_epoch.(temp.curr_epoch_name).spike_data = cell(output_cell_size);
-        output.by_epoch.(temp.curr_epoch_name).smoothed_spike_data = cell(output_cell_size);
+        output.by_epoch.(temp.curr_epoch_name).binned_spike_counts = cell(output_cell_size);
     end
 
     %% Split based on behavioral state:
     for i = 1:length(active_processing.behavioral_state_names)
         temp.curr_state_name =  active_processing.behavioral_state_names{i};
         output.by_state.(temp.curr_state_name).spike_data = cell(output_cell_size);
-        output.by_state.(temp.curr_state_name).smoothed_spike_data = cell(output_cell_size);
+        output.by_state.(temp.curr_state_name).binned_spike_counts = cell(output_cell_size);
     end
         
         
@@ -35,32 +35,32 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
 			'VariableNames',{'behavioral_epoch','behavioral_state','behavioral_period_index'});
 		
 		output.all.spike_data{electrode_index} = temp.curr_timetable;
-		output.all.smoothed_spike_data{electrode_index} = histcounts(output.all.spike_data{electrode_index}.Time, timesteps)';
+		output.all.binned_spike_counts{electrode_index} = histcounts(output.all.spike_data{electrode_index}.Time, timesteps)';
 
 		%% Split based on experiment epoch:
 		for i = 1:length(data_config.behavioral_epoch_names)
 			temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
 			output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
-			output.by_epoch.(temp.curr_epoch_name).smoothed_spike_data{electrode_index} = histcounts(output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index}.Time, timesteps)';
+			output.by_epoch.(temp.curr_epoch_name).binned_spike_counts{electrode_index} = histcounts(output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index}.Time, timesteps)';
 		end
 		
 		%% Split based on behavioral state:
 		for i = 1:length(active_processing.behavioral_state_names)
 			temp.curr_state_name =  active_processing.behavioral_state_names{i};
 			output.by_state.(temp.curr_state_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_state == temp.curr_state_name), :);
-			output.by_state.(temp.curr_state_name).smoothed_spike_data{electrode_index} = histcounts(output.by_state.(temp.curr_state_name).spike_data{electrode_index}.Time, timesteps)';
+			output.by_state.(temp.curr_state_name).binned_spike_counts{electrode_index} = histcounts(output.by_state.(temp.curr_state_name).spike_data{electrode_index}.Time, timesteps)';
 		end
 
 	end % end for
 
 
-	% output.all.smoothed_spike_data = cell([num_of_electrodes, 1]);
+	% output.all.binned_spike_counts = cell([num_of_electrodes, 1]);
 	% for electrode_index = 1:num_of_electrodes
 	%     % Gaussian smoothing of spike data:
 	%     fprintf('progress: %d/%d\n', electrode_index, num_of_electrodes);
 	%     % This retimed version is pretty slow: > 30 seconds execution time.
 	%     output.normalized_spike_data{electrode_index} = retime(active_processing.processed.all.spike_data{electrode_index},'regular','count','TimeStep', seconds(1));    
-	%     output.all.smoothed_spike_data{electrode_index} = smoothdata(output.normalized_spike_data{electrode_index},'gaussian', seconds(1.5));
+	%     output.all.binned_spike_counts{electrode_index} = smoothdata(output.normalized_spike_data{electrode_index},'gaussian', seconds(1.5));
 	% 
 	%     histcounts(active_processing.processed.all.spike_data{electrode_index}, timesteps);
 	%     
