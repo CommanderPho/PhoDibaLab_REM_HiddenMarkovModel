@@ -17,13 +17,7 @@ partial_autocorrelations = cellfun((@(spike_timestamps) parcorr(spike_timestamps
 %% Cross-Correlations:
 
 %% Extract all timeseries in the appropriate matrix format:
-% 1 x 126 cell should not be transposed.
-% 126 x 1 cell should
-if (size(spike_data, 1) > size(spike_data, 2))
-   active_spike_data_matrix = cell2mat(spike_data'); % 35351x126 double
-else
-   active_spike_data_matrix = cell2mat(spike_data); % 35351x126 double
-end
+[active_spike_data_matrix] = fnUnitDataCells2mat(spike_data);  % 35351x126 double
 
 % rho: Pairwise linear correlation coefficient
 % 

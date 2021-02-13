@@ -43,6 +43,8 @@ active_results = results_array{current_binning_index};
 fprintf('Plotting results with bin resolution set to %d.\n', active_binning_resolution);
 
 
+% Binned Spike rates per time:
+[active_binned_spike_data_matrix] = sparse(fnUnitDataCells2mat(active_processing.processed_array{current_binning_index}.all.binned_spike_counts));  % 35351x126 double
 
 
 %% Display the Correlational Results:

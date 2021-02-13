@@ -110,11 +110,11 @@ end
 % 	
 % end % end for processing_config.step_sizes loop
 
-% fprintf('writing out results to %s...\n', data_config.output.results_file_path);
-% save(data_config.output.results_file_path, 'results_array', 'general_results');
-% fprintf('done.\n');
+fprintf('writing out results to %s...\n', data_config.output.results_file_path);
+save(data_config.output.results_file_path, 'results_array', 'general_results');
+fprintf('done.\n');
 % 
-% fprintf('PhoDibaProcess_Stage2 complete!\n');
+fprintf('PhoDibaProcess_Stage2 complete!\n');
 
 
 
