@@ -35,19 +35,42 @@ fprintf('PhoDibaTest_PositionalAnalysis ready to process!\n');
 
 % We have active_processing.position_table and active_processing.speed_table
 
-
 track_epoch.begin = active_processing.behavioral_epochs.start_seconds(2);
 track_epoch.end = active_processing.behavioral_epochs.end_seconds(2);
 
-% Filter the timestamps where the animal was on the track:
-track_indicies = find((track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < track_epoch.end));
 
+positionalAnalysis.plotting.filtering.use_focus_time = true; % If true, highlights the time range preceeding the focus time.
+
+positionalAnalysis.plotting.filtering.previous_path_duration = 30 / active_binning_resolution; % Show 30 timesteps prior to the filter time
+positionalAnalysis.plotting.filtering.focus_time = track_epoch.begin + positionalAnalysis.plotting.filtering.previous_path_duration; % The end time to show
+positionalAnalysis.plotting.filtering.initial_focus_time = positionalAnalysis.plotting.filtering.focus_time - positionalAnalysis.plotting.filtering.previous_path_duration;
+
+
+% Filter the timestamps where the animal was on the track:
+% track_indicies = find((track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < track_epoch.end));
+track_indicies = ((track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < track_epoch.end));
+
+[positionalAnalysis.plotting.bounds.x(1), positionalAnalysis.plotting.bounds.x(2)] = bounds(active_processing.position_table.x);
+[positionalAnalysis.plotting.bounds.y(1), positionalAnalysis.plotting.bounds.y(2)] = bounds(active_processing.position_table.y);
+
+
+
+
+if positionalAnalysis.plotting.filtering.use_focus_time
+    % Build the focused indicies 
+    positionalAnalysis.plotting.filtering.focused_indicies = (positionalAnalysis.plotting.filtering.initial_focus_time <= active_processing.position_table.timestamp) & (active_processing.position_table.timestamp <= positionalAnalysis.plotting.filtering.focus_time);
+    % Compute the logical-AND of the two sets of indicies by performing element-wise multiplication
+    positionalAnalysis.plotting.active_indicies = logical(track_indicies .* positionalAnalysis.plotting.filtering.focused_indicies); % 1x971952
+    
+else
+    positionalAnalysis.plotting.active_indicies = track_indicies; % 1x971952
+end
 
 
 figure(19)
 clf;
 % h = plot(active_processing.position_table.timestamp', [active_processing.position_table.x', active_processing.position_table.y']);
-num_location_points = length(active_processing.position_table.timestamp(track_indicies)); % 971952
+num_location_points = length(active_processing.position_table.timestamp(positionalAnalysis.plotting.active_indicies)); % 971952
 % h = plot(active_processing.position_table.x', active_processing.position_table.y','r', 'LineWidth',5);
 
 % % plot(x, y, 'bo-', 'LineWidth', 2, 'MarkerSize', 12);
@@ -59,7 +82,7 @@ num_location_points = length(active_processing.position_table.timestamp(track_in
 
 alphaMap = linspace(0.1,0.8,num_location_points);
 colorMap = linspace(1,10,num_location_points);
-h = scatter(active_processing.position_table.x(track_indicies)', active_processing.position_table.y(track_indicies)',...
+h = scatter(active_processing.position_table.x(positionalAnalysis.plotting.active_indicies)', active_processing.position_table.y(positionalAnalysis.plotting.active_indicies)',...
     10,...
     colorMap,...
     'filled'); % to color based on z-axis values
@@ -75,6 +98,8 @@ grid on;
 xlabel('x-position')
 ylabel('y-position')
 title('Position and Speed vs. Time');
+xlim(positionalAnalysis.plotting.bounds.x);
+ylim(positionalAnalysis.plotting.bounds.y);
 hold on
 
 
@@ -118,6 +143,14 @@ hold on
 % 
 % %% Main Procedure:
 % PhoDibaTest_PositionalAnalysis_config.K = 5; % K: Number of factors
+
+% grab_fig.figure_indicies = [1 15 19];
+% grab_fig.num_figs = length(grab_fig.figure_indicies);
+% grab_fig.figure_handles = gobjects();
+% for fig_i = 1:grab_fig.num_figs
+%    grab_fig.figure_handles(fig_i) = figure(grab_fig.figure_indicies(fig_i)); % Make the current figure active
+% end
+
 
 
 
