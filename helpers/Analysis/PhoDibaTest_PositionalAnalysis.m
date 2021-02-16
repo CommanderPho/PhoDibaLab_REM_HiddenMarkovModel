@@ -57,11 +57,17 @@ num_location_points = length(active_processing.position_table.timestamp(track_in
 % set(h.Edge, 'ColorBinding','interpolated', 'ColorData',cd)
 
 
-c = linspace(1,10,num_location_points);
+alphaMap = linspace(0.1,0.8,num_location_points);
+colorMap = linspace(1,10,num_location_points);
 h = scatter(active_processing.position_table.x(track_indicies)', active_processing.position_table.y(track_indicies)',...
     10,...
-    c,...
+    colorMap,...
     'filled'); % to color based on z-axis values
+
+
+h.AlphaData = alphaMap;
+h.MarkerFaceAlpha = 'flat';
+
 
 axis equal
 grid on;
