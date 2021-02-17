@@ -11,8 +11,8 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
 	output.all.spike_data = cell(output_cell_size);
     output.all.binned_spike_counts = cell(output_cell_size);
     %% Split based on experiment epoch:
-    for i = 1:length(data_config.behavioral_epoch_names)
-        temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+    for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+        temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
         output.by_epoch.(temp.curr_epoch_name).spike_data = cell(output_cell_size);
         output.by_epoch.(temp.curr_epoch_name).binned_spike_counts = cell(output_cell_size);
     end
@@ -38,8 +38,8 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
 		output.all.binned_spike_counts{electrode_index} = histcounts(output.all.spike_data{electrode_index}.Time, timesteps)';
 
 		%% Split based on experiment epoch:
-		for i = 1:length(data_config.behavioral_epoch_names)
-			temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+		for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+			temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
 			output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
 			output.by_epoch.(temp.curr_epoch_name).binned_spike_counts{electrode_index} = histcounts(output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index}.Time, timesteps)';
 		end
@@ -66,8 +66,8 @@ function [output] = fnPreProcessSpikeData(active_processing, data_config, num_of
 	%     
 	%     
 	%     %% Split based on experiment epoch:
-	%     for i = 1:length(data_config.behavioral_epoch_names)
-	%         temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+	%     for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+	%         temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
 	%         output.by_epoch.(temp.curr_epoch_name).spike_data{electrode_index} = temp.curr_timetable((temp.curr_timetable.behavioral_epoch == temp.curr_epoch_name), :);
 	%     end
 	%     

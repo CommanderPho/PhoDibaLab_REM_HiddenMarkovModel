@@ -16,7 +16,9 @@ data_config.output.intermediate_file_paths = cellfun((@(filename) fullfile(data_
 % microseconds (10^6): 1000000
 % nanoseconds (10^9): 1000000000
 data_config.conversion_factor = (10^6);
-data_config.behavioral_epoch_names = {'pre_sleep', 'track', 'post_sleep'};
+active_processing.definitions.behavioral_epoch.classNames = {'pre_sleep', 'track', 'post_sleep'};
+active_processing.definitions.behavioral_epoch.classValues = [1:length(active_processing.definitions.behavioral_epoch.classNames)];
+
 
 % Process one of the experiments: 
 processing_config.active_expt.name = 'RoyMaze1';
