@@ -25,7 +25,7 @@ function [is_unit_included] = fnFilterUnitsWithCriteria(active_processing, showO
     end
 
     if exist('maximum_included_contamination_level','var') & ~isempty(maximum_included_contamination_level)
-        curr_conditions.meets_unit_contamination_requirements = (@(compare_value) (active_processing.spikes.maximum_included_contamination_level >= compare_value));
+        curr_conditions.meets_unit_contamination_requirements = (@(compare_value) (active_processing.spikes.speculated_unit_contamination_level <= compare_value));
         temp.curr_is_included = cellfun(curr_conditions.meets_unit_contamination_requirements, maximum_included_contamination_level, 'UniformOutput', false);
         for i = 1:length(temp.curr_is_included)
             is_unit_included = is_unit_included & temp.curr_is_included{i};

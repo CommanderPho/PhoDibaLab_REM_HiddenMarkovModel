@@ -36,16 +36,17 @@ num_of_behavioral_state_periods = height(active_processing.behavioral_periods_ta
 %     temp.filter_active_units = logical(ones([num_of_electrodes 1]));
 % end
 
-temp.filter_included_cell_types = {};
-temp.filter_maximum_included_contamination_level = {};
-
-[temp.testing.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, temp.filter_included_cell_types, ...
+temp.filter_included_cell_types = {'pyramidal'};
+temp.filter_maximum_included_contamination_level = {4};
+[temp.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, temp.filter_included_cell_types, ...
     temp.filter_maximum_included_contamination_level);
 
-all(temp.testing.filter_active_units == temp.filter_active_units)
+
+fprintf('Filter: Including %d of %d total units\n', sum(temp.filter_active_units, 'all'), length(temp.filter_active_units));
+
 
 %% Filter by Epoch:
-active_processing.spikes
+
 
 
 %% What I was looking for before. Can filter by the epoch and state indicies and interest and collapse across trials
@@ -54,24 +55,9 @@ active_processing.spikes
 
 temp.filter_states = {'rem'};
 temp.filter_epochs = {'pre_sleep', 'post_sleep'};
-temp.indicies.states.REM = (active_processing.behavioral_periods_table.type == 'rem');
-temp.indicies.epochs.pre_sleep = (active_processing.behavioral_periods_table.behavioral_epoch == 'pre_sleep');
-temp.indicies.epochs.post_sleep = (active_processing.behavioral_periods_table.behavioral_epoch == 'post_sleep');
 
-% Element-wise multiplication acting as a logical AND
-temp.filtered.pre_sleep_REM_indicies = logical(temp.indicies.states.REM .* temp.indicies.epochs.pre_sleep); % 668x1
-temp.filtered.post_sleep_REM_indicies = logical(temp.indicies.states.REM .* temp.indicies.epochs.post_sleep); % 668x1
-
-
-
-
-[temp.testing.filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'});
-[temp.testing.filtered.post_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'post_sleep'}, {'rem'});
-
-% Testing new functions:
-all(temp.testing.filtered.pre_sleep_REM_indicies == temp.filtered.pre_sleep_REM_indicies)
-all(temp.testing.filtered.post_sleep_REM_indicies == temp.filtered.post_sleep_REM_indicies)
-
+[temp.filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'}); % 668x1
+[temp.filtered.post_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'post_sleep'}, {'rem'}); % 668x1
 
 temp.results.pre_sleep_REM.num_behavioral_periods = sum(temp.filtered.pre_sleep_REM_indicies,'all');
 temp.results.post_sleep_REM.num_behavioral_periods = sum(temp.filtered.post_sleep_REM_indicies,'all');
@@ -127,7 +113,7 @@ temp.results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.res
 
 
 temp.plottingOptions.plottingXAxis = 'index';
-temp.plottingOptions.plottingXAxis = 'timestamp';
+% temp.plottingOptions.plottingXAxis = 'timestamp';
 temp.plottingOptions.plottingMode = 'scatter';
 % temp.plottingOptions.plottingMode = 'errorbar';
 % temp.plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
@@ -156,8 +142,8 @@ else
     xlabel('Trial Timestamp Offset (Seconds)')
 end
 ylabel('mean spike rate')
-ylim([2 4.25])
-xlim([2000 
+% ylim([2 4.25])
+ylim([0.2 1.4])
 
 subplot(2,1,2);
 
@@ -179,30 +165,32 @@ else
     xlabel('Trial Timestamp Offset (Seconds)')
 end
 ylabel('mean spike rate')
-ylim([2 4.25])
+% ylim([2 4.25])
+ylim([0.2 1.4])
+sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only')
 % Figure Name:
 %'Spike Rates - PRE vs Post Sleep REM Periods - Period Index';
 %'Spike Rates - PRE vs Post Sleep REM Periods - Timestamp Offset';
 
 
-
-figure(10);
-clf
-subplot(2,1,1);
-[h1] = fnPlotAcrossREMTesting('bar', [1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
-    temp.results.pre_sleep_REM.per_period.durations);
-
-title(sprintf('Period Durations - PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
-xlabel('Filtered Trial Index')
-ylabel('period duration')
-
-subplot(2,1,2);
-[h2] = fnPlotAcrossREMTesting('bar', [1:temp.results.post_sleep_REM.num_behavioral_periods], ...
-    temp.results.post_sleep_REM.per_period.durations);
-
-title(sprintf('Period Durations - POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
-xlabel('Filtered Trial Index')
-ylabel('period duration')
+% 
+% figure(10);
+% clf
+% subplot(2,1,1);
+% [h1] = fnPlotAcrossREMTesting('bar', [1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
+%     temp.results.pre_sleep_REM.per_period.durations);
+% 
+% title(sprintf('Period Durations - PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
+% xlabel('Filtered Trial Index')
+% ylabel('period duration')
+% 
+% subplot(2,1,2);
+% [h2] = fnPlotAcrossREMTesting('bar', [1:temp.results.post_sleep_REM.num_behavioral_periods], ...
+%     temp.results.post_sleep_REM.per_period.durations);
+% 
+% title(sprintf('Period Durations - POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
+% xlabel('Filtered Trial Index')
+% ylabel('period duration')
 
 % Figure Name:
 %'Period Duration - PRE vs Post Sleep REM Periods';
