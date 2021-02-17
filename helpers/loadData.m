@@ -25,8 +25,8 @@ active_processing.behavioral_state_names = source_data.behavior.(processing_conf
 %% Determine the experiment start timestamp to convert the timestamps into experiment-start-relative durations.
 active_processing.earliest_start_timestamp = Inf; % Set the initial timestamp to be infinity, so that any timestamp it's compared to will be less than it
 
-for i = 1:length(data_config.behavioral_epoch_names)
-    temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+    temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
     temp.curr_epoch_start_stop_absolute = source_data.behavior.(processing_config.active_expt.name).time(i,:) ./ data_config.conversion_factor; % Absolute
     
     active_processing.earliest_start_timestamp = min(active_processing.earliest_start_timestamp, temp.curr_epoch_start_stop_absolute(1));
@@ -72,7 +72,7 @@ active_processing.behavioral_periods_table = table(((processing_config.active_ex
 temp.edges = [active_processing.behavioral_epochs.start_seconds(1), active_processing.behavioral_epochs.start_seconds(2), active_processing.behavioral_epochs.start_seconds(3), active_processing.behavioral_epochs.end_seconds(3)];
 temp.behavior_types = discretize(active_processing.behavioral_periods_table.epoch_start_seconds, temp.edges);
 % Add the categorical data to the table
-active_processing.behavioral_periods_table.behavioral_epoch = categorical(temp.behavior_types, [1:length(data_config.behavioral_epoch_names)], data_config.behavioral_epoch_names);
+active_processing.behavioral_periods_table.behavioral_epoch = categorical(temp.behavior_types, active_processing.definitions.behavioral_epoch.classValues, active_processing.definitions.behavioral_epoch.classNames);
 
 % Build Spikes table:
 active_processing.spikes = struct2table(processing_config.active_expt.spikes_list);
