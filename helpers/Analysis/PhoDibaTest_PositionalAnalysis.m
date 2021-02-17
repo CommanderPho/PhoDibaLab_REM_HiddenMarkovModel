@@ -35,19 +35,32 @@ fprintf('PhoDibaTest_PositionalAnalysis ready to process!\n');
 
 % We have active_processing.position_table and active_processing.speed_table
 
+%% Computer displacements per timestep, velocities per timestep, etc.
+positionalAnalysis.displacement.dt = [diff(active_processing.position_table.timestamp)];
+positionalAnalysis.displacement.dx = [diff(active_processing.position_table.x)];
+positionalAnalysis.displacement.dy = [diff(active_processing.position_table.y)];
+
+positionalAnalysis.displacement.speeds = sqrt(((positionalAnalysis.displacement.dx .^ 2)) + (positionalAnalysis.displacement.dy .^ 2)) ./ positionalAnalysis.displacement.dt;
+
+
+
+%% Find the start and end times the animal was put on the track, which is the period in which positions are relevant.
 positionalAnalysis.track_epoch.begin = active_processing.behavioral_epochs.start_seconds(2);
 positionalAnalysis.track_epoch.end = active_processing.behavioral_epochs.end_seconds(2);
 
 
-positionalAnalysis.plotting.filtering.use_focus_time = true; % If true, highlights the time range preceeding the focus time.
+positionalAnalysis.plotting.filtering.use_focus_time = false; % If true, highlights the time range preceeding the focus time.
 
-positionalAnalysis.plotting.filtering.previous_path_duration = 30 / active_binning_resolution; % Show 30 timesteps prior to the filter time
+positionalAnalysis.plotting.filtering.previous_path_duration = 100 / active_binning_resolution; % Show 100 timesteps prior to the filter time
 positionalAnalysis.plotting.filtering.focus_time = positionalAnalysis.track_epoch.begin + positionalAnalysis.plotting.filtering.previous_path_duration; % The end time to show
 positionalAnalysis.plotting.filtering.initial_focus_time = positionalAnalysis.plotting.filtering.focus_time - positionalAnalysis.plotting.filtering.previous_path_duration;
 
 
+
+
+
+
 % Filter the timestamps where the animal was on the track:
-% track_indicies = find((track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < track_epoch.end));
 positionalAnalysis.track_indicies = ((positionalAnalysis.track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < positionalAnalysis.track_epoch.end));
 
 [positionalAnalysis.plotting.bounds.x(1), positionalAnalysis.plotting.bounds.x(2)] = bounds(active_processing.position_table.x);
@@ -55,13 +68,15 @@ positionalAnalysis.track_indicies = ((positionalAnalysis.track_epoch.begin < act
 
 
 
+plot(positionalAnalysis.displacement.velocity(positionalAnalysis.track_indicies));
+
 
 if positionalAnalysis.plotting.filtering.use_focus_time
     % Build the focused indicies 
     positionalAnalysis.plotting.filtering.focused_indicies = (positionalAnalysis.plotting.filtering.initial_focus_time <= active_processing.position_table.timestamp) & (active_processing.position_table.timestamp <= positionalAnalysis.plotting.filtering.focus_time);
     % Compute the logical-AND of the two sets of indicies by performing element-wise multiplication
     
-    %% Show only mode:
+    %% Show subset only mode:
 %     positionalAnalysis.plotting.active_indicies = logical(track_indicies .* positionalAnalysis.plotting.filtering.focused_indicies); % 1x971952
     
     % Opacity mode:
@@ -79,18 +94,9 @@ positionalAnalysis.plotting.fig = figure(19);
 clf(positionalAnalysis.plotting.fig);
 % h = plot(active_processing.position_table.timestamp', [active_processing.position_table.x', active_processing.position_table.y']);
 positionalAnalysis.plotting.num_location_points = length(active_processing.position_table.timestamp(positionalAnalysis.plotting.active_indicies)); % 971952
-% h = plot(active_processing.position_table.x', active_processing.position_table.y','r', 'LineWidth',5);
-
-% % plot(x, y, 'bo-', 'LineWidth', 2, 'MarkerSize', 12);
-% % modified jet-colormap
-% cd = [uint8(jet(num_location_points)*255) uint8(ones(num_location_points,1))].';
-% drawnow
-% set(h.Edge, 'ColorBinding','interpolated', 'ColorData',cd)
-
 
 
 if positionalAnalysis.plotting.filtering.use_focus_time
-    
     % Opacity mode:    
     positionalAnalysis.plotting.alphaMap = zeros([1 positionalAnalysis.plotting.num_location_points]);
     positionalAnalysis.plotting.alphaMap(positionalAnalysis.plotting.filtering.focused_indicies) = linspace(0.1, 0.9, positionalAnalysis.plotting.filtering.num_active_points);
