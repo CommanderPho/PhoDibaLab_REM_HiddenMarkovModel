@@ -81,13 +81,13 @@ end
 % 
 % 
 % % Take the above figure and collapse the y-axis by behavioral state.
-% num_of_behavioral_state_types = length(active_processing.behavioral_state_names);
+% num_of_behavioral_state_types = length(active_processing.definitions.behavioral_state.classNames);
 % temp.per_behavioral_state_type.num_spikes_per_unit = zeros([num_of_behavioral_state_types num_of_electrodes]); %% num_results: 4x126 double
 % temp.per_behavioral_state_type.spike_rate_per_unit = zeros([num_of_behavioral_state_types num_of_electrodes]); %% num_results: 4x126 double
 % 
 % 
-% for i = 1:length(active_processing.behavioral_state_names)
-%     temp.curr_state_name =  active_processing.behavioral_state_names{i};
+% for i = 1:length(active_processing.definitions.behavioral_state.classNames)
+%     temp.curr_state_name =  active_processing.definitions.behavioral_state.classNames{i};
 %     temp.per_behavioral_state_type.num_spikes_per_unit(i,:) = mean(temp.per_behavioral_state_period.num_spikes_per_unit,1);
 % 
 % end

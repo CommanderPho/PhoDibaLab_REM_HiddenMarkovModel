@@ -76,8 +76,8 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 	end
 
 	%% Split based on behavioral state:
-	for i = 1:length(active_processing.behavioral_state_names)
-		temp.curr_state_name =  active_processing.behavioral_state_names{i};
+	for i = 1:length(active_processing.definitions.behavioral_state.classNames)
+		temp.curr_state_name =  active_processing.definitions.behavioral_state.classNames{i};
 		
 		[~, active_results.by_state.(temp.curr_state_name).autocorrelations, active_results.by_state.(temp.curr_state_name).partial_autocorrelations, active_results.by_state.(temp.curr_state_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_state.(temp.curr_state_name).binned_spike_counts, ...
 			general_results.indicies, processing_config, temp.curr_step_size);
