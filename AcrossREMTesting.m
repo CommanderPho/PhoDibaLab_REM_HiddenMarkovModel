@@ -6,6 +6,9 @@ num_of_behavioral_state_periods = height(active_processing.behavioral_periods_ta
 % 
 % general_results.per_behavioral_state_period.spike_rate_per_unit
 
+% All units with qualities from 1-4 are pyramidal.
+% The higher the number in this range, the higher is the contamination, so 1 and 2 are well-separated pyramidal units and if your analysis is not much sensitive to contaminations you can consider 3 and 4 as well. For my analysis, I considered 1 to 3. 8 and 9 are interneurons.
+% 
 
 % general_results.per_behavioral_state_period.num_spikes_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
 % general_results.per_behavioral_state_period.spike_rate_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
@@ -40,8 +43,8 @@ end
 
 
 %% What I was looking for before. Can filter by the epoch and state indicies and interest and collapse across trials
-general_results.GroupedByState.groups = findgroups(active_processing.behavioral_periods_table.type);
-general_results.GroupedByEpoch.groups = findgroups(active_processing.behavioral_periods_table.behavioral_epoch);
+% general_results.GroupedByState.groups = findgroups(active_processing.behavioral_periods_table.type);
+% general_results.GroupedByEpoch.groups = findgroups(active_processing.behavioral_periods_table.behavioral_epoch);
 
 temp.filter_states = {'rem'};
 temp.filter_epochs = {'pre_sleep', 'post_sleep'};
