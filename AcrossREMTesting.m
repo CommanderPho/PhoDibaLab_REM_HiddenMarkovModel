@@ -71,6 +71,10 @@ sum(temp.filtered.post_sleep_REM_indicies,'all')
 temp.results.pre_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filtered.pre_sleep_REM_indicies, temp.filter_active_units);
 temp.results.post_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filtered.post_sleep_REM_indicies, temp.filter_active_units);
 
+% temp.results.pre_sleep_REM.spike_rate_per_unit: (14x92 double)
+% temp.results.post_sleep_REM.spike_rate_per_unit: (9x92 double)
+
+
 % Average Across all of the units
 temp.results.pre_sleep_REM.spike_rate_all_units.mean = mean(temp.results.pre_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
 temp.results.post_sleep_REM.spike_rate_all_units.mean = mean(temp.results.post_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
@@ -89,40 +93,37 @@ temp.results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.res
 
 
 
+% temp.plottingOptions.plottingMode = 'scatter';
+% temp.plottingOptions.plottingMode = 'errorbar';
+temp.plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
 
 
 %% Error bars are across units:
 figure(9);
+clf
 subplot(2,1,1);
-% h1 = scatter([1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
-%         temp.results.pre_sleep_REM.spike_rate_all_units.mean);
-h1 = errorbar([1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
-        temp.results.pre_sleep_REM.spike_rate_all_units.mean, ...
-        temp.results.pre_sleep_REM.spike_rate_all_units.stdDev);
+[h1] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, [1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
+    temp.results.pre_sleep_REM.spike_rate_all_units.mean, ...
+    temp.results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
+    temp.results.pre_sleep_REM.spike_rate_per_unit);
+
 title(sprintf('PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
 xlabel('Filtered Trial Index')
 ylabel('mean spike rate')
 
 subplot(2,1,2);
-% h2 = scatter([1:temp.results.post_sleep_REM.num_behavioral_periods], ...
-%         temp.results.post_sleep_REM.spike_rate_all_units.mean);
-    
-    
-h2 = errorbar([1:temp.results.post_sleep_REM.num_behavioral_periods], ...
-        temp.results.post_sleep_REM.spike_rate_all_units.mean, ...
-        temp.results.post_sleep_REM.spike_rate_all_units.stdDev);
-    
-    
-% [h2] = fnPlotAcrossREMTesting('errorbar', [1:temp.results.post_sleep_REM.num_behavioral_periods], ...
-%     temp.results.post_sleep_REM.spike_rate_all_units.mean, ...
-%     temp.results.post_sleep_REM.spike_rate_all_units.stdDev);
+[h2] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, [1:temp.results.post_sleep_REM.num_behavioral_periods], ...
+    temp.results.post_sleep_REM.spike_rate_all_units.mean, ...
+    temp.results.post_sleep_REM.spike_rate_all_units.stdDev, ...
+    temp.results.post_sleep_REM.spike_rate_per_unit);
 
 
 title(sprintf('POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
 xlabel('Filtered Trial Index')
 ylabel('mean spike rate')
 
-
+% Figure Name:
+%'Spike Rates - PRE vs Post Sleep REM Periods';
 
 
 
@@ -167,21 +168,21 @@ ylabel('mean spike rate')
 % active_processing.spikes.behavioral_states
 
 
-% function [h] = fnPlotAcrossREMTesting(mode, x, y, z)
-% 
-%     if strcmpi(mode, 'errorbar')
-%         h = errorbar(x, ...
-%             y, ...
-%             z);
-% 
-%     elseif strcmpi(mode, 'scatter')
-%         h = scatter(x, ...
-%             y);
-% 
-%     elseif strcmpi(mode, 'distributionPlot')
-%         h = distributionPlot(x); % defaults 
-% 
-%     else
-%        error('Invalid mode input!') 
-%     end
-% end
+function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
+
+    if strcmpi(mode, 'errorbar')
+        h = errorbar(v1, ...
+            v2, ...
+            v3);
+
+    elseif strcmpi(mode, 'scatter')
+        h = scatter(v1, ...
+            v2);
+
+    elseif strcmpi(mode, 'distributionPlot')
+        h = distributionPlot(v4'); % defaults 
+
+    else
+       error('Invalid mode input!') 
+    end
+end
