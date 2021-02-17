@@ -19,7 +19,8 @@ processing_config.active_expt.behavior_list = source_data.behavior.(processing_c
 processing_config.active_expt.position_list = source_data.position.(processing_config.active_expt.name); % x, y, t
 processing_config.active_expt.speed_list = source_data.speed.(processing_config.active_expt.name); % t, v;
 
-active_processing.behavioral_state_names = source_data.behavior.(processing_config.active_expt.name).name;
+active_processing.definitions.behavioral_state.classNames = source_data.behavior.(processing_config.active_expt.name).name;
+active_processing.definitions.behavioral_state.classValues = [1:length(active_processing.definitions.behavioral_state.classNames)];
 
 
 %% Determine the experiment start timestamp to convert the timestamps into experiment-start-relative durations.
