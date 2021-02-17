@@ -89,7 +89,8 @@ active_processing.spikes.num_spikes = cellfun((@(timestamps) length(timestamps))
         active_processing.spikes.time);
     
    
-
+% Get the classification type (Pyramidal, interneuron, etc) for each unit:
+[active_processing.spikes.speculated_unit_type, active_processing.spikes.speculated_unit_contamination_level, active_processing.definitions.speculated_unit_info] = fnUnitQualityToCellType(active_processing);
     
 %% Preprocessing:
 % num_of_electrodes = height(active_processing.spikes);
