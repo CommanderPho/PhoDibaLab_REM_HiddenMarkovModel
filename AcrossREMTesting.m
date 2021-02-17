@@ -54,9 +54,9 @@ temp.filtered.pre_sleep_REM_indicies = logical(temp.indicies.states.REM .* temp.
 temp.filtered.post_sleep_REM_indicies = logical(temp.indicies.states.REM .* temp.indicies.epochs.post_sleep); % 668x1
 
 
-sum(temp.filtered.pre_sleep_REM_indicies,'all')
-sum(temp.filtered.post_sleep_REM_indicies,'all')
-
+temp.results.pre_sleep_REM.num_behavioral_periods = sum(temp.filtered.pre_sleep_REM_indicies,'all');
+temp.results.post_sleep_REM.num_behavioral_periods = sum(temp.filtered.post_sleep_REM_indicies,'all');
+fprintf('pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', temp.results.pre_sleep_REM.num_behavioral_periods, temp.results.post_sleep_REM.num_behavioral_periods);
 
 
 % Alternative: splitapply workflow:
@@ -65,6 +65,21 @@ sum(temp.filtered.post_sleep_REM_indicies,'all')
 % The number of spikes per unit
 % general_results.per_behavioral_state_period.num_spikes_per_unit(temp.filter_active_units, temp.filtered.pre_sleep_REM_indicies); % 668x126
 % general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filter_active_units, temp.filtered.pre_sleep_REM_indicies); % 668x126
+
+
+temp.results.pre_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(temp.filtered.pre_sleep_REM_indicies);
+temp.results.post_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(temp.filtered.post_sleep_REM_indicies);
+
+
+temp.results.pre_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(temp.filtered.pre_sleep_REM_indicies);
+temp.results.post_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(temp.filtered.post_sleep_REM_indicies);
+
+temp.results.pre_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(temp.filtered.pre_sleep_REM_indicies);
+temp.results.post_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(temp.filtered.post_sleep_REM_indicies);
+
+% Compute the center of the epochs to plot the firing rates along an appropriately scaled x-axis:
+temp.results.pre_sleep_REM.per_period.epoch_center_seconds = (temp.results.pre_sleep_REM.per_period.epoch_start_seconds + floor(temp.results.pre_sleep_REM.per_period.durations ./ 2.0));
+temp.results.post_sleep_REM.per_period.epoch_center_seconds = (temp.results.post_sleep_REM.per_period.epoch_start_seconds + floor(temp.results.post_sleep_REM.per_period.durations ./ 2.0));
 
 
 % Leave in terms of the spike rates per unit (14x92 double):
@@ -81,8 +96,8 @@ temp.results.post_sleep_REM.spike_rate_all_units.mean = mean(temp.results.post_s
 temp.results.pre_sleep_REM.spike_rate_all_units.stdDev = std(temp.results.pre_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
 temp.results.post_sleep_REM.spike_rate_all_units.stdDev = std(temp.results.post_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
 
-temp.results.pre_sleep_REM.num_behavioral_periods = length(temp.results.pre_sleep_REM.spike_rate_all_units.mean);
-temp.results.post_sleep_REM.num_behavioral_periods = length(temp.results.post_sleep_REM.spike_rate_all_units.mean);
+% temp.results.pre_sleep_REM.num_behavioral_periods = length(temp.results.pre_sleep_REM.spike_rate_all_units.mean);
+% temp.results.post_sleep_REM.num_behavioral_periods = length(temp.results.post_sleep_REM.spike_rate_all_units.mean);
 
 
 % Compute the average across the REM sessions in each epoch
@@ -92,38 +107,87 @@ temp.results.pre_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.resu
 temp.results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.results.post_sleep_REM.spike_rate_all_units.mean);
 
 
-
-% temp.plottingOptions.plottingMode = 'scatter';
+temp.plottingOptions.plottingXAxis = 'index';
+temp.plottingOptions.plottingXAxis = 'timestamp';
+temp.plottingOptions.plottingMode = 'scatter';
 % temp.plottingOptions.plottingMode = 'errorbar';
-temp.plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
+% temp.plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
 
 
 %% Error bars are across units:
 figure(9);
 clf
 subplot(2,1,1);
-[h1] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, [1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
+
+if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
+    temp.plottingOptions.x = [1:temp.results.pre_sleep_REM.num_behavioral_periods];
+else
+    temp.plottingOptions.x = temp.results.pre_sleep_REM.per_period.epoch_center_seconds;
+end
+
+[h1] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, temp.plottingOptions.x, ...
     temp.results.pre_sleep_REM.spike_rate_all_units.mean, ...
     temp.results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
     temp.results.pre_sleep_REM.spike_rate_per_unit);
 
 title(sprintf('PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
-xlabel('Filtered Trial Index')
+if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
+    xlabel('Filtered Trial Index')
+else
+    xlabel('Trial Timestamp Offset (Seconds)')
+end
 ylabel('mean spike rate')
+ylim([2 4.25])
+xlim([2000 
 
 subplot(2,1,2);
-[h2] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, [1:temp.results.post_sleep_REM.num_behavioral_periods], ...
+
+if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
+    temp.plottingOptions.x = [1:temp.results.post_sleep_REM.num_behavioral_periods];
+else
+    temp.plottingOptions.x = temp.results.post_sleep_REM.per_period.epoch_center_seconds;
+end
+[h2] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, temp.plottingOptions.x, ...
     temp.results.post_sleep_REM.spike_rate_all_units.mean, ...
     temp.results.post_sleep_REM.spike_rate_all_units.stdDev, ...
     temp.results.post_sleep_REM.spike_rate_per_unit);
 
 
 title(sprintf('POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
-xlabel('Filtered Trial Index')
+if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
+    xlabel('Filtered Trial Index')
+else
+    xlabel('Trial Timestamp Offset (Seconds)')
+end
 ylabel('mean spike rate')
+ylim([2 4.25])
+% Figure Name:
+%'Spike Rates - PRE vs Post Sleep REM Periods - Period Index';
+%'Spike Rates - PRE vs Post Sleep REM Periods - Timestamp Offset';
+
+
+
+figure(10);
+clf
+subplot(2,1,1);
+[h1] = fnPlotAcrossREMTesting('bar', [1:temp.results.pre_sleep_REM.num_behavioral_periods], ...
+    temp.results.pre_sleep_REM.per_period.durations);
+
+title(sprintf('Period Durations - PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
+xlabel('Filtered Trial Index')
+ylabel('period duration')
+
+subplot(2,1,2);
+[h2] = fnPlotAcrossREMTesting('bar', [1:temp.results.post_sleep_REM.num_behavioral_periods], ...
+    temp.results.post_sleep_REM.per_period.durations);
+
+title(sprintf('Period Durations - POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
+xlabel('Filtered Trial Index')
+ylabel('period duration')
 
 % Figure Name:
-%'Spike Rates - PRE vs Post Sleep REM Periods';
+%'Period Duration - PRE vs Post Sleep REM Periods';
+% Conclusion: Duration is not sufficient to explain periodic behavior in REM periods for either subplot
 
 
 
@@ -182,6 +246,9 @@ function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
     elseif strcmpi(mode, 'distributionPlot')
         h = distributionPlot(v4'); % defaults 
 
+    elseif strcmpi(mode, 'bar')
+        h = bar(v1, v2);
+        
     else
        error('Invalid mode input!') 
     end
