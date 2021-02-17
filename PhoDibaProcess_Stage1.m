@@ -55,8 +55,8 @@ for current_binning_index = 1:length(processing_config.step_sizes)
 	%% Aggregate Measures:
 
 	%% Split based on experiment epoch:
-	for i = 1:length(data_config.behavioral_epoch_names)
-		temp.curr_epoch_name = data_config.behavioral_epoch_names{i};
+	for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+		temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
 		% size(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts): 1 x 126
 		[~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts, ...
 			general_results.indicies, processing_config, temp.curr_step_size);

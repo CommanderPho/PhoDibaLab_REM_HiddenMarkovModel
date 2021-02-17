@@ -52,7 +52,7 @@ temp.spikes_behavioral_epoch = cell([num_of_electrodes, 1]);
 for electrode_index = 1:num_of_electrodes
     % Convert spike times to relative to expt start and scale to seconds. 
     temp.spikes_behavioral_states{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(active_processing.behavioral_state_names)], active_processing.behavioral_state_names);
-    temp.spikes_behavioral_epoch{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(data_config.behavioral_epoch_names)], data_config.behavioral_epoch_names);
+    temp.spikes_behavioral_epoch{electrode_index} = categorical(ones([active_processing.spikes.num_spikes(electrode_index), 1]), [1:length(active_processing.definitions.behavioral_epoch.classNames)], active_processing.definitions.behavioral_epoch.classNames);
     active_processing.spikes.behavioral_duration_indicies{electrode_index} = zeros([active_processing.spikes.num_spikes(electrode_index), 1]); % to store the index of the corresponding behavioral state the spike belongs to
 end
 
