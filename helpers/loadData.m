@@ -6,11 +6,18 @@ function [active_processing, source_data] = loadData(data_config, processing_con
 % source_data.behavior = load(fullfile(data_config.source_root_path, 'wake-behavior.mat'), 'behavior').behavior;
 
 
+% Define the behavioral_epoch categorical info:
+active_processing.definitions.behavioral_epoch.classNames = {'pre_sleep', 'track', 'post_sleep'};
+active_processing.definitions.behavioral_epoch.classValues = [1:length(active_processing.definitions.behavioral_epoch.classNames)];
+
+
 source_data.variableList = {'spikes','behavior','position','speed','basics','ripple'};
 for variableIndex = 1:length(source_data.variableList)
     curr_variable_name = source_data.variableList{variableIndex};
-    source_data.(curr_variable_name) = load(fullfile(data_config.source_root_path, sprintf('wake-%s.mat', curr_variable_name)), ...
+    curr_filename_string = sprintf('wake-%s.mat', curr_variable_name);
+    source_data.(curr_variable_name) = load(fullfile(data_config.source_root_path, curr_filename_string), ...
         curr_variable_name).(curr_variable_name);
+    fprintf('Loading %s...\n', curr_filename_string);
 end
 
 % Begin Pre-processing
