@@ -1,4 +1,36 @@
-% Iterate across REM states
+% AcrossREMTesting.m
+% 02-17-2020 by Pho Hale
+
+% Requires the datastructures from "PhoDibaProcess_Stage2.m" to be loaded
+
+addpath(genpath('helpers'));
+addpath(genpath('libraries/buzcode/'));
+
+clear temp
+
+if ~exist('data_config','var')
+    Config;
+end
+
+
+if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
+    fprintf('loading data from %s...\n', data_config.output.intermediate_file_paths{2});
+    load(data_config.output.intermediate_file_paths{2}, 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');
+    fprintf('done.\n');
+else
+    fprintf('active_processing already exists in workspace. Using extant data.\n');
+end
+
+if ~exist('results_array','var') %TEMP: cache the loaded data to rapidly prototype the script
+    fprintf('loading results from %s...\n', data_config.output.results_file_path);
+    load(data_config.output.results_file_path, 'results_array', 'general_results');
+    fprintf('done. Contains results for %d different bin sizes.\n', length(results_array));
+else
+    fprintf('results_array already exists in workspace. Contains results for %d different bin sizes. Using extant data.\n', length(results_array));
+end
+
+%% Begin:
+fprintf('AcrossREMTesting ready to process!\n');
 
 clear temp;
 
@@ -36,8 +68,9 @@ num_of_behavioral_state_periods = height(active_processing.behavioral_periods_ta
 %     temp.filter_active_units = logical(ones([num_of_electrodes 1]));
 % end
 
-temp.filter_included_cell_types = {'pyramidal'};
-temp.filter_maximum_included_contamination_level = {4};
+% temp.filter_included_cell_types = {'pyramidal'};
+temp.filter_included_cell_types = {'interneurons'};
+temp.filter_maximum_included_contamination_level = {2};
 [temp.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, temp.filter_included_cell_types, ...
     temp.filter_maximum_included_contamination_level);
 
@@ -114,6 +147,10 @@ temp.results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.res
 
 temp.plottingOptions.plottingXAxis = 'index';
 % temp.plottingOptions.plottingXAxis = 'timestamp';
+temp.plottingOptions.plottingYlim = [];
+% temp.plottingOptions.plottingYlim = [2 4.25];
+% temp.plottingOptions.plottingYlim = [0.2 1.4];
+
 temp.plottingOptions.plottingMode = 'scatter';
 % temp.plottingOptions.plottingMode = 'errorbar';
 % temp.plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
@@ -142,8 +179,9 @@ else
     xlabel('Trial Timestamp Offset (Seconds)')
 end
 ylabel('mean spike rate')
-% ylim([2 4.25])
-ylim([0.2 1.4])
+if ~isempty(temp.plottingOptions.plottingYlim)
+    ylim(temp.plottingOptions.plottingYlim)
+end
 
 subplot(2,1,2);
 
@@ -165,8 +203,9 @@ else
     xlabel('Trial Timestamp Offset (Seconds)')
 end
 ylabel('mean spike rate')
-% ylim([2 4.25])
-ylim([0.2 1.4])
+if ~isempty(temp.plottingOptions.plottingYlim)
+    ylim(temp.plottingOptions.plottingYlim)
+end
 sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only')
 % Figure Name:
 %'Spike Rates - PRE vs Post Sleep REM Periods - Period Index';
@@ -237,7 +276,7 @@ sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal 
 % end
 
 % active_processing.spikes.behavioral_states
-
+fprintf('AcrossREMTesting done.\n');
 
 function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
 
