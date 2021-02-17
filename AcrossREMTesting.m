@@ -27,19 +27,25 @@ num_of_behavioral_state_periods = height(active_processing.behavioral_periods_ta
 % end
 
 
-if processing_config.showOnlyAlwaysStableCells
-    isAlwaysStable = active_processing.spikes.isAlwaysStable; % 126x1
-    numAlwaysStableCells = sum(isAlwaysStable, 'all');
-    temp.filter_active_units = isAlwaysStable;
-    
-else
-    temp.filter_active_units = logical(ones([num_of_electrodes 1]));
-end
+% if processing_config.showOnlyAlwaysStableCells
+%     isAlwaysStable = active_processing.spikes.isAlwaysStable; % 126x1
+%     numAlwaysStableCells = sum(isAlwaysStable, 'all');
+%     temp.filter_active_units = isAlwaysStable;
+%     
+% else
+%     temp.filter_active_units = logical(ones([num_of_electrodes 1]));
+% end
 
+temp.filter_included_cell_types = {};
+temp.filter_maximum_included_contamination_level = {};
 
+[temp.testing.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, temp.filter_included_cell_types, ...
+    temp.filter_maximum_included_contamination_level);
+
+all(temp.testing.filter_active_units == temp.filter_active_units)
 
 %% Filter by Epoch:
-
+active_processing.spikes
 
 
 %% What I was looking for before. Can filter by the epoch and state indicies and interest and collapse across trials
@@ -55,6 +61,16 @@ temp.indicies.epochs.post_sleep = (active_processing.behavioral_periods_table.be
 % Element-wise multiplication acting as a logical AND
 temp.filtered.pre_sleep_REM_indicies = logical(temp.indicies.states.REM .* temp.indicies.epochs.pre_sleep); % 668x1
 temp.filtered.post_sleep_REM_indicies = logical(temp.indicies.states.REM .* temp.indicies.epochs.post_sleep); % 668x1
+
+
+
+
+[temp.testing.filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'});
+[temp.testing.filtered.post_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'post_sleep'}, {'rem'});
+
+% Testing new functions:
+all(temp.testing.filtered.pre_sleep_REM_indicies == temp.filtered.pre_sleep_REM_indicies)
+all(temp.testing.filtered.post_sleep_REM_indicies == temp.filtered.post_sleep_REM_indicies)
 
 
 temp.results.pre_sleep_REM.num_behavioral_periods = sum(temp.filtered.pre_sleep_REM_indicies,'all');

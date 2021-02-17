@@ -5,6 +5,9 @@
         %% behavioral_periods_table: TODO
         %% spikes: TODO
         %% processed_array: TODO 
+		%% definitions: TODO 
+			%% behavioral_state: {'rem','rem','quiet','active'}
+			%% behavioral_epoch: {'pre_sleep','track','post_sleep'}
 
     %% active_results: depend on the bin size
         %% all: TODO
