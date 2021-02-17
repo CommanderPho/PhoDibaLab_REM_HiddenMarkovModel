@@ -48,7 +48,7 @@ positionalAnalysis.plotting.filtering.initial_focus_time = positionalAnalysis.pl
 
 % Filter the timestamps where the animal was on the track:
 % track_indicies = find((track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < track_epoch.end));
-track_indicies = ((positionalAnalysis.track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < positionalAnalysis.track_epoch.end));
+positionalAnalysis.track_indicies = ((positionalAnalysis.track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < positionalAnalysis.track_epoch.end));
 
 [positionalAnalysis.plotting.bounds.x(1), positionalAnalysis.plotting.bounds.x(2)] = bounds(active_processing.position_table.x);
 [positionalAnalysis.plotting.bounds.y(1), positionalAnalysis.plotting.bounds.y(2)] = bounds(active_processing.position_table.y);
@@ -65,12 +65,12 @@ if positionalAnalysis.plotting.filtering.use_focus_time
 %     positionalAnalysis.plotting.active_indicies = logical(track_indicies .* positionalAnalysis.plotting.filtering.focused_indicies); % 1x971952
     
     % Opacity mode:
-    positionalAnalysis.plotting.filtering.focused_indicies = logical(track_indicies .* positionalAnalysis.plotting.filtering.focused_indicies); % 1x971952 
+    positionalAnalysis.plotting.filtering.focused_indicies = logical(positionalAnalysis.track_indicies .* positionalAnalysis.plotting.filtering.focused_indicies); % 1x971952 
     positionalAnalysis.plotting.filtering.num_active_points = sum(positionalAnalysis.plotting.filtering.focused_indicies, 'all');
-    positionalAnalysis.plotting.active_indicies = track_indicies; % 1x971952
+    positionalAnalysis.plotting.active_indicies = positionalAnalysis.track_indicies; % 1x971952
     
 else
-    positionalAnalysis.plotting.active_indicies = track_indicies; % 1x971952
+    positionalAnalysis.plotting.active_indicies = positionalAnalysis.track_indicies; % 1x971952
     positionalAnalysis.plotting.filtering.num_active_points = sum(positionalAnalysis.plotting.active_indicies, 'all');
 end
 
@@ -127,7 +127,7 @@ ylabel('y-position')
 title('Position and Speed vs. Time');
 xlim(positionalAnalysis.plotting.bounds.x);
 ylim(positionalAnalysis.plotting.bounds.y);
-hold on
+% hold on
 
 
 % xline(track_epoch.begin,'-.','TRACK Epoch');
