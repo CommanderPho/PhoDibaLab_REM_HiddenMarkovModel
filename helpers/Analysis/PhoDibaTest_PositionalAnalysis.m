@@ -94,13 +94,15 @@ if positionalAnalysis.plotting.filtering.use_focus_time
     % Opacity mode:    
     positionalAnalysis.plotting.alphaMap = zeros([1 positionalAnalysis.plotting.num_location_points]);
     positionalAnalysis.plotting.alphaMap(positionalAnalysis.plotting.filtering.focused_indicies) = linspace(0.1, 0.9, positionalAnalysis.plotting.filtering.num_active_points);
-        
+    positionalAnalysis.plotting.colorMap = zeros([1 positionalAnalysis.plotting.num_location_points]);    
+    positionalAnalysis.plotting.colorMap(positionalAnalysis.plotting.filtering.focused_indicies) = linspace(1, 10, positionalAnalysis.plotting.filtering.num_active_points); % Define colormap relative to active points  
 else
     positionalAnalysis.plotting.alphaMap = linspace(0.1,0.8,positionalAnalysis.plotting.num_location_points);
+    positionalAnalysis.plotting.colorMap = linspace(1, 10, positionalAnalysis.plotting.num_location_points);
     
 end
 
-positionalAnalysis.plotting.colorMap = linspace(1, 10, positionalAnalysis.plotting.num_location_points);
+
 
 
 
