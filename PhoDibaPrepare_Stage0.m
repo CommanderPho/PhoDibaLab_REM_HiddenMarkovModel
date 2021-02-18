@@ -97,9 +97,9 @@ fprintf('done.\n');
 % Smooth with a gaussian window
 % Perform Gaussian Binning: (sigma = 1.5 sec)
 
+%% TODO: this is where refinements would be made
 timesteps_array = cellfun((@(dt) seconds(active_processing.behavioral_epochs.start_seconds(1):dt:active_processing.behavioral_epochs.end_seconds(end))), ...
  processing_config.step_sizes, 'UniformOutput', false);
-
 
 active_processing.processed_array = cell([processing_config.num_step_sizes 1]);
 

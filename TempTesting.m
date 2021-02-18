@@ -1,4 +1,8 @@
 clc
+addpath(genpath('helpers'));
+addpath(genpath('libraries/buzcode/'));
+
+
 % 
 % % docGeneration.variableNames = {'active_processing.spikes'};
 % % docGeneration.variableValues = cellfun((@(varName) evalin('base',varName)), docGeneration.variableNames);
@@ -58,5 +62,8 @@ clc
 % % active_results.aggregates
 
 % PhoDibaPrepare_Stage0
-PhoDibaProcess_Stage1
-PhoDibaProcess_Stage2
+% PhoDibaProcess_Stage1
+% PhoDibaProcess_Stage2
+
+
+[source_data, timesteps_array, active_processing, general_results, results_array] = fnRunPipeline('RoyMaze2', {1.0});
