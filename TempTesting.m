@@ -70,7 +70,10 @@ addpath(genpath('libraries/buzcode/'));
 
 % clear all;
 
-active_expt_name = 'RoyMaze2';
+temp.possibleExperiments = {'RoyMaze1',	'RoyMaze2',	'RoyMaze3',	'TedMaze1',	'TedMaze2',	'TedMaze3',	'KevinMaze1'};
+
+
+active_expt_name = 'RoyMaze3';
 active_step_sizes = {1.0};
 fprintf('fnRunPipeline starting for active_expt_name: %s...\n', active_expt_name);
 [data_config, processing_config, plotting_options] = fnDataConfigForExptName(active_expt_name, active_step_sizes);
