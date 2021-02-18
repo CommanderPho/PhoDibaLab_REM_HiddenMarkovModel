@@ -217,7 +217,7 @@ sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal 
 %%%%%%% SECTION: Computer Per-Period correlation coefficients to compare them across REM periods:
 %%%%%
 
-current_binning_index = 2;
+current_binning_index = 1;
 active_binning_resolution = processing_config.step_sizes{current_binning_index};
 temp.curr_timestamps = timesteps_array{current_binning_index};
 temp.curr_processed = active_processing.processed_array{current_binning_index};
@@ -292,11 +292,34 @@ end % end if ~isfield pairwise_xcorrelations
 fprintf('Plotting results with bin resolution set to %d.\n', active_binning_resolution);
 % active_results.by_behavioral_period.pairwise_xcorrelations.xcorr
 
+% active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs: 668x19 double
+
+% Get REM only pairs:
+temp.results.pre_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.pre_sleep_REM_indicies, :); % 14x19
+temp.results.post_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.post_sleep_REM_indicies, :); % 9x19
+
+
 
 %% Display the Correlational Results:
 xcorr_fig = figure(14);
-plotting_options.plotMode = 'xcorr';
-[temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, general_results, active_results, plotting_options, xcorr_fig);
+clf
+subplot(2,1,1);
+
+h1 = heatmap(temp.results.pre_sleep_REM.per_period.xcorr_all_pairs);
+ylabel('Filtered Trial Index')
+xlabel('Time Lag')
+title(sprintf('PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
+    
+    
+subplot(2,1,2);
+h1 = heatmap(temp.results.post_sleep_REM.per_period.xcorr_all_pairs);
+ylabel('Filtered Trial Index')
+xlabel('Time Lag')    
+title(sprintf('POST sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
+
+sgtitle('XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units')
+
+% [temp.fig, temp.h] = fnPhoPlotCorrelationalResults(active_processing, general_results, active_results, plotting_options, xcorr_fig);
     
 
 
