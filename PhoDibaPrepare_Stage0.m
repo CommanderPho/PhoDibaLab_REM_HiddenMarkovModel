@@ -3,7 +3,7 @@
 
 addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
-clear all;
+% clear all;
 
 if ~exist('data_config','var')
     Config;

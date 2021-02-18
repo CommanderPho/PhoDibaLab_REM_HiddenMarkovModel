@@ -66,4 +66,20 @@ addpath(genpath('libraries/buzcode/'));
 % PhoDibaProcess_Stage2
 
 
-[source_data, timesteps_array, active_processing, general_results, results_array] = fnRunPipeline('RoyMaze2', {1.0});
+% [source_data, timesteps_array, active_processing, general_results, results_array] = fnRunPipeline('RoyMaze2', {1.0});
+
+% clear all;
+
+active_expt_name = 'RoyMaze2';
+active_step_sizes = {1.0};
+fprintf('fnRunPipeline starting for active_expt_name: %s...\n', active_expt_name);
+[data_config, processing_config, plotting_options] = fnDataConfigForExptName(active_expt_name, active_step_sizes);
+% run(PhoDibaPrepare_Stage0); % it will load all the variables inside the function workspace
+% run(PhoDibaProcess_Stage1); % it will load all the variables inside the function workspace
+% run(PhoDibaProcess_Stage2); % it will load all the variables inside the function workspace
+
+PhoDibaPrepare_Stage0 % active_processing, source_data, timesteps_array
+PhoDibaProcess_Stage1 % general_results, results_array
+PhoDibaProcess_Stage2 % general_results
+
+fprintf('fnRunPipeline completed for active_expt_name: %s\n', active_expt_name);
