@@ -233,7 +233,7 @@ temp.curr_timestamp_period_map = zeros(size(temp.curr_timestamps));
 
 if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrelations', active_results.by_behavioral_period) | ~isfield('xcorr_full', active_results.by_behavioral_period.pairwise_xcorrelations)
     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs, pairwise_xcorrelations.num_lag_steps]);   
-    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
+%     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
 
     pairwise_xcorrelations.lag_offsets = (-processing_config.max_xcorr_lag):active_binning_resolution:processing_config.max_xcorr_lag;
     pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets);
@@ -260,18 +260,17 @@ if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrel
     %     [~, ~, ~, active_results.by_behavioral_period.pairwise_xcorrelations.xcorr(behavioral_period_index, :)] = fnProcessCorrelationalMeasures(active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, :), ...
     %         general_results.indicies, processing_config, active_binning_resolution);
 
-        temp.output_pairwise_xcorrelations = zeros([general_results.indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]); % 7875x181 double
+%         temp.output_pairwise_xcorrelations = zeros([general_results.indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]); % 7875x181 double
         for j = 1:general_results.indicies.num_unique_pairs
-           temp.output_pairwise_xcorrelations(j,:) = xcorr(active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, general_results.indicies.unique_electrode_pairs(j,1)), ...
+           active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full(behavioral_period_index, j, :) = xcorr(active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, general_results.indicies.unique_electrode_pairs(j,1)), ...
                active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, general_results.indicies.unique_electrode_pairs(j,2)), ...
-               max_xcorr_lag_unit_time,'normalized'); % 181x1 double
+               max_xcorr_lag_unit_time); % 181x1 double
         end
 
         % temp.output_pairwise_xcorrelations is 7875x19 (one for each timestep)
-        active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full(behavioral_period_index, :, :) = 
-        active_results.by_behavioral_period.pairwise_xcorrelations.xcorr(behavioral_period_index, :) = mean(temp.output_pairwise_xcorrelations, 2);
+%         active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full(behavioral_period_index, :, :) = temp.output_pairwise_xcorrelations;
+%         active_results.by_behavioral_period.pairwise_xcorrelations.xcorr(behavioral_period_index, :) = mean(temp.output_pairwise_xcorrelations, 2);
     %     active_processing.processed_array{1}.all.binned_spike_counts
-
 
     %     [~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts, ...
     % 			general_results.indicies, processing_config, active_binning_resolution);
@@ -279,7 +278,10 @@ if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrel
         fprintf('behavioral state progress: %d/%d\n', behavioral_period_index, num_of_behavioral_state_periods);
 
     end
-    
+
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_lags = mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 3);
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 2));
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_periods = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 1));
     results_array{current_binning_index} = active_results;
     
 
@@ -288,7 +290,7 @@ else
 end % end if ~isfield pairwise_xcorrelations
 
 fprintf('Plotting results with bin resolution set to %d.\n', active_binning_resolution);
-active_results.by_behavioral_period.pairwise_xcorrelations.xcorr
+% active_results.by_behavioral_period.pairwise_xcorrelations.xcorr
 
 
 %% Display the Correlational Results:
