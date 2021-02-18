@@ -74,7 +74,7 @@ temp.possibleExperiments = {'RoyMaze1',	'RoyMaze2',	'RoyMaze3',	'TedMaze1',	'Ted
 
 
 % active_expt_name = 'TedMaze3';
-active_expt_name = 'TedMaze2';
+active_expt_name = 'RoyMaze1';
 
 active_step_sizes = {0.1, 1.0};
 fprintf('fnRunPipeline starting for active_expt_name: %s...\n', active_expt_name);
