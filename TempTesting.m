@@ -73,8 +73,10 @@ addpath(genpath('libraries/buzcode/'));
 temp.possibleExperiments = {'RoyMaze1',	'RoyMaze2',	'RoyMaze3',	'TedMaze1',	'TedMaze2',	'TedMaze3',	'KevinMaze1'};
 
 
-active_expt_name = 'RoyMaze3';
-active_step_sizes = {1.0};
+% active_expt_name = 'TedMaze3';
+active_expt_name = 'TedMaze2';
+
+active_step_sizes = {0.1, 1.0};
 fprintf('fnRunPipeline starting for active_expt_name: %s...\n', active_expt_name);
 [data_config, processing_config, plotting_options] = fnDataConfigForExptName(active_expt_name, active_step_sizes);
 % run(PhoDibaPrepare_Stage0); % it will load all the variables inside the function workspace

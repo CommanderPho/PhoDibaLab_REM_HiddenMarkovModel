@@ -133,8 +133,9 @@ for current_binning_index = 1:length(processing_config.step_sizes)
         % general_results.per_behavioral_state_period
         % active_processing.processed_array{1, 1}.by_state.rem.binned_spike_counts
 
+        % TODO: validate these indices. Currently hacked up to avoid indexing errors.
         temp.curr_state_timesteps_start = ceil(temp.curr_state_start / active_binning_resolution) + 1;
-        temp.curr_state_timesteps_end = floor(temp.curr_state_end / active_binning_resolution) + 1;
+        temp.curr_state_timesteps_end = min(floor(temp.curr_state_end / active_binning_resolution) + 1, (length(temp.curr_timestamps) - 1)); % constrain to valid index
 
         active_results.all.timestamp_to_behavioral_period_map(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end) = behavioral_period_index;
     

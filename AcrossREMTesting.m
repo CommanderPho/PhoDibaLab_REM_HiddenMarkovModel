@@ -305,13 +305,21 @@ fprintf('Plotting results with bin resolution set to %d.\n', active_binning_reso
 
 % active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags: 668x1 double
 
-
+%% xcorr_all_pairs
 % Get REM only pairs:
 temp.results.pre_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.pre_sleep_REM_indicies, :); % 14x19
 temp.results.post_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.post_sleep_REM_indicies, :); % 9x19
-
 % Get other pairs:
-temp.filtered.all_except_REM_indicies
+temp.results.all_except_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.all_except_REM_indicies, :); % (remainder)x19
+
+%% xcorr_all_pairs_AND_lags:
+% Get REM only pairs:
+temp.results.pre_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.filtered.pre_sleep_REM_indicies, :); % 14x1
+temp.results.post_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.filtered.post_sleep_REM_indicies, :); % 9x1
+% Get other pairs:
+temp.results.all_except_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.filtered.all_except_REM_indicies, :); % (remainder)x1
+
+%% TODO: Plot all others (states that aren't REM at all) as a separate series
 
 
 %% Display the Correlational Results:
