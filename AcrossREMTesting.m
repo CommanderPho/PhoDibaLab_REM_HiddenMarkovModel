@@ -70,9 +70,14 @@ temp.filter_epochs = {'pre_sleep', 'post_sleep'};
 [temp.filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'}); % 668x1
 [temp.filtered.post_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'post_sleep'}, {'rem'}); % 668x1
 
+[temp.filtered.any_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, [], {'rem'}); % 668x1
+temp.filtered.all_except_REM_indicies = ~temp.filtered.any_REM_indicies; % 668x1, the complement of the REM indicies
+
+
+temp.results.any_REM.num_behavioral_periods = sum(temp.filtered.any_REM_indicies,'all');
 temp.results.pre_sleep_REM.num_behavioral_periods = sum(temp.filtered.pre_sleep_REM_indicies,'all');
 temp.results.post_sleep_REM.num_behavioral_periods = sum(temp.filtered.post_sleep_REM_indicies,'all');
-fprintf('pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', temp.results.pre_sleep_REM.num_behavioral_periods, temp.results.post_sleep_REM.num_behavioral_periods);
+fprintf('any_REM: %d periods\n pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', temp.results.any_REM.num_behavioral_periods, temp.results.pre_sleep_REM.num_behavioral_periods, temp.results.post_sleep_REM.num_behavioral_periods);
 
 
 % Alternative: splitapply workflow:
@@ -230,6 +235,7 @@ active_results = results_array{current_binning_index};
 % active_binned_spike_data_matrix = active_binned_spike_data_matrix(:, temp.filter_active_units); % Filter down to only the active units.
 
 temp.curr_timestamp_period_map = zeros(size(temp.curr_timestamps));
+active_results.all.timestamp_to_behavioral_period_map = zeros(size(temp.curr_timestamps));
 
 if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrelations', active_results.by_behavioral_period) | ~isfield('xcorr_full', active_results.by_behavioral_period.pairwise_xcorrelations)
 
@@ -243,6 +249,8 @@ if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrel
     max_xcorr_lag_unit_time = processing_config.max_xcorr_lag / active_binning_resolution;
 
     % Pre-allocate output matricies:
+    
+    % active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full: [num_of_behavioral_state_periods x num_unique_pairs x num_lag_steps] array
     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs, pairwise_xcorrelations.num_lag_steps]);   
 %     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
     
@@ -259,7 +267,7 @@ if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrel
         temp.curr_state_timesteps_start = ceil(temp.curr_state_start / active_binning_resolution) + 1;
         temp.curr_state_timesteps_end = floor(temp.curr_state_end / active_binning_resolution) + 1;
 
-        temp.curr_timestamp_period_map(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end) = behavioral_period_index;
+        active_results.all.timestamp_to_behavioral_period_map(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end) = behavioral_period_index;
     %     active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, :); % Filter down to only the portion of the matrix that applies to the behavioral period.
 
         % Filter down to only the portion of the matrix that applies to the behavioral period.
@@ -285,9 +293,12 @@ if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrel
 
     end
 
-    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_lags = mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 3);
-    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 2));
-    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_periods = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 1));
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_lags = mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 3); % [num_of_behavioral_state_periods x num_unique_pairs] array
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 2)); % [num_of_behavioral_state_periods x num_lag_steps] array
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_periods = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 1)); % [num_unique_pairs x num_lag_steps] array
+    
+    %% Doubly Collapsed:
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs, 2)); % [num_of_behavioral_state_periods x 1]
     results_array{current_binning_index} = active_results;
     
 
@@ -300,14 +311,19 @@ fprintf('Plotting results with bin resolution set to %d.\n', active_binning_reso
 
 % active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs: 668x19 double
 
+% active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags: 668x1 double
+
+
 % Get REM only pairs:
 temp.results.pre_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.pre_sleep_REM_indicies, :); % 14x19
 temp.results.post_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.filtered.post_sleep_REM_indicies, :); % 9x19
 
+% Get other pairs:
+temp.filtered.all_except_REM_indicies
 
 
 %% Display the Correlational Results:
-xcorr_fig = figure(14);
+xcorr_fig = figure(15);
 clf
 subplot(2,1,1);
 
@@ -321,7 +337,7 @@ subplot(2,1,2);
 h1 = heatmap(temp.results.post_sleep_REM.per_period.xcorr_all_pairs);
 ylabel('Filtered Trial Index')
 xlabel('Time Lag')    
-title(sprintf('POST sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
+title(sprintf('POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
 
 sgtitle('XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units')
 
