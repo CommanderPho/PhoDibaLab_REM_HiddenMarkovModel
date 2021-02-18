@@ -46,30 +46,8 @@ num_of_behavioral_state_periods = height(active_processing.behavioral_periods_ta
 % general_results.per_behavioral_state_period.spike_rate_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
 
 
-% for unit_index = 1:num_of_electrodes
-% 
-%     % temp.edges = unique(active_processing.spikes.behavioral_duration_indicies{unit_index});
-%     general_results.counts = histc(active_processing.spikes.behavioral_duration_indicies{unit_index}(:), general_results.edges);
-%     general_results.per_behavioral_state_period.num_spikes_per_unit(:, unit_index) = general_results.counts;
-%     general_results.per_behavioral_state_period.spike_rate_per_unit(:, unit_index) = general_results.counts ./ active_processing.behavioral_periods_table.duration;
-%     % active_processing.spikes.behavioral_duration_indicies{unit_index}
-% 
-%     % behavioral_periods_table.duration
-% 
-% end
-
-
-% if processing_config.showOnlyAlwaysStableCells
-%     isAlwaysStable = active_processing.spikes.isAlwaysStable; % 126x1
-%     numAlwaysStableCells = sum(isAlwaysStable, 'all');
-%     temp.filter_active_units = isAlwaysStable;
-%     
-% else
-%     temp.filter_active_units = logical(ones([num_of_electrodes 1]));
-% end
-
-% temp.filter_included_cell_types = {'pyramidal'};
-temp.filter_included_cell_types = {'interneurons'};
+temp.filter_included_cell_types = {'pyramidal'};
+% temp.filter_included_cell_types = {'interneurons'};
 temp.filter_maximum_included_contamination_level = {2};
 [temp.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, temp.filter_included_cell_types, ...
     temp.filter_maximum_included_contamination_level);
@@ -107,7 +85,6 @@ fprintf('pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', temp.results
 
 temp.results.pre_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(temp.filtered.pre_sleep_REM_indicies);
 temp.results.post_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(temp.filtered.post_sleep_REM_indicies);
-
 
 temp.results.pre_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(temp.filtered.pre_sleep_REM_indicies);
 temp.results.post_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(temp.filtered.post_sleep_REM_indicies);
@@ -237,43 +214,71 @@ sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal 
 
 
 
+%%%%%%% SECTION: Computer Per-Period correlation coefficients to compare them across REM periods:
+%%%%%
 
+current_binning_index = 2;
+active_binning_resolution = processing_config.step_sizes{current_binning_index};
+temp.curr_timestamps = timesteps_array{current_binning_index};
+temp.curr_processed = active_processing.processed_array{current_binning_index};
+active_results = results_array{current_binning_index};
+
+% Binned Spike rates per time:
+% [active_binned_spike_data_matrix] = sparse(fnUnitDataCells2mat(temp.curr_processed.all.binned_spike_counts));  % 35351x126 double
+[active_binned_spike_data_matrix] = fnUnitDataCells2mat(temp.curr_processed.all.binned_spike_counts);  % 35351x126 double
+
+% active_binned_spike_data_matrix = active_binned_spike_data_matrix(:, temp.filter_active_units); % Filter down to only the active units.
+
+temp.curr_timestamp_period_map = zeros(size(temp.curr_timestamps));
+active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
+
+pairwise_xcorrelations.lag_offsets = (-processing_config.max_xcorr_lag):active_binning_resolution:processing_config.max_xcorr_lag;
+pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets);
+%% max_xcorr_lag must be specified in terms of samples (num unit timesteps), not seconds, so we must convert by dividing by the currStepSize
+max_xcorr_lag_unit_time = processing_config.max_xcorr_lag / active_binning_resolution;
+
+% Loop over behavioral periods
+for behavioral_period_index = 1:num_of_behavioral_state_periods
+    temp.curr_state_start = active_processing.behavioral_periods_table.epoch_start_seconds(behavioral_period_index);
+    temp.curr_state_end = active_processing.behavioral_periods_table.epoch_end_seconds(behavioral_period_index);
+    temp.curr_state_type = active_processing.behavioral_periods_table.type(behavioral_period_index);
+    temp.curr_epoch_type = active_processing.behavioral_periods_table.behavioral_epoch(behavioral_period_index);
     
-% 
-% % Loop over behavioral periods
-% for state_index = 1:num_of_behavioral_state_periods
-%     temp.curr_state_start = active_processing.behavioral_periods_table.epoch_start_seconds(state_index);
-%     temp.curr_state_end = active_processing.behavioral_periods_table.epoch_end_seconds(state_index);
-%     temp.curr_state_type = active_processing.behavioral_periods_table.type(state_index);
-%     temp.curr_epoch_type = active_processing.behavioral_periods_table.behavioral_epoch(state_index);
-%     
-%     if strcmpi(temp.curr_state_type, 'REM')
-%         % It's a REM state
-%         temp.curr_state_spikes = cell(num_of_electrodes, 1);
-%         % Extract the spike train for each electrode
-%         for electrode_index = 1:num_of_electrodes
-%             % Convert spike times to relative to expt start and scale to seconds.
-%             temp.curr_electrode_spikes = active_processing.spikes.time{electrode_index};
-%             % Get the spike times that belong to this particular state.
-% %             temp.curr_state_spikes_idx{electrode_index} = find((temp.curr_state_start < temp.curr_electrode_spikes) & (temp.curr_electrode_spikes < temp.curr_state_end));
-%             temp.curr_state_spikes{electrode_index} = temp.curr_electrode_spikes((temp.curr_state_start < temp.curr_electrode_spikes) & (temp.curr_electrode_spikes < temp.curr_state_end));
-% 
-%             
-%         end
-% 
-%     
-%         
-%         % Compute Period Average Firing Rate
-%         
-%         
-%         % Compute Period Std Dev/ Variation
-%         
-%         
-%     end
-%     fprintf('behavioral state progress: %d/%d\n', state_index, temp.curr_num_of_behavioral_states);
-%     
-% 
-% end
+    % general_results.per_behavioral_state_period
+    % active_processing.processed_array{1, 1}.by_state.rem.binned_spike_counts
+    
+    temp.curr_state_timesteps_start = ceil(temp.curr_state_start / active_binning_resolution) + 1;
+    temp.curr_state_timesteps_end = floor(temp.curr_state_end / active_binning_resolution) + 1;
+    
+    temp.curr_timestamp_period_map(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end) = behavioral_period_index;
+%     active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, :); % Filter down to only the portion of the matrix that applies to the behavioral period.
+    
+    % Filter down to only the portion of the matrix that applies to the behavioral period.
+%     [~, ~, ~, active_results.by_behavioral_period.pairwise_xcorrelations.xcorr(behavioral_period_index, :)] = fnProcessCorrelationalMeasures(active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, :), ...
+%         general_results.indicies, processing_config, active_binning_resolution);
+    
+    
+
+
+    temp.output_pairwise_xcorrelations = zeros([general_results.indicies.num_unique_pairs pairwise_xcorrelations.num_lag_steps]); % 7875x181 double
+    for j = 1:general_results.indicies.num_unique_pairs
+       temp.output_pairwise_xcorrelations(j,:) = xcorr(active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, general_results.indicies.unique_electrode_pairs(j,1)), ...
+           active_binned_spike_data_matrix(temp.curr_state_timesteps_start:temp.curr_state_timesteps_end, general_results.indicies.unique_electrode_pairs(j,2)), ...
+           max_xcorr_lag_unit_time,'normalized'); % 181x1 double
+    end
+    
+    % temp.output_pairwise_xcorrelations is 7875x19 (one for each timestep)
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr(behavioral_period_index, :) = mean(temp.output_pairwise_xcorrelations, 2);
+%     active_processing.processed_array{1}.all.binned_spike_counts
+    
+    
+%     [~, active_results.by_epoch.(temp.curr_epoch_name).autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).partial_autocorrelations, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations] = fnProcessCorrelationalMeasures(temp.curr_processed.by_epoch.(temp.curr_epoch_name).binned_spike_counts, ...
+% 			general_results.indicies, processing_config, active_binning_resolution);
+    
+    fprintf('behavioral state progress: %d/%d\n', behavioral_period_index, num_of_behavioral_state_periods);
+    
+
+end
 
 % active_processing.spikes.behavioral_states
 fprintf('AcrossREMTesting done.\n');

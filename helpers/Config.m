@@ -24,11 +24,13 @@ data_config.conversion_factor = (10^6);
 processing_config.active_expt.name = 'RoyMaze1';
 processing_config.step_sizes = {0.1, 1.0}; % Step Sizes in seconds 
 processing_config.num_step_sizes = length(processing_config.step_sizes);
+processing_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
 
 %% Results:
 % Add the results file path:
 data_config.output.results_file_name = 'PhoResults.mat';
 data_config.output.results_file_path = fullfile(data_config.output.root_path, data_config.output.results_file_name);
+
 
 
 
