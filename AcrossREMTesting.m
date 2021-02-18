@@ -232,14 +232,20 @@ active_results = results_array{current_binning_index};
 temp.curr_timestamp_period_map = zeros(size(temp.curr_timestamps));
 
 if ~isfield('by_behavioral_period', active_results) | ~isfield('pairwise_xcorrelations', active_results.by_behavioral_period) | ~isfield('xcorr_full', active_results.by_behavioral_period.pairwise_xcorrelations)
-    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs, pairwise_xcorrelations.num_lag_steps]);   
-%     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
 
+    if ~isfield('max_xcorr_lag', processing_config)
+       Config; 
+    end
+    
     pairwise_xcorrelations.lag_offsets = (-processing_config.max_xcorr_lag):active_binning_resolution:processing_config.max_xcorr_lag;
     pairwise_xcorrelations.num_lag_steps = length(pairwise_xcorrelations.lag_offsets);
     %% max_xcorr_lag must be specified in terms of samples (num unit timesteps), not seconds, so we must convert by dividing by the currStepSize
     max_xcorr_lag_unit_time = processing_config.max_xcorr_lag / active_binning_resolution;
 
+    % Pre-allocate output matricies:
+    active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs, pairwise_xcorrelations.num_lag_steps]);   
+%     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
+    
     % Loop over behavioral periods
     for behavioral_period_index = 1:num_of_behavioral_state_periods
         temp.curr_state_start = active_processing.behavioral_periods_table.epoch_start_seconds(behavioral_period_index);
