@@ -1,4 +1,4 @@
-function [data_config, processing_config, plotting_options] = fnDataConfigForExptName(active_expt_name, active_step_sizes)
+function [data_config, processing_config, plotting_options] = fnDataConfigForExptName(active_expt_name, active_step_sizes, active_root_path)
 %FNDATACONFIGFOREXPTNAME Replacement for main Config script
 %   Detailed explanation goes here
 
@@ -9,6 +9,10 @@ function [data_config, processing_config, plotting_options] = fnDataConfigForExp
     if ~exist('active_step_sizes','var')
         active_step_sizes = {0.1, 1.0}; % Step Sizes in seconds
     end
+
+	if ~exist('active_root_path', 'var')
+		active_root_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+	end
     
     % Process one of the experiments: 
     processing_config.active_expt.name = active_expt_name;
@@ -20,7 +24,7 @@ function [data_config, processing_config, plotting_options] = fnDataConfigForExp
     
     
     
-    data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+    data_config.root_parent_path = active_root_path;
     data_config.source_data_prefix = 'src';
     data_config.output_data_prefix = 'Results';
 
