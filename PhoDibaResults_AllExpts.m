@@ -75,8 +75,8 @@ end
 
 function [xcorr_fig, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
     % Run main analysis
-
-
+    
+    %% Get filter info for active units
     [filter_config.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
     fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
