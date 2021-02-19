@@ -128,15 +128,15 @@ temp.results.pre_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.resu
 temp.results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(temp.results.post_sleep_REM.spike_rate_all_units.mean);
 
 
-temp.plottingOptions.plottingXAxis = 'index';
-% temp.plottingOptions.plottingXAxis = 'timestamp';
-temp.plottingOptions.plottingYlim = [];
-% temp.plottingOptions.plottingYlim = [2 4.25];
-% temp.plottingOptions.plottingYlim = [0.2 1.4];
+plottingOptions.plottingXAxis = 'index';
+% plottingOptions.plottingXAxis = 'timestamp';
+plottingOptions.plottingYlim = [];
+% plottingOptions.plottingYlim = [2 4.25];
+% plottingOptions.plottingYlim = [0.2 1.4];
 
-temp.plottingOptions.plottingMode = 'scatter';
-% temp.plottingOptions.plottingMode = 'errorbar';
-% temp.plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
+plottingOptions.plottingMode = 'scatter';
+% plottingOptions.plottingMode = 'errorbar';
+% plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
 
 
 %% Error bars are across units:
@@ -144,50 +144,50 @@ figure(9);
 clf
 subplot(2,1,1);
 
-if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
-    temp.plottingOptions.x = [1:temp.results.pre_sleep_REM.num_behavioral_periods];
+if strcmpi(plottingOptions.plottingXAxis, 'index')
+    plottingOptions.x = [1:temp.results.pre_sleep_REM.num_behavioral_periods];
 else
-    temp.plottingOptions.x = temp.results.pre_sleep_REM.per_period.epoch_center_seconds;
+    plottingOptions.x = temp.results.pre_sleep_REM.per_period.epoch_center_seconds;
 end
 
-[h1] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, temp.plottingOptions.x, ...
+[h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
     temp.results.pre_sleep_REM.spike_rate_all_units.mean, ...
     temp.results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
     temp.results.pre_sleep_REM.spike_rate_per_unit);
 
 title(sprintf('PRE sleep REM periods: %d', temp.results.pre_sleep_REM.num_behavioral_periods));
-if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
+if strcmpi(plottingOptions.plottingXAxis, 'index')
     xlabel('Filtered Trial Index')
 else
     xlabel('Trial Timestamp Offset (Seconds)')
 end
 ylabel('mean spike rate')
-if ~isempty(temp.plottingOptions.plottingYlim)
-    ylim(temp.plottingOptions.plottingYlim)
+if ~isempty(plottingOptions.plottingYlim)
+    ylim(plottingOptions.plottingYlim)
 end
 
 subplot(2,1,2);
 
-if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
-    temp.plottingOptions.x = [1:temp.results.post_sleep_REM.num_behavioral_periods];
+if strcmpi(plottingOptions.plottingXAxis, 'index')
+    plottingOptions.x = [1:temp.results.post_sleep_REM.num_behavioral_periods];
 else
-    temp.plottingOptions.x = temp.results.post_sleep_REM.per_period.epoch_center_seconds;
+    plottingOptions.x = temp.results.post_sleep_REM.per_period.epoch_center_seconds;
 end
-[h2] = fnPlotAcrossREMTesting(temp.plottingOptions.plottingMode, temp.plottingOptions.x, ...
+[h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
     temp.results.post_sleep_REM.spike_rate_all_units.mean, ...
     temp.results.post_sleep_REM.spike_rate_all_units.stdDev, ...
     temp.results.post_sleep_REM.spike_rate_per_unit);
 
 
 title(sprintf('POST sleep REM periods: %d', temp.results.post_sleep_REM.num_behavioral_periods));
-if strcmpi(temp.plottingOptions.plottingXAxis, 'index')
+if strcmpi(plottingOptions.plottingXAxis, 'index')
     xlabel('Filtered Trial Index')
 else
     xlabel('Trial Timestamp Offset (Seconds)')
 end
 ylabel('mean spike rate')
-if ~isempty(temp.plottingOptions.plottingYlim)
-    ylim(temp.plottingOptions.plottingYlim)
+if ~isempty(plottingOptions.plottingYlim)
+    ylim(plottingOptions.plottingYlim)
 end
 sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only')
 % Figure Name:

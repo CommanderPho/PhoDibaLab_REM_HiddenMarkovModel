@@ -37,6 +37,19 @@ filter_config.filter_maximum_included_contamination_level = {2};
 temp.filter_states = {'rem'};
 temp.filter_epochs = {'pre_sleep', 'post_sleep'};
 
+%% Plotting Options:
+plottingOptions.plottingXAxis = 'index';
+% plottingOptions.plottingXAxis = 'timestamp';
+plottingOptions.plottingYlim = [];
+% plottingOptions.plottingYlim = [2 4.25];
+% plottingOptions.plottingYlim = [0.2 1.4];
+
+plottingOptions.plottingMode = 'scatter';
+% plottingOptions.plottingMode = 'errorbar';
+% plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
+
+
+
 active_binning_resolution = active_step_sizes{current_binning_index};
 active_num_experiments = length(active_experiment_names);
 
@@ -49,10 +62,10 @@ for expt_index = 1:active_num_experiments
     temp.curr_processed = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index};
     active_results = across_experiment_results{expt_index}.results_array{current_binning_index};
 
-    [xcorr_fig, filtered, results] = fnPlotAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
+    [xcorr_fig, filtered, results] = fnPerformAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
         across_experiment_results{expt_index}.general_results, ...
         across_experiment_results{expt_index}.results_array{current_binning_index}, ...
-        across_experiment_results{expt_index}.processing_config, filter_config, expt_info);
+        across_experiment_results{expt_index}.processing_config, filter_config, expt_info, plottingOptions);
    
 end
 
@@ -60,7 +73,7 @@ end
 
 
 
-function [xcorr_fig, filtered, results] = fnPlotAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info)
+function [xcorr_fig, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
     % Run main analysis
 
 
@@ -133,14 +146,78 @@ function [xcorr_fig, filtered, results] = fnPlotAcrossREMTesting(active_processi
     % Get other pairs:
     results.all_except_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.all_except_REM_indicies, :); % (remainder)x1
 
+    
+    %%% Plotting Results:
+    temp.curr_expt_string = sprintf('experiment[%d]: %s', expt_info.index, expt_info.name);
+    
+    
     %% TODO: Plot all others (states that aren't REM at all) as a separate series
 
+    %% Error bars are across units:
+    figure(9+expt_info.index);
+    clf
+    subplot(2,1,1);
+
+    if strcmpi(plottingOptions.plottingXAxis, 'index')
+        plottingOptions.x = [1:results.pre_sleep_REM.num_behavioral_periods];
+    else
+        plottingOptions.x = results.pre_sleep_REM.per_period.epoch_center_seconds;
+    end
+
+    [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+        results.pre_sleep_REM.spike_rate_all_units.mean, ...
+        results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
+        results.pre_sleep_REM.spike_rate_per_unit);
+
+    title(sprintf('PRE sleep REM periods: %d', results.pre_sleep_REM.num_behavioral_periods));
+    if strcmpi(plottingOptions.plottingXAxis, 'index')
+        xlabel('Filtered Trial Index')
+    else
+        xlabel('Trial Timestamp Offset (Seconds)')
+    end
+    ylabel('mean spike rate')
+    if ~isempty(plottingOptions.plottingYlim)
+        ylim(plottingOptions.plottingYlim)
+    end
+
+    subplot(2,1,2);
+
+    if strcmpi(plottingOptions.plottingXAxis, 'index')
+        plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
+    else
+        plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
+    end
+    [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+        results.post_sleep_REM.spike_rate_all_units.mean, ...
+        results.post_sleep_REM.spike_rate_all_units.stdDev, ...
+        results.post_sleep_REM.spike_rate_per_unit);
+
+
+    title(sprintf('POST sleep REM periods: %d', results.post_sleep_REM.num_behavioral_periods));
+    if strcmpi(plottingOptions.plottingXAxis, 'index')
+        xlabel('Filtered Trial Index')
+    else
+        xlabel('Trial Timestamp Offset (Seconds)')
+    end
+    ylabel('mean spike rate')
+    if ~isempty(plottingOptions.plottingYlim)
+        ylim(plottingOptions.plottingYlim)
+    end
+    sgtitle([temp.curr_expt_string ' : Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only'])
+    % Figure Name:
+    %'Spike Rates - PRE vs Post Sleep REM Periods - Period Index';
+    %'Spike Rates - PRE vs Post Sleep REM Periods - Timestamp Offset';
+
+
+
+    
+    
     %% Display the Correlational Results:
     xcorr_fig = figure(expt_info.index);
     [xcorr_fig, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep_REM.per_period.xcorr_all_pairs, ...
         results.post_sleep_REM.per_period.xcorr_all_pairs);
     
-    temp.curr_expt_string = sprintf('experiment[%d]: %s', expt_info.index, expt_info.name);
+    
     sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
     
 end
@@ -168,5 +245,28 @@ function [xcorr_fig, h1, h2] = fnPlotAcrossREMXcorrHeatmap(v1, v2)
 
 %     sgtitle('XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units')
 
+end
+
+
+function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
+
+    if strcmpi(mode, 'errorbar')
+        h = errorbar(v1, ...
+            v2, ...
+            v3);
+
+    elseif strcmpi(mode, 'scatter')
+        h = scatter(v1, ...
+            v2);
+
+    elseif strcmpi(mode, 'distributionPlot')
+        h = distributionPlot(v4'); % defaults 
+
+    elseif strcmpi(mode, 'bar')
+        h = bar(v1, v2);
+        
+    else
+       error('Invalid mode input!') 
+    end
 end
 
