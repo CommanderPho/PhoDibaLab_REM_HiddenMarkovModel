@@ -219,7 +219,7 @@ sgtitle('Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal 
 
 
 
-%%%%%%% SECTION: Computer Per-Period correlation coefficients to compare them across REM periods:
+%%%%%%% SECTION: Compute Per-Period correlation coefficients to compare them across REM periods:
 %%%%%
 
 current_binning_index = 1;
