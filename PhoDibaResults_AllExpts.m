@@ -196,7 +196,6 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
         results.post_sleep_REM.spike_rate_all_units.stdDev, ...
         results.post_sleep_REM.spike_rate_per_unit);
 
-
     title(sprintf('POST sleep REM periods: %d', results.post_sleep_REM.num_behavioral_periods));
     if strcmpi(plottingOptions.plottingXAxis, 'index')
         currPlotConfig.xlabel = 'Filtered Period Index';
@@ -240,8 +239,6 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     plotResults.figures.xcorr = figure(expt_info.index);
     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep_REM.per_period.xcorr_all_pairs, ...
         results.post_sleep_REM.per_period.xcorr_all_pairs);
-    
-    
     sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
     
     % Build Figure Export File path:
@@ -296,11 +293,11 @@ function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
             v3);
 
     elseif strcmpi(mode, 'scatter')
-        h = scatter(v1, ...
+        h(1) = scatter(v1, ...
             v2);
         
         hold on;
-        errorbar(v1, v2, v3, 'LineStyle','none');
+        h(2) = errorbar(v1, v2, v3, 'LineStyle','none');
         
         
     elseif strcmpi(mode, 'distributionPlot')
