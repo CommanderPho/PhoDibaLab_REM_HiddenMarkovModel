@@ -38,8 +38,8 @@ temp.filter_states = {'rem'};
 temp.filter_epochs = {'pre_sleep', 'post_sleep'};
 
 %% Plotting Options:
-plottingOptions.plottingXAxis = 'index';
-% plottingOptions.plottingXAxis = 'timestamp';
+% plottingOptions.plottingXAxis = 'index';
+plottingOptions.plottingXAxis = 'timestamp';
 plottingOptions.plottingYlim = [];
 % plottingOptions.plottingYlim = [2 4.25];
 % plottingOptions.plottingYlim = [0.2 1.4];
@@ -92,9 +92,46 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     [filtered.any_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, [], {'rem'}); % 668x1
     filtered.all_except_REM_indicies = ~filtered.any_REM_indicies; % 668x1, the complement of the REM indicies
 
-    results.any_REM.num_behavioral_periods = sum(filtered.any_REM_indicies,'all');
-    results.pre_sleep_REM.num_behavioral_periods = sum(filtered.pre_sleep_REM_indicies,'all');
-    results.post_sleep_REM.num_behavioral_periods = sum(filtered.post_sleep_REM_indicies,'all');
+    
+    temp.group_name_list = {'pre_sleep_REM', 'post_sleep_REM', 'any_REM', 'all_except_REM'}; % other options: 'any_REM'
+    temp.num_groups = length(temp.group_name_list);
+    temp.group_indicies_list = {filtered.pre_sleep_REM_indicies, filtered.post_sleep_REM_indicies, filtered.any_REM_indicies, filtered.all_except_REM_indicies}; % other options: filtered.any_REM_indicies
+    
+    for i = 1:temp.num_groups
+        temp.curr_group_name = temp.group_name_list{i};
+        temp.curr_group_indicies = temp.group_indicies_list{i};
+        % Computations:
+        results.(temp.curr_group_name).num_behavioral_periods = sum(temp.curr_group_indicies,'all');
+        results.(temp.curr_group_name).per_period.durations = active_processing.behavioral_periods_table.duration(temp.curr_group_indicies);
+        results.(temp.curr_group_name).per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(temp.curr_group_indicies);
+        results.(temp.curr_group_name).per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(temp.curr_group_indicies);
+
+        % Compute the center of the epochs to plot the firing rates along an appropriately scaled x-axis:
+        results.(temp.curr_group_name).per_period.epoch_center_seconds = (results.(temp.curr_group_name).per_period.epoch_start_seconds + floor(results.(temp.curr_group_name).per_period.durations ./ 2.0));
+
+         % Leave in terms of the spike rates per unit (14x92 double):
+        results.(temp.curr_group_name).spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.curr_group_indicies, filter_config.filter_active_units);
+
+        % Average Across all of the units
+        results.(temp.curr_group_name).spike_rate_all_units.mean = mean(results.(temp.curr_group_name).spike_rate_per_unit, 2); % 14x1 double
+        results.(temp.curr_group_name).spike_rate_all_units.stdDev = std(results.(temp.curr_group_name).spike_rate_per_unit, 0, 2); % 14x1 double
+
+        % Compute the average across the REM sessions in each epoch
+        results.(temp.curr_group_name).baseline_spike_rate_across_all.mean = mean(results.(temp.curr_group_name).spike_rate_all_units.mean);
+        results.(temp.curr_group_name).baseline_spike_rate_across_all.stdDev = std(results.(temp.curr_group_name).spike_rate_all_units.mean);
+    
+        %% xcorr_all_pairs:
+        results.(temp.curr_group_name).per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.curr_group_indicies, :); % 9x19
+        %% xcorr_all_pairs_AND_lags:
+        results.(temp.curr_group_name).per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.curr_group_indicies, :); % 9x1
+
+
+    end
+    
+    
+%     results.any_REM.num_behavioral_periods = sum(filtered.any_REM_indicies,'all');
+%     results.pre_sleep_REM.num_behavioral_periods = sum(filtered.pre_sleep_REM_indicies,'all');
+%     results.post_sleep_REM.num_behavioral_periods = sum(filtered.post_sleep_REM_indicies,'all');
     fprintf('any_REM: %d periods\n pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', results.any_REM.num_behavioral_periods, results.pre_sleep_REM.num_behavioral_periods, results.post_sleep_REM.num_behavioral_periods);
 
     % The number of spikes per unit
@@ -102,52 +139,51 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     % general_results.per_behavioral_state_period.spike_rate_per_unit(filter_config.filter_active_units, filtered.pre_sleep_REM_indicies); % 668x126
 
 
-    results.pre_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(filtered.pre_sleep_REM_indicies);
-    results.post_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(filtered.post_sleep_REM_indicies);
+%     results.pre_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(filtered.pre_sleep_REM_indicies);
+%     results.post_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(filtered.post_sleep_REM_indicies);
+% 
+%     results.pre_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(filtered.pre_sleep_REM_indicies);
+%     results.post_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(filtered.post_sleep_REM_indicies);
+% 
+%     results.pre_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(filtered.pre_sleep_REM_indicies);
+%     results.post_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(filtered.post_sleep_REM_indicies);
+% 
+%     % Compute the center of the epochs to plot the firing rates along an appropriately scaled x-axis:
+%     results.pre_sleep_REM.per_period.epoch_center_seconds = (results.pre_sleep_REM.per_period.epoch_start_seconds + floor(results.pre_sleep_REM.per_period.durations ./ 2.0));
+%     results.post_sleep_REM.per_period.epoch_center_seconds = (results.post_sleep_REM.per_period.epoch_start_seconds + floor(results.post_sleep_REM.per_period.durations ./ 2.0));
+% 
+%     % Leave in terms of the spike rates per unit (14x92 double):
+%     results.pre_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(filtered.pre_sleep_REM_indicies, filter_config.filter_active_units);
+%     results.post_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(filtered.post_sleep_REM_indicies, filter_config.filter_active_units);
+% 
+%     % results.pre_sleep_REM.spike_rate_per_unit: (14x92 double)
+%     % results.post_sleep_REM.spike_rate_per_unit: (9x92 double)
+% 
+%     % Average Across all of the units
+%     results.pre_sleep_REM.spike_rate_all_units.mean = mean(results.pre_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
+%     results.post_sleep_REM.spike_rate_all_units.mean = mean(results.post_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
+%     results.pre_sleep_REM.spike_rate_all_units.stdDev = std(results.pre_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
+%     results.post_sleep_REM.spike_rate_all_units.stdDev = std(results.post_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
+%     
+%     % Compute the average across the REM sessions in each epoch
+%     results.pre_sleep_REM.baseline_spike_rate_across_all.mean = mean(results.pre_sleep_REM.spike_rate_all_units.mean);
+%     results.post_sleep_REM.baseline_spike_rate_across_all.mean = mean(results.post_sleep_REM.spike_rate_all_units.mean);
+%     results.pre_sleep_REM.baseline_spike_rate_across_all.stdDev = std(results.pre_sleep_REM.spike_rate_all_units.mean);
+%     results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(results.post_sleep_REM.spike_rate_all_units.mean);
 
-    results.pre_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(filtered.pre_sleep_REM_indicies);
-    results.post_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(filtered.post_sleep_REM_indicies);
-
-    results.pre_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(filtered.pre_sleep_REM_indicies);
-    results.post_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(filtered.post_sleep_REM_indicies);
-
-    % Compute the center of the epochs to plot the firing rates along an appropriately scaled x-axis:
-    results.pre_sleep_REM.per_period.epoch_center_seconds = (results.pre_sleep_REM.per_period.epoch_start_seconds + floor(results.pre_sleep_REM.per_period.durations ./ 2.0));
-    results.post_sleep_REM.per_period.epoch_center_seconds = (results.post_sleep_REM.per_period.epoch_start_seconds + floor(results.post_sleep_REM.per_period.durations ./ 2.0));
-
-
-    % Leave in terms of the spike rates per unit (14x92 double):
-    results.pre_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(filtered.pre_sleep_REM_indicies, filter_config.filter_active_units);
-    results.post_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(filtered.post_sleep_REM_indicies, filter_config.filter_active_units);
-
-    % results.pre_sleep_REM.spike_rate_per_unit: (14x92 double)
-    % results.post_sleep_REM.spike_rate_per_unit: (9x92 double)
-
-    % Average Across all of the units
-    results.pre_sleep_REM.spike_rate_all_units.mean = mean(results.pre_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
-    results.post_sleep_REM.spike_rate_all_units.mean = mean(results.post_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
-    results.pre_sleep_REM.spike_rate_all_units.stdDev = std(results.pre_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
-    results.post_sleep_REM.spike_rate_all_units.stdDev = std(results.post_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
-    
-    % Compute the average across the REM sessions in each epoch
-    results.pre_sleep_REM.baseline_spike_rate_across_all.mean = mean(results.pre_sleep_REM.spike_rate_all_units.mean);
-    results.post_sleep_REM.baseline_spike_rate_across_all.mean = mean(results.post_sleep_REM.spike_rate_all_units.mean);
-    results.pre_sleep_REM.baseline_spike_rate_across_all.stdDev = std(results.pre_sleep_REM.spike_rate_all_units.mean);
-    results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(results.post_sleep_REM.spike_rate_all_units.mean);
-
-    %% xcorr_all_pairs
-    % Get REM only pairs:
-    results.pre_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.pre_sleep_REM_indicies, :); % 14x19
-    results.post_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.post_sleep_REM_indicies, :); % 9x19
-    % Get other pairs:
-    results.all_except_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.all_except_REM_indicies, :); % (remainder)x19
-
-    %% xcorr_all_pairs_AND_lags:
-    % Get REM only pairs:
-    results.pre_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.pre_sleep_REM_indicies, :); % 14x1
-    results.post_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.post_sleep_REM_indicies, :); % 9x1
-    % Get other pairs:
-    results.all_except_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.all_except_REM_indicies, :); % (remainder)x1
+%     %% xcorr_all_pairs
+%     % Get REM only pairs:
+%     results.pre_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.pre_sleep_REM_indicies, :); % 14x19
+%     results.post_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.post_sleep_REM_indicies, :); % 9x19
+%     % Get other pairs:
+%     results.all_except_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.all_except_REM_indicies, :); % (remainder)x19
+% 
+%     %% xcorr_all_pairs_AND_lags:
+%     % Get REM only pairs:
+%     results.pre_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.pre_sleep_REM_indicies, :); % 14x1
+%     results.post_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.post_sleep_REM_indicies, :); % 9x1
+%     % Get other pairs:
+%     results.all_except_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.all_except_REM_indicies, :); % (remainder)x1
 
     
     %%% Plotting Results:
@@ -157,23 +193,58 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     
     %% TODO: Plot all others (states that aren't REM at all) as a separate series
 
-    %% Error bars are across units:
-    plotResults.figures.meanSpikeRateFig = figure(9+expt_info.index);
-    clf
-    subplot(2,1,1);
+    %% Plot Mean Firing Rates across units FOR ALL PERIODS:
 
+    plotResults.figures.meanSpikeRateAllPeriodsFig = figure(119+expt_info.index);
+    clf
     if strcmpi(plottingOptions.plottingXAxis, 'index')
         plottingOptions.x = [1:results.pre_sleep_REM.num_behavioral_periods];
     else
         plottingOptions.x = results.pre_sleep_REM.per_period.epoch_center_seconds;
     end
-
-    [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+    
+    hold off;
+    [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
         results.pre_sleep_REM.spike_rate_all_units.mean, ...
         results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
         results.pre_sleep_REM.spike_rate_per_unit);
-
-    title(sprintf('PRE sleep REM periods: %d', results.pre_sleep_REM.num_behavioral_periods));
+    
+    h0(1).Marker = '*';
+    h0(1).DisplayName = 'pre_sleep_REM';
+    
+    hold on;
+    
+    if strcmpi(plottingOptions.plottingXAxis, 'index')
+        plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
+    else
+        plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
+    end
+    
+    [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+        results.post_sleep_REM.spike_rate_all_units.mean, ...
+        results.post_sleep_REM.spike_rate_all_units.stdDev, ...
+        results.post_sleep_REM.spike_rate_per_unit);
+    
+    h1(1).Marker = '*';
+    h1(1).DisplayName = 'post_sleep_REM';
+    
+    hold on;
+    
+    if strcmpi(plottingOptions.plottingXAxis, 'index')
+        plottingOptions.x = [1:results.all_except_REM.num_behavioral_periods];
+    else
+        plottingOptions.x = results.all_except_REM.per_period.epoch_center_seconds;
+    end
+    
+    [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+        results.all_except_REM.spike_rate_all_units.mean, ...
+        results.all_except_REM.spike_rate_all_units.stdDev, ...
+        results.all_except_REM.spike_rate_per_unit);
+    
+    h2(1).DisplayName = 'all_except_REM';
+    
+    % Set up axis properties:
+    title(sprintf('Firing Rate All periods: %d', results.pre_sleep_REM.num_behavioral_periods));
     if strcmpi(plottingOptions.plottingXAxis, 'index')
         xlabel('Filtered Period Index')
     else
@@ -184,77 +255,111 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
         ylim(plottingOptions.plottingYlim)
     end
 
-    subplot(2,1,2);
-
-    if strcmpi(plottingOptions.plottingXAxis, 'index')
-        plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
-    else
-        plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
-    end
-    [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-        results.post_sleep_REM.spike_rate_all_units.mean, ...
-        results.post_sleep_REM.spike_rate_all_units.stdDev, ...
-        results.post_sleep_REM.spike_rate_per_unit);
-
-    title(sprintf('POST sleep REM periods: %d', results.post_sleep_REM.num_behavioral_periods));
-    if strcmpi(plottingOptions.plottingXAxis, 'index')
-        currPlotConfig.xlabel = 'Filtered Period Index';
-        
-    else
-        currPlotConfig.xlabel = 'Period Timestamp Offset (Seconds)';
-
-    end
-    currPlotConfig.ylabel = 'mean spike rate';
+    sgtitle([temp.curr_expt_string ' : Spike Rates - All Periods - Period Index - All Cells'])
     
-    xlabel(currPlotConfig.xlabel)
-    ylabel(currPlotConfig.ylabel)
-    if ~isempty(plottingOptions.plottingYlim)
-        ylim(plottingOptions.plottingYlim)
-    end
-    sgtitle([temp.curr_expt_string ' : Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only'])
-    % Figure Name:
-    %'Spike Rates - PRE vs Post Sleep REM Periods - Period Index';
-    %'Spike Rates - PRE vs Post Sleep REM Periods - Timestamp Offset';
-
-%     'Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only'
-    % MainPlotVariableBeingCompared - PurposeOfComparison - IndependentVariable - FiltersAndConstraints
     
-    % Build Figure Export File path:
-    currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
-        plottingOptions.outputs.curr_expt_filename_string, ...
-        'Spike Rates', ...
-        'PRE vs Post Sleep REM Periods', ...
-        currPlotConfig.xlabel, ...
-        'Spike Rates'...
-        );
-
-    currPlotConfig.curr_expt_parentPath = plottingOptions.outputs.rootPath;
-    currPlotConfig.curr_expt_path = fullfile(currPlotConfig.curr_expt_parentPath, currPlotConfig.curr_expt_filename_string);
-
-    % Perform the export:
-    [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.meanSpikeRateFig, currPlotConfig.curr_expt_path, true, false, false, true);
-    plotResults.configs{end+1} = currPlotConfig;
     
-    %% Display the Correlational Results:
-    plotResults.figures.xcorr = figure(expt_info.index);
-    [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep_REM.per_period.xcorr_all_pairs, ...
-        results.post_sleep_REM.per_period.xcorr_all_pairs);
-    sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
     
-    % Build Figure Export File path:
-    currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
-        plottingOptions.outputs.curr_expt_filename_string, ...
-        'XCorr for all pairs', ...
-        'PRE vs Post Sleep REM Periods', ...
-        currPlotConfig.xlabel, ...
-        'All Units'...
-        );
-
-    currPlotConfig.curr_expt_parentPath = plottingOptions.outputs.rootPath;
-    currPlotConfig.curr_expt_path = fullfile(currPlotConfig.curr_expt_parentPath, currPlotConfig.curr_expt_filename_string);
-    % Perform the export:
-    [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.xcorr, currPlotConfig.curr_expt_path, true, false, false, true);
-    plotResults.configs{end+1} = currPlotConfig;
+%     
+%     %% Plot Mean Firing Rates across units FOR REM PERIODS ONLY:
+%     % Error bars are across units:
+%     plotResults.figures.meanSpikeRateFig = figure(9+expt_info.index);
+%     clf
+%     subplot(2,1,1);
+% 
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         plottingOptions.x = [1:results.pre_sleep_REM.num_behavioral_periods];
+%     else
+%         plottingOptions.x = results.pre_sleep_REM.per_period.epoch_center_seconds;
+%     end
+% 
+%     [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+%         results.pre_sleep_REM.spike_rate_all_units.mean, ...
+%         results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
+%         results.pre_sleep_REM.spike_rate_per_unit);
+% 
+%     title(sprintf('PRE sleep REM periods: %d', results.pre_sleep_REM.num_behavioral_periods));
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         xlabel('Filtered Period Index')
+%     else
+%         xlabel('Period Timestamp Offset (Seconds)')
+%     end
+%     ylabel('mean spike rate')
+%     if ~isempty(plottingOptions.plottingYlim)
+%         ylim(plottingOptions.plottingYlim)
+%     end
+% 
+%     subplot(2,1,2);
+% 
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
+%     else
+%         plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
+%     end
+%     [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+%         results.post_sleep_REM.spike_rate_all_units.mean, ...
+%         results.post_sleep_REM.spike_rate_all_units.stdDev, ...
+%         results.post_sleep_REM.spike_rate_per_unit);
+% 
+%     title(sprintf('POST sleep REM periods: %d', results.post_sleep_REM.num_behavioral_periods));
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         currPlotConfig.xlabel = 'Filtered Period Index';
+%         
+%     else
+%         currPlotConfig.xlabel = 'Period Timestamp Offset (Seconds)';
+% 
+%     end
+%     currPlotConfig.ylabel = 'mean spike rate';
+%     
+%     xlabel(currPlotConfig.xlabel)
+%     ylabel(currPlotConfig.ylabel)
+%     if ~isempty(plottingOptions.plottingYlim)
+%         ylim(plottingOptions.plottingYlim)
+%     end
+%     sgtitle([temp.curr_expt_string ' : Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only'])
+%     % Figure Name:
+%     %'Spike Rates - PRE vs Post Sleep REM Periods - Period Index';
+%     %'Spike Rates - PRE vs Post Sleep REM Periods - Timestamp Offset';
+% 
+% %     'Spike Rates - PRE vs Post Sleep REM Periods - Period Index - Pyramidal Only'
+%     % MainPlotVariableBeingCompared - PurposeOfComparison - IndependentVariable - FiltersAndConstraints
+%     
+%     % Build Figure Export File path:
+%     currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
+%         plottingOptions.outputs.curr_expt_filename_string, ...
+%         'Spike Rates', ...
+%         'PRE vs Post Sleep REM Periods', ...
+%         currPlotConfig.xlabel, ...
+%         'Spike Rates'...
+%         );
+% 
+%     currPlotConfig.curr_expt_parentPath = plottingOptions.outputs.rootPath;
+%     currPlotConfig.curr_expt_path = fullfile(currPlotConfig.curr_expt_parentPath, currPlotConfig.curr_expt_filename_string);
+% 
+%     % Perform the export:
+%     [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.meanSpikeRateFig, currPlotConfig.curr_expt_path, true, false, false, true);
+%     plotResults.configs{end+1} = currPlotConfig;
+    
+%     %% Display the Correlational Results:
+%     plotResults.figures.xcorr = figure(expt_info.index);
+%     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep_REM.per_period.xcorr_all_pairs, ...
+%         results.post_sleep_REM.per_period.xcorr_all_pairs);
+%     sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
+%     
+%     % Build Figure Export File path:
+%     currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
+%         plottingOptions.outputs.curr_expt_filename_string, ...
+%         'XCorr for all pairs', ...
+%         'PRE vs Post Sleep REM Periods', ...
+%         currPlotConfig.xlabel, ...
+%         'All Units'...
+%         );
+% 
+%     currPlotConfig.curr_expt_parentPath = plottingOptions.outputs.rootPath;
+%     currPlotConfig.curr_expt_path = fullfile(currPlotConfig.curr_expt_parentPath, currPlotConfig.curr_expt_filename_string);
+%     % Perform the export:
+%     [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.xcorr, currPlotConfig.curr_expt_path, true, false, false, true);
+%     plotResults.configs{end+1} = currPlotConfig;
 
     
 end
