@@ -46,14 +46,14 @@ num_of_behavioral_state_periods = height(active_processing.behavioral_periods_ta
 % general_results.per_behavioral_state_period.spike_rate_per_unit = zeros([num_of_behavioral_state_periods num_of_electrodes]); %% num_results: 668x126 double
 
 
-temp.filter_included_cell_types = {'pyramidal'};
-% temp.filter_included_cell_types = {'interneurons'};
-temp.filter_maximum_included_contamination_level = {2};
-[temp.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, temp.filter_included_cell_types, ...
-    temp.filter_maximum_included_contamination_level);
+filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {'interneurons'};
+filter_config.filter_maximum_included_contamination_level = {2};
+[filter_config.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
+    filter_config.filter_maximum_included_contamination_level);
 
 
-fprintf('Filter: Including %d of %d total units\n', sum(temp.filter_active_units, 'all'), length(temp.filter_active_units));
+fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
 
 
 %% Filter by Epoch:
@@ -64,8 +64,9 @@ fprintf('Filter: Including %d of %d total units\n', sum(temp.filter_active_units
 % general_results.GroupedByState.groups = findgroups(active_processing.behavioral_periods_table.type);
 % general_results.GroupedByEpoch.groups = findgroups(active_processing.behavioral_periods_table.behavioral_epoch);
 
-temp.filter_states = {'rem'};
-temp.filter_epochs = {'pre_sleep', 'post_sleep'};
+% % Currently do nothing:
+% filter_config.filter_states = {'rem'};
+% filter_config.filter_epochs = {'pre_sleep', 'post_sleep'};
 
 [temp.filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'}); % 668x1
 [temp.filtered.post_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'post_sleep'}, {'rem'}); % 668x1
@@ -84,8 +85,8 @@ fprintf('any_REM: %d periods\n pre_sleep_REM: %d periods\n post_sleep_REM: %d pe
 % splitapply(@mean,Height,G)
 
 % The number of spikes per unit
-% general_results.per_behavioral_state_period.num_spikes_per_unit(temp.filter_active_units, temp.filtered.pre_sleep_REM_indicies); % 668x126
-% general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filter_active_units, temp.filtered.pre_sleep_REM_indicies); % 668x126
+% general_results.per_behavioral_state_period.num_spikes_per_unit(filter_config.filter_active_units, temp.filtered.pre_sleep_REM_indicies); % 668x126
+% general_results.per_behavioral_state_period.spike_rate_per_unit(filter_config.filter_active_units, temp.filtered.pre_sleep_REM_indicies); % 668x126
 
 
 temp.results.pre_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(temp.filtered.pre_sleep_REM_indicies);
@@ -103,8 +104,8 @@ temp.results.post_sleep_REM.per_period.epoch_center_seconds = (temp.results.post
 
 
 % Leave in terms of the spike rates per unit (14x92 double):
-temp.results.pre_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filtered.pre_sleep_REM_indicies, temp.filter_active_units);
-temp.results.post_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filtered.post_sleep_REM_indicies, temp.filter_active_units);
+temp.results.pre_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filtered.pre_sleep_REM_indicies, filter_config.filter_active_units);
+temp.results.post_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(temp.filtered.post_sleep_REM_indicies, filter_config.filter_active_units);
 
 % temp.results.pre_sleep_REM.spike_rate_per_unit: (14x92 double)
 % temp.results.post_sleep_REM.spike_rate_per_unit: (9x92 double)
