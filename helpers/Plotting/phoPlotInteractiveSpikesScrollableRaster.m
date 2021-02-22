@@ -6,9 +6,13 @@
 
 plotting_options.window_duration = 10; % 10 seconds
 
-plotting_options.active_timesteps = timesteps_array{1};
+temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
+temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
+
+plotting_options.active_timesteps = temp.curr_timesteps_array{1};
 plotting_options.total_duration = plotting_options.active_timesteps(end) - plotting_options.active_timesteps(1);
-plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
+% plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
+plotting_options.showOnlyAlwaysStableCells = true;
 
 plotting_options.num_windows = seconds(ceil(plotting_options.total_duration / plotting_options.window_duration));
 
@@ -22,14 +26,14 @@ extantFigH = figure(12);
 
 %% Scrollplot mode:
 curr_i = 1;
-[extantFigH, currPlot] = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i);
+[extantFigH, currPlot, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, plotting_options, extantFigH, curr_i);
 scrollHandles = scrollplot(currPlot, 'WindowSizeX', plotting_options.window_duration);
 
 % %% Pho Scrollable Mode:
 % slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 % 
 %% Plot function called as a callback on update
-function [plotted_figH, plotHandle] = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_windowIndex)
+function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_windowIndex)
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else
@@ -46,11 +50,11 @@ function [plotted_figH, plotHandle] = pho_plot_spikeRaster(active_processing, pl
     if plotting_options.showOnlyAlwaysStableCells
         isAlwaysStable = (active_processing.spikes.stability_count == 3);
         numAlwaysStableCells = sum(isAlwaysStable, 'all');
-        [~, ~, plotHandle] = plotSpikeRaster(active_processing.spikes.time(isAlwaysStable),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time(isAlwaysStable),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Stable Unit Index')
         title(sprintf('Spike Train for Always Stable Units (%d of %d total)', numAlwaysStableCells, length(active_processing.spikes.time)));
     else
-        [~, ~, plotHandle] = plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Unit Index')
         title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     end
