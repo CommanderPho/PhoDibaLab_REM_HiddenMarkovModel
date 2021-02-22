@@ -1,4 +1,4 @@
-function [is_unit_included] = fnFilterUnitsWithCriteria(active_processing, showOnlyAlwaysStableCells, included_cell_types, maximum_included_contamination_level)
+function [is_unit_included, original_unit_index] = fnFilterUnitsWithCriteria(active_processing, showOnlyAlwaysStableCells, included_cell_types, maximum_included_contamination_level)
 %fnFilterUnitsWithCriteria Summary of this function goes here
 % showOnlyAlwaysStableCells: if true, returns only the cells that are stable across all three behavioral epochs.
 % included_cell_types: a cell array of cell types to include.
@@ -31,6 +31,8 @@ function [is_unit_included] = fnFilterUnitsWithCriteria(active_processing, showO
             is_unit_included = is_unit_included & temp.curr_is_included{i};
         end
     end
+    
+    original_unit_index = find(is_unit_included == 1);
 
 
 end

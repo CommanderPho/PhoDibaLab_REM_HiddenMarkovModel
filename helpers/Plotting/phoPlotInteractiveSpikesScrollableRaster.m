@@ -4,6 +4,12 @@
 % Produces a raster plot that displays the spike trains for each unit in a window of customizable length.
 %   Spawns an interactive slider that allows you to specify the current window to look at, acting as a paginated manner.
 
+%% Filtering Options:
+filter_config.filter_included_cell_types = {};
+% filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {'interneurons'};
+filter_config.filter_maximum_included_contamination_level = {2};
+
 plotting_options.window_duration = 10; % 10 seconds
 
 temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
@@ -26,14 +32,23 @@ extantFigH = figure(12);
 
 %% Scrollplot mode:
 curr_i = 1;
-[extantFigH, currPlot, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, plotting_options, extantFigH, curr_i);
+[extantFigH, currPlot, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 scrollHandles = scrollplot(currPlot, 'WindowSizeX', plotting_options.window_duration);
 
 % %% Pho Scrollable Mode:
 % slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 % 
 %% Plot function called as a callback on update
-function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_windowIndex)
+function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, filter_config, plotting_options, extantFigH, curr_windowIndex)
+    
+
+    %% Get filter info for active units
+    [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, plotting_options.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
+    filter_config.filter_maximum_included_contamination_level);
+    fprintf('Filter: Including %d of %d total units\n', sum(plot_outputs.filter_active_units, 'all'), length(plot_outputs.filter_active_units));
+
+    
+    
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else
@@ -48,13 +63,13 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
 %     hold off
     
     if plotting_options.showOnlyAlwaysStableCells
-        isAlwaysStable = (active_processing.spikes.stability_count == 3);
-        numAlwaysStableCells = sum(isAlwaysStable, 'all');
-        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time(isAlwaysStable),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+%         isAlwaysStable = (active_processing.spikes.stability_count == 3);
+        numAlwaysStableCells = sum(plot_outputs.filter_active_units, 'all');
+        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Stable Unit Index')
         title(sprintf('Spike Train for Always Stable Units (%d of %d total)', numAlwaysStableCells, length(active_processing.spikes.time)));
     else
-        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time,'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Unit Index')
         title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     end
