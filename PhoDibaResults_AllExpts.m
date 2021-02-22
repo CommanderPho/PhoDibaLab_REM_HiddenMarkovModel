@@ -54,6 +54,8 @@ plottingOptions.outputs.rootPath = '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 
 active_binning_resolution = active_step_sizes{current_binning_index};
 active_num_experiments = length(active_experiment_names);
 
+temp.outputPlottingResults = cell([active_num_experiments 1]);
+
 % Loop through each experiment:
 for expt_index = 1:active_num_experiments
     expt_info.index = expt_index;
@@ -63,13 +65,31 @@ for expt_index = 1:active_num_experiments
     temp.curr_processed = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index};
     active_results = across_experiment_results{expt_index}.results_array{current_binning_index};
 
-    [xcorr_fig, filtered, results] = fnPerformAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
+    [temp.outputPlottingResults{expt_index}, filtered, results] = fnPerformAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
         across_experiment_results{expt_index}.general_results, ...
         across_experiment_results{expt_index}.results_array{current_binning_index}, ...
         across_experiment_results{expt_index}.processing_config, filter_config, expt_info, plottingOptions);
    
+    
 end
 
+% General way:
+% temp.figureTypesList = fieldnames(temp.outputPlottingResults{expt_index}.figures);
+% temp.currFiguresToLayout = cellfun(@(aFigType) temp.outputPlottingResults{expt_index}.figures.(aFigType), temp.figureTypesList);
+
+temp.figureTypesList = fieldnames(temp.outputPlottingResults{expt_index}.figures);
+temp.currFiguresToLayout = cellfun(@(aFigResults) aFigResults.figures.meanSpikeRateAllPeriodsFig, temp.outputPlottingResults);
+
+
+% Align the figures:
+% align_figure(linkedFigureHandles);
+figureLayoutManager.figuresSize.width = 880;
+figureLayoutManager.figuresSize.height = 600;
+figureLayoutManager.verticalSpacing = 30;
+figureLayoutManager.horizontalSpacing = 5;
+
+align_figure(temp.currFiguresToLayout, 1, figureLayoutManager.figuresSize.width, figureLayoutManager.figuresSize.height,...
+    100, figureLayoutManager.verticalSpacing, figureLayoutManager.horizontalSpacing, 100);
 
 
 
@@ -97,6 +117,7 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     temp.num_groups = length(temp.group_name_list);
     temp.group_indicies_list = {filtered.pre_sleep_REM_indicies, filtered.post_sleep_REM_indicies, filtered.any_REM_indicies, filtered.all_except_REM_indicies}; % other options: filtered.any_REM_indicies
     
+    %% Compute fields for all groups:
     for i = 1:temp.num_groups
         temp.curr_group_name = temp.group_name_list{i};
         temp.curr_group_indicies = temp.group_indicies_list{i};
@@ -128,64 +149,8 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
 
     end
     
-    
-%     results.any_REM.num_behavioral_periods = sum(filtered.any_REM_indicies,'all');
-%     results.pre_sleep_REM.num_behavioral_periods = sum(filtered.pre_sleep_REM_indicies,'all');
-%     results.post_sleep_REM.num_behavioral_periods = sum(filtered.post_sleep_REM_indicies,'all');
     fprintf('any_REM: %d periods\n pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', results.any_REM.num_behavioral_periods, results.pre_sleep_REM.num_behavioral_periods, results.post_sleep_REM.num_behavioral_periods);
 
-    % The number of spikes per unit
-    % general_results.per_behavioral_state_period.num_spikes_per_unit(filter_config.filter_active_units, filtered.pre_sleep_REM_indicies); % 668x126
-    % general_results.per_behavioral_state_period.spike_rate_per_unit(filter_config.filter_active_units, filtered.pre_sleep_REM_indicies); % 668x126
-
-
-%     results.pre_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(filtered.pre_sleep_REM_indicies);
-%     results.post_sleep_REM.per_period.durations = active_processing.behavioral_periods_table.duration(filtered.post_sleep_REM_indicies);
-% 
-%     results.pre_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(filtered.pre_sleep_REM_indicies);
-%     results.post_sleep_REM.per_period.epoch_start_seconds = active_processing.behavioral_periods_table.epoch_start_seconds(filtered.post_sleep_REM_indicies);
-% 
-%     results.pre_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(filtered.pre_sleep_REM_indicies);
-%     results.post_sleep_REM.per_period.epoch_end_seconds = active_processing.behavioral_periods_table.epoch_end_seconds(filtered.post_sleep_REM_indicies);
-% 
-%     % Compute the center of the epochs to plot the firing rates along an appropriately scaled x-axis:
-%     results.pre_sleep_REM.per_period.epoch_center_seconds = (results.pre_sleep_REM.per_period.epoch_start_seconds + floor(results.pre_sleep_REM.per_period.durations ./ 2.0));
-%     results.post_sleep_REM.per_period.epoch_center_seconds = (results.post_sleep_REM.per_period.epoch_start_seconds + floor(results.post_sleep_REM.per_period.durations ./ 2.0));
-% 
-%     % Leave in terms of the spike rates per unit (14x92 double):
-%     results.pre_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(filtered.pre_sleep_REM_indicies, filter_config.filter_active_units);
-%     results.post_sleep_REM.spike_rate_per_unit = general_results.per_behavioral_state_period.spike_rate_per_unit(filtered.post_sleep_REM_indicies, filter_config.filter_active_units);
-% 
-%     % results.pre_sleep_REM.spike_rate_per_unit: (14x92 double)
-%     % results.post_sleep_REM.spike_rate_per_unit: (9x92 double)
-% 
-%     % Average Across all of the units
-%     results.pre_sleep_REM.spike_rate_all_units.mean = mean(results.pre_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
-%     results.post_sleep_REM.spike_rate_all_units.mean = mean(results.post_sleep_REM.spike_rate_per_unit, 2); % 14x1 double
-%     results.pre_sleep_REM.spike_rate_all_units.stdDev = std(results.pre_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
-%     results.post_sleep_REM.spike_rate_all_units.stdDev = std(results.post_sleep_REM.spike_rate_per_unit, 0, 2); % 14x1 double
-%     
-%     % Compute the average across the REM sessions in each epoch
-%     results.pre_sleep_REM.baseline_spike_rate_across_all.mean = mean(results.pre_sleep_REM.spike_rate_all_units.mean);
-%     results.post_sleep_REM.baseline_spike_rate_across_all.mean = mean(results.post_sleep_REM.spike_rate_all_units.mean);
-%     results.pre_sleep_REM.baseline_spike_rate_across_all.stdDev = std(results.pre_sleep_REM.spike_rate_all_units.mean);
-%     results.post_sleep_REM.baseline_spike_rate_across_all.stdDev = std(results.post_sleep_REM.spike_rate_all_units.mean);
-
-%     %% xcorr_all_pairs
-%     % Get REM only pairs:
-%     results.pre_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.pre_sleep_REM_indicies, :); % 14x19
-%     results.post_sleep_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.post_sleep_REM_indicies, :); % 9x19
-%     % Get other pairs:
-%     results.all_except_REM.per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(filtered.all_except_REM_indicies, :); % (remainder)x19
-% 
-%     %% xcorr_all_pairs_AND_lags:
-%     % Get REM only pairs:
-%     results.pre_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.pre_sleep_REM_indicies, :); % 14x1
-%     results.post_sleep_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.post_sleep_REM_indicies, :); % 9x1
-%     % Get other pairs:
-%     results.all_except_REM.per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(filtered.all_except_REM_indicies, :); % (remainder)x1
-
-    
     %%% Plotting Results:
     temp.curr_expt_string = sprintf('experiment[%d]: %s', expt_info.index, expt_info.name);
     plottingOptions.outputs.curr_expt_filename_string = sprintf('%s_', expt_info.name);
@@ -209,7 +174,7 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
         results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
         results.pre_sleep_REM.spike_rate_per_unit);
     
-    h0(1).Marker = '*';
+%     h0(1).Marker = '*';
     h0(1).DisplayName = 'pre_sleep_REM';
     
     hold on;
@@ -225,7 +190,7 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
         results.post_sleep_REM.spike_rate_all_units.stdDev, ...
         results.post_sleep_REM.spike_rate_per_unit);
     
-    h1(1).Marker = '*';
+%     h1(1).Marker = '*';
     h1(1).DisplayName = 'post_sleep_REM';
     
     hold on;
@@ -401,8 +366,8 @@ function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
         h(1) = scatter(v1, ...
             v2);
         
-        hold on;
-        h(2) = errorbar(v1, v2, v3, 'LineStyle','none');
+%         hold on;
+%         h(2) = errorbar(v1, v2, v3, 'LineStyle','none');
         
         
     elseif strcmpi(mode, 'distributionPlot')

@@ -1,7 +1,7 @@
 %% Config.m
 % Specifies the configuration variables used by the pipeline scripts
 
-data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+data_config.root_parent_path = '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
 data_config.source_data_prefix = 'src';
 data_config.output_data_prefix = 'Results';
 
