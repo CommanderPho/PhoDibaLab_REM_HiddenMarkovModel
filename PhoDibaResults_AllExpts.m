@@ -336,7 +336,7 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     %% Display the Correlational Results:
     plotResults.figures.xcorr = figure(expt_info.index);
    
-    temp.curr_active_unit_index = filter_config.filter_active_pair_values(1,1);
+    temp.curr_active_unit_index = filter_config.filter_active_pair_values(2,1);
     temp.curr_active_pair_indicies = (temp.curr_active_unit_index == filter_config.filter_active_pair_values(:,1));
     temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies,:);
 %     temp.curr_active_pair_labels = sprintf('[%d, %d]', temp.curr_active_pair_values(:,1), temp.curr_active_pair_values(:,2));
@@ -348,6 +348,8 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     [plotResults.figures.xcorr, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_lags(:, temp.curr_active_pair_indicies)); % 668x3655 double
 %     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep.per_period.xcorr_all_pairs, ...
 %         results.post_sleep.per_period.xcorr_all_pairs);
+
+    heatmap_axis = gca;    
     xlabel('Cell Pairs')
     
 %     xticklabels('manual');
@@ -355,7 +357,43 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     xticklabels(temp.curr_active_pair_labels);
     xticklabels('manual')
     xtickangle(90)
+
+    % Resize heatmap:
+    temp.curr_heatmap_pos = heatmap_axis.Position;
+    temp.updated_heatmap_pos = heatmap_axis.Position;
+    temp.updated_heatmap_pos(1) = 0.1; 
+    temp.updated_heatmap_pos(3) = temp.curr_heatmap_pos(3) * 0.9; % Set to 90% of original width
+    heatmap_axis.Position =  temp.updated_heatmap_pos;
     
+    
+%     %% Add the behavioral period map:
+    state_statemapPlottingOptions.orientation = 'vertical';
+    state_statemapPlottingOptions.vertical_state_mode = 'combined';
+    state_statemapPlottingOptions.plot_variable = 'behavioral_state';
+    
+    temp.statemap_pos = temp.updated_heatmap_pos;
+    temp.statemap_pos(1) = 0.9;
+    temp.statemap_pos(1) = temp.updated_heatmap_pos(1) + temp.updated_heatmap_pos(3);
+    temp.statemap_pos(3) = 0.05;
+    
+    subplot('Position',temp.statemap_pos);
+    [ax] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
+
+    
+    % Plot Epoch Position
+    epoch_statemapPlottingOptions.orientation = 'vertical';
+    epoch_statemapPlottingOptions.vertical_state_mode = 'combined';
+    epoch_statemapPlottingOptions.plot_variable = 'behavioral_epoch';
+    temp.epoch_statemap_pos = temp.statemap_pos;
+    temp.epoch_statemap_pos(1) = temp.statemap_pos(1) + temp.statemap_pos(3);
+    temp.epoch_statemap_pos(3) = 0.025;
+    
+    subplot('Position', temp.epoch_statemap_pos);
+    [epoch_ax] = fnPlotStateDiagram(active_processing, epoch_statemapPlottingOptions);
+
+    
+    
+        
     sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
 %     
 %     % Build Figure Export File path:
@@ -399,6 +437,11 @@ function [xcorr_fig, handles] = fnPlotAcrossREMXcorrHeatmap(varargin)
         
 %         xlabel('Time Lag')
 %         xline(zero_timestep, 'red');
+
+
+
+        
+        
         
     end
     
