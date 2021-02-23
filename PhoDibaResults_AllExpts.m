@@ -334,33 +334,8 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
 %     plotResults.configs{end+1} = currPlotConfig;
     
     %% Display the Correlational Results:
-    plotResults.figures.xcorr = figure(expt_info.index);
-   
-    temp.curr_active_unit_index = filter_config.filter_active_pair_values(2,1);
-    temp.curr_active_pair_indicies = (temp.curr_active_unit_index == filter_config.filter_active_pair_values(:,1));
-    temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies,:);
-%     temp.curr_active_pair_labels = sprintf('[%d, %d]', temp.curr_active_pair_values(:,1), temp.curr_active_pair_values(:,2));
-%     temp.curr_active_pair_labels = ['[' num2str(temp.curr_active_pair_values(:,1)) ', ' num2str(temp.curr_active_pair_values(:,2)) ']'];
-    temp.curr_active_pair_labels = num2str(temp.curr_active_pair_values(:,2));
-    
-    
-    
-    [plotResults.figures.xcorr, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_lags(:, temp.curr_active_pair_indicies)); % 668x3655 double
-%     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep.per_period.xcorr_all_pairs, ...
-%         results.post_sleep.per_period.xcorr_all_pairs);
-
-    heatmap_axis = gca;    
-    xlabel('Cell Pairs')
-    
-%     xticklabels('manual');
-    xticks(1:length(temp.curr_active_pair_labels));
-    xticklabels(temp.curr_active_pair_labels);
-    xticklabels('manual')
-    xtickangle(90)
-
-    [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, heatmap_axis);
-
-    sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
+    plottingOptions.curr_expt_string = temp.curr_expt_string;
+    plotResults.figures.xcorr = fnPlotCellPairsByPeriodHeatmap(active_processing, results, filter_config, plottingOptions, 41);
 %     
 %     % Build Figure Export File path:
 %     currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
@@ -381,50 +356,38 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
 end
 
 
-% function [xcorr_fig, handles] = fnPlotCellPairsByPeriodHeatmap(varargin)
-% 
-% 
-% end
+function [xcorr_fig] = fnPlotCellPairsByPeriodHeatmap(active_processing, results, filter_config, plottingOptions, reference_unit_index)
+    %% fnPlotCellPairsByPeriodHeatmap: plots a heatmap for a given unit with cell pair on its x-axis and period on the y-axis
+    
+%     plotResults.figures.xcorr = figure(expt_info.index);
+   
+    temp.curr_ref_unit_index_string = num2str(reference_unit_index);
+    
+    temp.curr_active_unit_index = filter_config.filter_active_pair_values(reference_unit_index, 1);
+    temp.curr_active_pair_indicies = (temp.curr_active_unit_index == filter_config.filter_active_pair_values(:,1));
+    temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies,:);
+    temp.curr_active_pair_labels = num2str(temp.curr_active_pair_values(:,2));
+    
+  
+    [xcorr_fig, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_lags(:, temp.curr_active_pair_indicies)); % 668x3655 double
 
-function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr_axis)
-    %% fnPlotAddStateMapSubplot: adds a state map/partition subplot to indicate the state as a function of time or period index.
-    % By default adds them to the right side of the plot.
+    heatmap_axis = gca;    
+    xlabel('Cell Pairs')
     
-    
-    % Resize current plots:
-    temp.curr_heatmap_pos = curr_axis.Position;
-    temp.updated_heatmap_pos = curr_axis.Position;
-    temp.updated_heatmap_pos(1) = 0.1; 
-%     temp.updated_heatmap_pos(3) = temp.curr_heatmap_pos(3) * 0.9; % Set to 90% of original width
-    curr_axis.Position =  temp.updated_heatmap_pos;
-    
-    
-    %% Add the behavioral period map:
-    state_statemapPlottingOptions.orientation = 'vertical';
-    state_statemapPlottingOptions.vertical_state_mode = 'combined';
-    state_statemapPlottingOptions.plot_variable = 'behavioral_state';
-    
-    temp.statemap_pos = temp.updated_heatmap_pos;
-    temp.statemap_pos(1) = 0.9;
-    temp.statemap_pos(1) = temp.updated_heatmap_pos(1) + temp.updated_heatmap_pos(3);
-    temp.statemap_pos(3) = 0.05;
-    
-    subplot('Position', temp.statemap_pos);
-    [state_ax] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
+%     xticklabels('manual');
+    xticks(1:length(temp.curr_active_pair_labels));
+    xticklabels(temp.curr_active_pair_labels);
+    xticklabels('manual')
+    xtickangle(90)
 
+    [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, heatmap_axis);
+
+    temp.curr_ref_unit_index_string = sprintf('unit[%d]', reference_unit_index);
+    sgtitle([plottingOptions.curr_expt_string ' : XCorr for ' temp.curr_ref_unit_index_string ' and all units - All Periods - Good Units'])
     
-    %% Plot Epoch Position map
-    epoch_statemapPlottingOptions.orientation = 'vertical';
-    epoch_statemapPlottingOptions.vertical_state_mode = 'combined';
-    epoch_statemapPlottingOptions.plot_variable = 'behavioral_epoch';
-    temp.epoch_statemap_pos = temp.statemap_pos;
-    temp.epoch_statemap_pos(1) = temp.statemap_pos(1) + temp.statemap_pos(3);
-    temp.epoch_statemap_pos(3) = 0.025;
-    
-    subplot('Position', temp.epoch_statemap_pos);
-    [epoch_ax] = fnPlotStateDiagram(active_processing, epoch_statemapPlottingOptions);
 
 end
+
 
 
 function [xcorr_fig, handles] = fnPlotAcrossREMXcorrHeatmap(varargin)
@@ -446,7 +409,7 @@ function [xcorr_fig, handles] = fnPlotAcrossREMXcorrHeatmap(varargin)
         
         ylabel('Filtered Trial Index')
         
-        title(sprintf('Periods: %d', size(varargin{i},1)));
+%         title(sprintf('Periods: %d', size(varargin{i},1)));
         
 %         xlabel('Time Lag')
 %         xline(zero_timestep, 'red');
