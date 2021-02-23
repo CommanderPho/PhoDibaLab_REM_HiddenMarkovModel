@@ -94,38 +94,37 @@ align_figure(temp.currFiguresToLayout, 1, figureLayoutManager.figuresSize.width,
 
 
 function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
-
+    % A REM specific setup for fnPerformAcrossPeriodTesting 
+    plottingOptions.group_name_list = {'pre_sleep_REM', 'post_sleep_REM', 'any_REM', 'all_except_REM'};
+    plottingOptions.group_indexArray_variableName_list = strcat(plottingOptions.group_name_list, '_indicies');
+    plottingOptions.num_groups = length(plottingOptions.group_name_list);
+    plottingOptions.group_included_epochs = {{'pre_sleep'}, {'post_sleep'}, {}, {}};
+    plottingOptions.group_included_states = {{'rem'}, {'rem'}, {'rem'}, {'nrem', 'quiet', 'active'}};
+    
+    [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions);
 end
 
 
 function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
     %%% fnPerformAcrossREMTesting: Run main analysis
     %%%
-    
+ 
     plotResults.exports = {};
     plotResults.configs = {};
     
     %% Get filter info for active units
-    [filter_config.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
+    [filter_config.filter_active_units, filter_config.filter_active_unit_original_indicies] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
         filter_config.filter_maximum_included_contamination_level);
     fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
-
-    [filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'}); % 668x1
-    [filtered.post_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'post_sleep'}, {'rem'}); % 668x1
-
-    [filtered.any_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, [], {'rem'}); % 668x1
-    filtered.all_except_REM_indicies = ~filtered.any_REM_indicies; % 668x1, the complement of the REM indicies
-
-    
-    temp.group_name_list = {'pre_sleep_REM', 'post_sleep_REM', 'any_REM', 'all_except_REM'}; % other options: 'any_REM'
-    temp.num_groups = length(temp.group_name_list);
-    temp.group_indicies_list = {filtered.pre_sleep_REM_indicies, filtered.post_sleep_REM_indicies, filtered.any_REM_indicies, filtered.all_except_REM_indicies}; % other options: filtered.any_REM_indicies
-    
     
     %% Compute fields for all groups:
-    for i = 1:temp.num_groups
-        temp.curr_group_name = temp.group_name_list{i};
-        temp.curr_group_indicies = temp.group_indicies_list{i};
+    for i = 1:plottingOptions.num_groups
+        temp.curr_group_name = plottingOptions.group_name_list{i};
+        
+        %% Group Indexing:
+        [filtered.(plottingOptions.group_indexArray_variableName_list{i})] = fnFilterPeriodsWithCriteria(active_processing, plottingOptions.group_included_epochs{i}, plottingOptions.group_included_states{i}); % 668x1
+        temp.curr_group_indicies = filtered.(plottingOptions.group_indexArray_variableName_list{i});
+        
         % Computations:
         results.(temp.curr_group_name).num_behavioral_periods = sum(temp.curr_group_indicies,'all');
         results.(temp.curr_group_name).per_period.durations = active_processing.behavioral_periods_table.duration(temp.curr_group_indicies);
@@ -167,51 +166,79 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
 
     plotResults.figures.meanSpikeRateAllPeriodsFig = figure(119+expt_info.index);
     clf
-    if strcmpi(plottingOptions.plottingXAxis, 'index')
-        plottingOptions.x = [1:results.pre_sleep_REM.num_behavioral_periods];
-    else
-        plottingOptions.x = results.pre_sleep_REM.per_period.epoch_center_seconds;
-    end
-    
     hold off;
-    [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-        results.pre_sleep_REM.spike_rate_all_units.mean, ...
-        results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
-        results.pre_sleep_REM.spike_rate_per_unit);
     
-%     h0(1).Marker = '*';
-    h0(1).DisplayName = 'pre_sleep_REM';
-    
-    hold on;
-    
-    if strcmpi(plottingOptions.plottingXAxis, 'index')
-        plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
-    else
-        plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
+    for i = 1:plottingOptions.num_groups
+        temp.curr_group_name = plottingOptions.group_name_list{i};
+        temp.curr_group_indicies = filtered.(plottingOptions.group_indexArray_variableName_list{i});
+        
+        if strcmpi(plottingOptions.plottingXAxis, 'index')
+            plottingOptions.x = [1:results.(temp.curr_group_name).num_behavioral_periods];
+        else
+            plottingOptions.x = results.(temp.curr_group_name).per_period.epoch_center_seconds;
+        end
+
+        
+        [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+            results.(temp.curr_group_name).spike_rate_all_units.mean, ...
+            results.(temp.curr_group_name).spike_rate_all_units.stdDev, ...
+            results.(temp.curr_group_name).spike_rate_per_unit);
+
+    %     h0(1).Marker = '*';
+        h0(1).DisplayName = temp.curr_group_name;
+
+        hold on;
+
     end
     
-    [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-        results.post_sleep_REM.spike_rate_all_units.mean, ...
-        results.post_sleep_REM.spike_rate_all_units.stdDev, ...
-        results.post_sleep_REM.spike_rate_per_unit);
     
-%     h1(1).Marker = '*';
-    h1(1).DisplayName = 'post_sleep_REM';
     
-    hold on;
-    
-    if strcmpi(plottingOptions.plottingXAxis, 'index')
-        plottingOptions.x = [1:results.all_except_REM.num_behavioral_periods];
-    else
-        plottingOptions.x = results.all_except_REM.per_period.epoch_center_seconds;
-    end
-    
-    [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-        results.all_except_REM.spike_rate_all_units.mean, ...
-        results.all_except_REM.spike_rate_all_units.stdDev, ...
-        results.all_except_REM.spike_rate_per_unit);
-    
-    h2(1).DisplayName = 'all_except_REM';
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         plottingOptions.x = [1:results.pre_sleep_REM.num_behavioral_periods];
+%     else
+%         plottingOptions.x = results.pre_sleep_REM.per_period.epoch_center_seconds;
+%     end
+%     
+%     hold off;
+%     [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+%         results.pre_sleep_REM.spike_rate_all_units.mean, ...
+%         results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
+%         results.pre_sleep_REM.spike_rate_per_unit);
+%     
+% %     h0(1).Marker = '*';
+%     h0(1).DisplayName = 'pre_sleep_REM';
+%     
+%     hold on;
+%     
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
+%     else
+%         plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
+%     end
+%     
+%     [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+%         results.post_sleep_REM.spike_rate_all_units.mean, ...
+%         results.post_sleep_REM.spike_rate_all_units.stdDev, ...
+%         results.post_sleep_REM.spike_rate_per_unit);
+%     
+% %     h1(1).Marker = '*';
+%     h1(1).DisplayName = 'post_sleep_REM';
+%     
+%     hold on;
+%     
+%     if strcmpi(plottingOptions.plottingXAxis, 'index')
+%         plottingOptions.x = [1:results.all_except_REM.num_behavioral_periods];
+%     else
+%         plottingOptions.x = results.all_except_REM.per_period.epoch_center_seconds;
+%     end
+%     
+%     [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+%         results.all_except_REM.spike_rate_all_units.mean, ...
+%         results.all_except_REM.spike_rate_all_units.stdDev, ...
+%         results.all_except_REM.spike_rate_per_unit);
+%     
+%     h2(1).DisplayName = 'all_except_REM';
+%     
     
     % Set up axis properties:
     title(sprintf('Firing Rate All periods: %d', results.pre_sleep_REM.num_behavioral_periods));
