@@ -44,7 +44,7 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
 
     %% Get filter info for active units
     [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, plotting_options.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
-    filter_config.filter_maximum_included_contamination_level);
+        filter_config.filter_maximum_included_contamination_level);
     fprintf('Filter: Including %d of %d total units\n', sum(plot_outputs.filter_active_units, 'all'), length(plot_outputs.filter_active_units));
 
     

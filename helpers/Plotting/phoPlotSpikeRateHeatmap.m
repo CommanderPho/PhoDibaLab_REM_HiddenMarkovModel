@@ -4,7 +4,7 @@
 
 
 % Produces a heatmap ...
-plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
+% plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
 
 
 

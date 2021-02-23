@@ -35,8 +35,8 @@ filter_config.filter_included_cell_types = {}; % All
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 
-temp.filter_states = {'rem'};
-temp.filter_epochs = {'pre_sleep', 'post_sleep'};
+% temp.filter_states = {'rem'};
+% temp.filter_epochs = {'pre_sleep', 'post_sleep'};
 
 %% Plotting Options:
 % plottingOptions.plottingXAxis = 'index';
@@ -335,23 +335,33 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     
     %% Display the Correlational Results:
     plottingOptions.curr_expt_string = temp.curr_expt_string;
-    plotResults.figures.xcorr = fnPlotCellPairsByPeriodHeatmap(active_processing, results, filter_config, plottingOptions, 41);
-%     
-%     % Build Figure Export File path:
-%     currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
-%         plottingOptions.outputs.curr_expt_filename_string, ...
-%         'XCorr for all pairs', ...
-%         'PRE vs Post Sleep REM Periods', ...
-%         currPlotConfig.xlabel, ...
-%         'All Units'...
-%         );
-% 
-%     currPlotConfig.curr_expt_parentPath = plottingOptions.outputs.rootPath;
-%     currPlotConfig.curr_expt_path = fullfile(currPlotConfig.curr_expt_parentPath, currPlotConfig.curr_expt_filename_string);
-%     % Perform the export:
-%     [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.xcorr, currPlotConfig.curr_expt_path, true, false, false, true);
-%     plotResults.configs{end+1} = currPlotConfig;
+    
+    %% Do for all indexes:
+    temp.curr_units_to_test = filter_config.filter_active_pair_values(:, 1);
+    
+    for i = 1:length(temp.curr_units_to_test)
+        temp.curr_reference_unit_index = temp.curr_units_to_test(i);
+        plotResults.figures.xcorr = fnPlotCellPairsByPeriodHeatmap(active_processing, results, filter_config, plottingOptions, temp.curr_reference_unit_index);
+        
+        % Build Figure Export File path:
+        currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
+            plottingOptions.outputs.curr_expt_filename_string, ...
+            'XCorr for all lags', ...
+            'All Periods', ...
+            'cellPairs', ...
+            sprintf('unit[%d]', temp.curr_reference_unit_index));
+    
+        currPlotConfig.curr_expt_parentPath = fullfile(plottingOptions.outputs.rootPath, 'png');
+        if ~exist(currPlotConfig.curr_expt_parentPath, 'dir')
+           mkdir(currPlotConfig.curr_expt_parentPath); 
+        end
+        currPlotConfig.curr_expt_path = fullfile(currPlotConfig.curr_expt_parentPath, currPlotConfig.curr_expt_filename_string);
 
+        % Perform the export:
+        [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.xcorr, currPlotConfig.curr_expt_path, false, false, false, true);
+        plotResults.configs{end+1} = currPlotConfig;
+
+    end
     
 end
 
