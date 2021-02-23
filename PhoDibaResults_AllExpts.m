@@ -54,14 +54,16 @@ plottingOptions.outputs.rootPath = '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 
 
 
 active_binning_resolution = active_step_sizes{current_binning_index};
-active_num_experiments = length(active_experiment_names);
+
+temp.curr_active_experiment_names = active_experiment_names(1); % Only get the first one for testing.
+active_num_experiments = length(temp.curr_active_experiment_names);
 
 temp.outputPlottingResults = cell([active_num_experiments 1]);
 
 % Loop through each experiment:
 for expt_index = 1:active_num_experiments
     expt_info.index = expt_index;
-    expt_info.name = active_experiment_names{expt_index};
+    expt_info.name = temp.curr_active_experiment_names{expt_index};
     
     temp.curr_timestamps = across_experiment_results{expt_index}.timesteps_array{current_binning_index};
     temp.curr_processed = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index};
@@ -114,11 +116,14 @@ end
 
 function [plotResults, filtered, results] = fnPerformAcrossAllTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
     % A REM specific setup for fnPerformAcrossPeriodTesting 
-    plottingOptions.group_name_list = {'nrem', 'rem', 'quiet', 'active'};
+    plottingOptions.group_name_list = {'nrem', 'rem', 'quiet', 'active', 'all'};
     plottingOptions.group_indexArray_variableName_list = strcat(plottingOptions.group_name_list, '_indicies');
     plottingOptions.num_groups = length(plottingOptions.group_name_list);
-    plottingOptions.group_included_epochs = {{}, {}, {}, {}};
-    plottingOptions.group_included_states = {{'nrem'}, {'rem'}, {'quiet'}, {'active'}};
+    plottingOptions.group_included_epochs = {{}, {}, {}, {}, {}};
+    plottingOptions.group_included_states = {{'nrem'}, {'rem'}, {'quiet'}, {'active'}, {}};
+    plottingOptions.group_plot_types.meanfiringrate = {true, true, true, true, false};
+    plottingOptions.group_plot_types.xcorrheatmap = {false, false, false, false, true};
+    
     
     [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions);
 end
@@ -191,29 +196,33 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     hold off;
     
     for i = 1:plottingOptions.num_groups
-        temp.curr_group_name = plottingOptions.group_name_list{i};
-        temp.curr_group_indicies = filtered.(plottingOptions.group_indexArray_variableName_list{i});
         
-        if strcmpi(plottingOptions.plottingXAxis, 'index')
-            plottingOptions.x = [1:results.(temp.curr_group_name).num_behavioral_periods];
-        else
-            plottingOptions.x = results.(temp.curr_group_name).per_period.epoch_center_seconds;
-        end
+        if plottingOptions.group_plot_types.meanfiringrate{i} 
+            temp.curr_group_name = plottingOptions.group_name_list{i};
+            temp.curr_group_indicies = filtered.(plottingOptions.group_indexArray_variableName_list{i});
 
+            if strcmpi(plottingOptions.plottingXAxis, 'index')
+                plottingOptions.x = [1:results.(temp.curr_group_name).num_behavioral_periods];
+            else
+                plottingOptions.x = results.(temp.curr_group_name).per_period.epoch_center_seconds;
+            end
+
+
+            [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
+                results.(temp.curr_group_name).spike_rate_all_units.mean, ...
+                results.(temp.curr_group_name).spike_rate_all_units.stdDev, ...
+                results.(temp.curr_group_name).spike_rate_per_unit);
+
+
+
+            if ~strcmpi(plottingOptions.plottingMode, 'distributionPlot')
+                %     h0(1).Marker = '*';
+                h0(1).DisplayName = temp.curr_group_name;
+            end
+
+            hold on;
         
-        [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-            results.(temp.curr_group_name).spike_rate_all_units.mean, ...
-            results.(temp.curr_group_name).spike_rate_all_units.stdDev, ...
-            results.(temp.curr_group_name).spike_rate_per_unit);
-
-
-    
-        if ~strcmpi(plottingOptions.plottingMode, 'distributionPlot')
-            %     h0(1).Marker = '*';
-            h0(1).DisplayName = temp.curr_group_name;
-        end
-
-        hold on;
+        end % end if plottingOptions.group_plot_types.meanfiringrate
 
     end
     
@@ -316,11 +325,12 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
 %     [plotResults.exports{end+1}.export_result] = fnSaveFigureForExport(plotResults.figures.meanSpikeRateFig, currPlotConfig.curr_expt_path, true, false, false, true);
 %     plotResults.configs{end+1} = currPlotConfig;
     
-%     %% Display the Correlational Results:
-%     plotResults.figures.xcorr = figure(expt_info.index);
-%     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep_REM.per_period.xcorr_all_pairs, ...
-%         results.post_sleep_REM.per_period.xcorr_all_pairs);
-%     sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
+    %% Display the Correlational Results:
+    plotResults.figures.xcorr = figure(expt_info.index);
+    [plotResults.figures.xcorr, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_pairs);
+%     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep.per_period.xcorr_all_pairs, ...
+%         results.post_sleep.per_period.xcorr_all_pairs);
+    sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
 %     
 %     % Build Figure Export File path:
 %     currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
@@ -340,24 +350,44 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     
 end
 
-function [xcorr_fig, h1, h2] = fnPlotAcrossREMXcorrHeatmap(v1, v2)
+function [xcorr_fig, handles] = fnPlotAcrossREMXcorrHeatmap(varargin)
     % Plot a heatmap of the xcorr    
 %     xcorr_fig = figure(15);
     xcorr_fig = gcf;
     clf
-    subplot(2,1,1);
+    
+    disp("Total number of input arguments: " + nargin);
+    
+    num_heatmaps = nargin;
+    
+    subplot(num_heatmaps,1,1);
 
-    h1 = heatmap(v1);
-    ylabel('Filtered Trial Index')
-    xlabel('Time Lag')
-    title(sprintf('PRE sleep REM periods: %d', size(v1,1)));
-
-
-    subplot(2,1,2);
-    h2 = heatmap(v2);
-    ylabel('Filtered Trial Index')
-    xlabel('Time Lag')    
-    title(sprintf('POST sleep REM periods: %d', size(v2,1)));
+    for i = 1:num_heatmaps
+%         handles(i) = heatmap(varargin{i},'GridVisible', false);
+        num_timesteps = size(varargin{i},2);
+        zero_timestep = num_timesteps / 2;
+        
+        handles(i) = imagesc(varargin{i});
+        
+        ylabel('Filtered Trial Index')
+        xlabel('Time Lag')
+        title(sprintf('Periods: %d', size(varargin{i},1)));
+        
+        xline(zero_timestep, 'red');
+        
+    end
+    
+%     h1 = heatmap(v1);
+%     ylabel('Filtered Trial Index')
+%     xlabel('Time Lag')
+%     title(sprintf('PRE sleep REM periods: %d', size(v1,1)));
+% 
+% 
+%     subplot(num_heatmaps,1,2);
+%     h2 = heatmap(v2);
+%     ylabel('Filtered Trial Index')
+%     xlabel('Time Lag')    
+%     title(sprintf('POST sleep REM periods: %d', size(v2,1)));
 
 %     sgtitle('XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units')
 
@@ -372,13 +402,25 @@ function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
             v3);
 
     elseif strcmpi(mode, 'scatter')
+
+        num_repeats = size(v4, 2);
+%         x = repmat(v1,[num_repeats 1]);
+        x = repelem(v1, num_repeats);
+        
+        y = reshape(v4,[],1);
+        h(2) = scatter(x, y, '.','k','MarkerFaceColor','k');
+        h(2).AlphaData = repelem(0.3, length(x));
+        h(2).MarkerFaceAlpha = 'flat';
+        
+%         h(2) = errorbar(v1, v2, v3, 'LineStyle','none');
+
+        hold on;
+        
         h(1) = scatter(v1, ...
             v2, 'filled');
         
-        hold on;
-
-        h(2) = scatter(v1, v4, );
-%         h(2) = errorbar(v1, v2, v3, 'LineStyle','none');
+        h(1).AlphaData = repelem(0.8, length(v1));
+        h(1).MarkerFaceAlpha = 'flat';
         
         
     elseif strcmpi(mode, 'distributionPlot')
