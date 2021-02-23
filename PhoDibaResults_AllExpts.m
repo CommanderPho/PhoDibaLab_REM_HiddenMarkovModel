@@ -143,6 +143,11 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
         filter_config.filter_maximum_included_contamination_level);
     fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
     
+    temp.curr_pairs_indicies = find(filter_config.filter_active_units);
+    filter_config.filter_active_pairs =  ismember(general_results.indicies.unique_electrode_pairs(:,1), temp.curr_pairs_indicies) & ismember(general_results.indicies.unique_electrode_pairs(:,2), temp.curr_pairs_indicies);
+    filter_config.filter_active_pair_values = general_results.indicies.unique_electrode_pairs(filter_config.filter_active_pairs, :);
+    
+    
     %% Compute fields for all groups:
     for i = 1:plottingOptions.num_groups
         temp.curr_group_name = plottingOptions.group_name_list{i};
@@ -171,10 +176,13 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
         results.(temp.curr_group_name).baseline_spike_rate_across_all.mean = mean(results.(temp.curr_group_name).spike_rate_all_units.mean);
         results.(temp.curr_group_name).baseline_spike_rate_across_all.stdDev = std(results.(temp.curr_group_name).spike_rate_all_units.mean);
     
+        %% xcorr_all_lags: averaged over lags, preserving all pairs.
+        results.(temp.curr_group_name).per_period.xcorr_all_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_lags(temp.curr_group_indicies, filter_config.filter_active_pairs); % 668x7875
+        
         %% xcorr_all_pairs:
-        results.(temp.curr_group_name).per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.curr_group_indicies, :); % 9x19
+        results.(temp.curr_group_name).per_period.xcorr_all_pairs = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs(temp.curr_group_indicies, :); % 668x81
         %% xcorr_all_pairs_AND_lags:
-        results.(temp.curr_group_name).per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.curr_group_indicies, :); % 9x1
+        results.(temp.curr_group_name).per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.curr_group_indicies, :); % 668x1
 
         fprintf('%s: %d periods\n', temp.curr_group_name, results.(temp.curr_group_name).num_behavioral_periods);
         
@@ -327,9 +335,27 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     
     %% Display the Correlational Results:
     plotResults.figures.xcorr = figure(expt_info.index);
-    [plotResults.figures.xcorr, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_pairs);
+   
+    temp.curr_active_unit_index = filter_config.filter_active_pair_values(1,1);
+    temp.curr_active_pair_indicies = (temp.curr_active_unit_index == filter_config.filter_active_pair_values(:,1));
+    temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies,:);
+%     temp.curr_active_pair_labels = sprintf('[%d, %d]', temp.curr_active_pair_values(:,1), temp.curr_active_pair_values(:,2));
+%     temp.curr_active_pair_labels = ['[' num2str(temp.curr_active_pair_values(:,1)) ', ' num2str(temp.curr_active_pair_values(:,2)) ']'];
+    temp.curr_active_pair_labels = num2str(temp.curr_active_pair_values(:,2));
+    
+    
+    
+    [plotResults.figures.xcorr, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_lags(:, temp.curr_active_pair_indicies)); % 668x3655 double
 %     [plotResults.figures.xcorr, h1, h2] = fnPlotAcrossREMXcorrHeatmap(results.pre_sleep.per_period.xcorr_all_pairs, ...
 %         results.post_sleep.per_period.xcorr_all_pairs);
+    xlabel('Cell Pairs')
+    
+%     xticklabels('manual');
+    xticks(1:length(temp.curr_active_pair_labels));
+    xticklabels(temp.curr_active_pair_labels);
+    xticklabels('manual')
+    xtickangle(90)
+    
     sgtitle([temp.curr_expt_string ' : XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units'])
 %     
 %     % Build Figure Export File path:
@@ -355,14 +381,12 @@ function [xcorr_fig, handles] = fnPlotAcrossREMXcorrHeatmap(varargin)
 %     xcorr_fig = figure(15);
     xcorr_fig = gcf;
     clf
+ 
+    num_heatmaps = nargin;   
     
-    disp("Total number of input arguments: " + nargin);
-    
-    num_heatmaps = nargin;
-    
-    subplot(num_heatmaps,1,1);
-
     for i = 1:num_heatmaps
+        subplot(num_heatmaps,1,i);
+        
 %         handles(i) = heatmap(varargin{i},'GridVisible', false);
         num_timesteps = size(varargin{i},2);
         zero_timestep = num_timesteps / 2;
@@ -370,10 +394,11 @@ function [xcorr_fig, handles] = fnPlotAcrossREMXcorrHeatmap(varargin)
         handles(i) = imagesc(varargin{i});
         
         ylabel('Filtered Trial Index')
-        xlabel('Time Lag')
+        
         title(sprintf('Periods: %d', size(varargin{i},1)));
         
-        xline(zero_timestep, 'red');
+%         xlabel('Time Lag')
+%         xline(zero_timestep, 'red');
         
     end
     
