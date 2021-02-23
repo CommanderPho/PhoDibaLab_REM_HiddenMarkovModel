@@ -16,24 +16,31 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
 
     if strcmpi(plottingOptions.plot_variable, 'behavioral_epoch')
         % behavioral_epoch
+        if ~isfield(active_processing.definitions.behavioral_epoch, 'classColors')
+            active_processing.definitions.behavioral_epoch.classColors = [0.0, 0.5, 0.0
+               0.2, 1.0, 0.2
+               0.0, 0.2, 0.0];
+        end
+        
         state_names = active_processing.definitions.behavioral_epoch.classNames;
         states = [active_processing.behavioral_periods_table.epoch_start_seconds, ...
             active_processing.behavioral_periods_table.epoch_end_seconds, ...
             double(active_processing.behavioral_periods_table.behavioral_epoch)];
-        color_state=[0.0, 0.5, 0.0
-               0.2, 1.0, 0.2
-               0.0, 0.2, 0.0];
+        color_state = active_processing.definitions.behavioral_epoch.classColors;
            
     elseif strcmpi(plottingOptions.plot_variable, 'behavioral_state')
         % behavioral_state
+        if ~isfield(active_processing.definitions.behavioral_state, 'classColors')
+            active_processing.definitions.behavioral_state.classColors = [0.5, 0.5, 1.0
+               0.7, 0.7, 1.0
+               1.0, 0.7, 0.7
+               1.0, 0.0, 0.0];
+        end
         state_names = active_processing.definitions.behavioral_state.classNames;
         states = [active_processing.behavioral_periods_table.epoch_start_seconds, ...
             active_processing.behavioral_periods_table.epoch_end_seconds, ...
             double(active_processing.behavioral_periods_table.type)];
-        color_state=[0.5, 0.5, 1.0
-               0.7, 0.7, 1.0
-               1.0, 0.7, 0.7
-               1.0, 0.0, 0.0];
+        color_state = active_processing.definitions.behavioral_state.classColors;
     else
         error('invalid plottingOptions.plot_variable');
     end
@@ -60,13 +67,11 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
     else
         % combined mode:
         ax.YLim=0.5+[0,1];
-        ax.YTickLabel='state';
+        ax.YTickLabel='';
         
     end
         
     ax.YDir='reverse';
-    
-  
     ax.XLim=t([1,end]);
     ax.XAxis.Visible = 'off';
 

@@ -6,6 +6,9 @@ function [active_processing, source_data] = loadData(data_config, processing_con
 	% Define the behavioral_epoch categorical info:
 	active_processing.definitions.behavioral_epoch.classNames = {'pre_sleep', 'track', 'post_sleep'};
 	active_processing.definitions.behavioral_epoch.classValues = [1:length(active_processing.definitions.behavioral_epoch.classNames)];
+	active_processing.definitions.behavioral_epoch.classColors = [0.0, 0.5, 0.0
+               0.2, 1.0, 0.2
+               0.0, 0.2, 0.0];
 
 	source_data.variableList = {'spikes','behavior','position','speed','basics','ripple'};
 	for variableIndex = 1:length(source_data.variableList)
@@ -24,6 +27,10 @@ function [active_processing, source_data] = loadData(data_config, processing_con
 
 	active_processing.definitions.behavioral_state.classNames = source_data.behavior.(processing_config.active_expt.name).name;
 	active_processing.definitions.behavioral_state.classValues = [1:length(active_processing.definitions.behavioral_state.classNames)];
+	active_processing.definitions.behavioral_state.classColors = [0.5, 0.5, 1.0
+               0.7, 0.7, 1.0
+               1.0, 0.7, 0.7
+               1.0, 0.0, 0.0];
 
 
 	%% Determine the experiment start timestamp to convert the timestamps into experiment-start-relative durations.

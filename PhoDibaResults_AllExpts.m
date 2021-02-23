@@ -48,6 +48,7 @@ plottingOptions.plottingYlim = [];
 plottingOptions.plottingMode = 'scatter';
 % plottingOptions.plottingMode = 'errorbar';
 % plottingOptions.plottingMode = 'distributionPlot'; % distributionPlot should display the variance across neurons
+% plottingOptions.plottingMode = 'stem';
 
 plottingOptions.outputs.rootPath = '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/Figures';
 
@@ -66,11 +67,17 @@ for expt_index = 1:active_num_experiments
     temp.curr_processed = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index};
     active_results = across_experiment_results{expt_index}.results_array{current_binning_index};
 
-    [temp.outputPlottingResults{expt_index}, filtered, results] = fnPerformAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
-        across_experiment_results{expt_index}.general_results, ...
-        across_experiment_results{expt_index}.results_array{current_binning_index}, ...
-        across_experiment_results{expt_index}.processing_config, filter_config, expt_info, plottingOptions);
+%     [temp.outputPlottingResults{expt_index}, filtered, results] = fnPerformAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
+%         across_experiment_results{expt_index}.general_results, ...
+%         across_experiment_results{expt_index}.results_array{current_binning_index}, ...
+%         across_experiment_results{expt_index}.processing_config, filter_config, expt_info, plottingOptions);
    
+
+    [temp.outputPlottingResults{expt_index}, filtered, results] = fnPerformAcrossAllTesting(across_experiment_results{expt_index}.active_processing, ...
+            across_experiment_results{expt_index}.general_results, ...
+            across_experiment_results{expt_index}.results_array{current_binning_index}, ...
+            across_experiment_results{expt_index}.processing_config, filter_config, expt_info, plottingOptions);
+    
     
 end
 
@@ -103,6 +110,20 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     
     [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions);
 end
+
+
+function [plotResults, filtered, results] = fnPerformAcrossAllTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
+    % A REM specific setup for fnPerformAcrossPeriodTesting 
+    plottingOptions.group_name_list = {'nrem', 'rem', 'quiet', 'active'};
+    plottingOptions.group_indexArray_variableName_list = strcat(plottingOptions.group_name_list, '_indicies');
+    plottingOptions.num_groups = length(plottingOptions.group_name_list);
+    plottingOptions.group_included_epochs = {{}, {}, {}, {}};
+    plottingOptions.group_included_states = {{'nrem'}, {'rem'}, {'quiet'}, {'active'}};
+    
+    [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions);
+end
+
+
 
 
 function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
@@ -150,10 +171,11 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
         %% xcorr_all_pairs_AND_lags:
         results.(temp.curr_group_name).per_period.xcorr_all_pairs_AND_lags = active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_pairs_AND_lags(temp.curr_group_indicies, :); % 9x1
 
-
+        fprintf('%s: %d periods\n', temp.curr_group_name, results.(temp.curr_group_name).num_behavioral_periods);
+        
     end
     
-    fprintf('any_REM: %d periods\n pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', results.any_REM.num_behavioral_periods, results.pre_sleep_REM.num_behavioral_periods, results.post_sleep_REM.num_behavioral_periods);
+%     fprintf('any_REM: %d periods\n pre_sleep_REM: %d periods\n post_sleep_REM: %d periods\n', results.any_REM.num_behavioral_periods, results.pre_sleep_REM.num_behavioral_periods, results.post_sleep_REM.num_behavioral_periods);
 
     %%% Plotting Results:
     temp.curr_expt_string = sprintf('experiment[%d]: %s', expt_info.index, expt_info.name);
@@ -184,64 +206,20 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
             results.(temp.curr_group_name).spike_rate_all_units.stdDev, ...
             results.(temp.curr_group_name).spike_rate_per_unit);
 
-    %     h0(1).Marker = '*';
-        h0(1).DisplayName = temp.curr_group_name;
+
+    
+        if ~strcmpi(plottingOptions.plottingMode, 'distributionPlot')
+            %     h0(1).Marker = '*';
+            h0(1).DisplayName = temp.curr_group_name;
+        end
 
         hold on;
 
     end
     
     
-    
-%     if strcmpi(plottingOptions.plottingXAxis, 'index')
-%         plottingOptions.x = [1:results.pre_sleep_REM.num_behavioral_periods];
-%     else
-%         plottingOptions.x = results.pre_sleep_REM.per_period.epoch_center_seconds;
-%     end
-%     
-%     hold off;
-%     [h0] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-%         results.pre_sleep_REM.spike_rate_all_units.mean, ...
-%         results.pre_sleep_REM.spike_rate_all_units.stdDev, ...
-%         results.pre_sleep_REM.spike_rate_per_unit);
-%     
-% %     h0(1).Marker = '*';
-%     h0(1).DisplayName = 'pre_sleep_REM';
-%     
-%     hold on;
-%     
-%     if strcmpi(plottingOptions.plottingXAxis, 'index')
-%         plottingOptions.x = [1:results.post_sleep_REM.num_behavioral_periods];
-%     else
-%         plottingOptions.x = results.post_sleep_REM.per_period.epoch_center_seconds;
-%     end
-%     
-%     [h1] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-%         results.post_sleep_REM.spike_rate_all_units.mean, ...
-%         results.post_sleep_REM.spike_rate_all_units.stdDev, ...
-%         results.post_sleep_REM.spike_rate_per_unit);
-%     
-% %     h1(1).Marker = '*';
-%     h1(1).DisplayName = 'post_sleep_REM';
-%     
-%     hold on;
-%     
-%     if strcmpi(plottingOptions.plottingXAxis, 'index')
-%         plottingOptions.x = [1:results.all_except_REM.num_behavioral_periods];
-%     else
-%         plottingOptions.x = results.all_except_REM.per_period.epoch_center_seconds;
-%     end
-%     
-%     [h2] = fnPlotAcrossREMTesting(plottingOptions.plottingMode, plottingOptions.x, ...
-%         results.all_except_REM.spike_rate_all_units.mean, ...
-%         results.all_except_REM.spike_rate_all_units.stdDev, ...
-%         results.all_except_REM.spike_rate_per_unit);
-%     
-%     h2(1).DisplayName = 'all_except_REM';
-%     
-    
     % Set up axis properties:
-    title(sprintf('Firing Rate All periods: %d', results.pre_sleep_REM.num_behavioral_periods));
+    title(sprintf('Firing Rate All periods: %d', results.(temp.curr_group_name).num_behavioral_periods));
     if strcmpi(plottingOptions.plottingXAxis, 'index')
         xlabel('Filtered Period Index')
     else
@@ -252,6 +230,7 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
         ylim(plottingOptions.plottingYlim)
     end
 
+    legend();
     sgtitle([temp.curr_expt_string ' : Spike Rates - All Periods - Period Index - All Cells'])
     
     
@@ -385,7 +364,8 @@ function [xcorr_fig, h1, h2] = fnPlotAcrossREMXcorrHeatmap(v1, v2)
 end
 
 function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
-
+    % v1: 36x1
+    % v4: 36x86 double
     if strcmpi(mode, 'errorbar')
         h = errorbar(v1, ...
             v2, ...
@@ -393,18 +373,23 @@ function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
 
     elseif strcmpi(mode, 'scatter')
         h(1) = scatter(v1, ...
-            v2);
+            v2, 'filled');
         
-%         hold on;
+        hold on;
+
+        h(2) = scatter(v1, v4, );
 %         h(2) = errorbar(v1, v2, v3, 'LineStyle','none');
         
         
     elseif strcmpi(mode, 'distributionPlot')
-        h = distributionPlot(v4'); % defaults 
+        % v4: 36x86 double
+        h = distributionPlot(v4', 'xValues', v1); % defaults 
 
     elseif strcmpi(mode, 'bar')
         h = bar(v1, v2);
         
+    elseif strcmpi(mode, 'stem')
+        h = stem(v1, v2);
     else
        error('Invalid mode input!') 
     end
