@@ -77,9 +77,6 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
         state_stack_dim.TickLabel = state_names;
         state_stack_dim.Lim = 0.5+[0,length(state_names)];
         
-%         ax.YTick=1:length(state_names);
-%         ax.YTickLabel=state_names;
-%         ax.YLim=0.5+[0,length(state_names)];
     else
         % combined mode:
         state_stack_dim.Tick = [];
@@ -90,11 +87,7 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
 %         ax.YTickLabel='';
         
     end
-        
-%     ax.YDir='reverse';
-%     ax.XLim=t([1,end]);
-%     ax.XAxis.Visible = 'off';
-        
+     
     state_stack_dim.Dir='reverse';
     
     length_dim.Lim = t([1,end]);
