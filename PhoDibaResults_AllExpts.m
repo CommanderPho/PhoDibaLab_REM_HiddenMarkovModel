@@ -30,7 +30,8 @@ end
 current_binning_index = 1;
 
 %% Filtering Options:
-filter_config.filter_included_cell_types = {'pyramidal'};
+filter_config.filter_included_cell_types = {}; % All
+% filter_config.filter_included_cell_types = {'pyramidal'};
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 
@@ -92,9 +93,12 @@ align_figure(temp.currFiguresToLayout, 1, figureLayoutManager.figuresSize.width,
     100, figureLayoutManager.verticalSpacing, figureLayoutManager.horizontalSpacing, 100);
 
 
-
-
 function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
+
+end
+
+
+function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
     %%% fnPerformAcrossREMTesting: Run main analysis
     %%%
     
@@ -103,7 +107,7 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     
     %% Get filter info for active units
     [filter_config.filter_active_units] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
-    filter_config.filter_maximum_included_contamination_level);
+        filter_config.filter_maximum_included_contamination_level);
     fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
 
     [filtered.pre_sleep_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, {'pre_sleep'}, {'rem'}); % 668x1
@@ -116,6 +120,7 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     temp.group_name_list = {'pre_sleep_REM', 'post_sleep_REM', 'any_REM', 'all_except_REM'}; % other options: 'any_REM'
     temp.num_groups = length(temp.group_name_list);
     temp.group_indicies_list = {filtered.pre_sleep_REM_indicies, filtered.post_sleep_REM_indicies, filtered.any_REM_indicies, filtered.all_except_REM_indicies}; % other options: filtered.any_REM_indicies
+    
     
     %% Compute fields for all groups:
     for i = 1:temp.num_groups
@@ -329,8 +334,6 @@ function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_pro
     
 end
 
-
-
 function [xcorr_fig, h1, h2] = fnPlotAcrossREMXcorrHeatmap(v1, v2)
     % Plot a heatmap of the xcorr    
 %     xcorr_fig = figure(15);
@@ -353,7 +356,6 @@ function [xcorr_fig, h1, h2] = fnPlotAcrossREMXcorrHeatmap(v1, v2)
 %     sgtitle('XCorr for all pairs - PRE vs Post Sleep REM Periods - Period Index - All Units')
 
 end
-
 
 function [h] = fnPlotAcrossREMTesting(mode, v1, v2, v3, v4)
 
