@@ -115,7 +115,7 @@ end
 
 
 function [plotResults, filtered, results] = fnPerformAcrossAllTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
-    % A REM specific setup for fnPerformAcrossPeriodTesting 
+    % A all-states specific setup for fnPerformAcrossPeriodTesting 
     plottingOptions.group_name_list = {'nrem', 'rem', 'quiet', 'active', 'all'};
     plottingOptions.group_indexArray_variableName_list = strcat(plottingOptions.group_name_list, '_indicies');
     plottingOptions.num_groups = length(plottingOptions.group_name_list);
@@ -220,8 +220,6 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
                 results.(temp.curr_group_name).spike_rate_all_units.mean, ...
                 results.(temp.curr_group_name).spike_rate_all_units.stdDev, ...
                 results.(temp.curr_group_name).spike_rate_per_unit);
-
-
 
             if ~strcmpi(plottingOptions.plottingMode, 'distributionPlot')
                 %     h0(1).Marker = '*';
@@ -337,11 +335,23 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
     plottingOptions.curr_expt_string = temp.curr_expt_string;
     
     %% Do for all indexes:
-    temp.curr_units_to_test = filter_config.filter_active_pair_values(:, 1);
+    temp.curr_units_to_test = filter_config.filter_active_unit_original_indicies;
+
+%     temp.curr_units_to_test = filter_config.filter_active_unit_original_indicies(1:4);
+    [temp.is_pair_included, temp.original_pair_index] = fnFilterPairsWithCriteria(general_results, temp.curr_units_to_test);
+    % original_pair_index: 126x86 double
     
+    filtered.is_pair_included = temp.is_pair_included(filter_config.filter_active_pairs, :); % 3655x86 logical
+    filtered.original_pair_index = temp.original_pair_index(filter_config.filter_active_units, :); % 86x86 double
+    
+        % Sanity Check:
+%     sum(temp.is_pair_included, 1);
+%     sum(filtered.is_pair_included, 1);
+    
+   
     for i = 1:length(temp.curr_units_to_test)
         temp.curr_reference_unit_index = temp.curr_units_to_test(i);
-        plotResults.figures.xcorr = fnPlotCellPairsByPeriodHeatmap(active_processing, results, filter_config, plottingOptions, temp.curr_reference_unit_index);
+        plotResults.figures.xcorr = fnPlotCellPairsByPeriodHeatmap(active_processing, general_results, results, filter_config, plottingOptions, temp.curr_reference_unit_index);
         
         % Build Figure Export File path:
         currPlotConfig.curr_expt_filename_string = sprintf('%s - %s - %s - %s - %s', ...
@@ -366,19 +376,44 @@ function [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_
 end
 
 
-function [xcorr_fig] = fnPlotCellPairsByPeriodHeatmap(active_processing, results, filter_config, plottingOptions, reference_unit_index)
+function [xcorr_fig] = fnPlotCellPairsByPeriodHeatmap(active_processing, general_results, results, filter_config, plottingOptions, reference_unit_index)
     %% fnPlotCellPairsByPeriodHeatmap: plots a heatmap for a given unit with cell pair on its x-axis and period on the y-axis
+        % reference_unit_index: a valid unit index in the set of pairs
     
 %     plotResults.figures.xcorr = figure(expt_info.index);
    
     temp.curr_ref_unit_index_string = num2str(reference_unit_index);
     
-    temp.curr_active_unit_index = filter_config.filter_active_pair_values(reference_unit_index, 1);
-    temp.curr_active_pair_indicies = (temp.curr_active_unit_index == filter_config.filter_active_pair_values(:,1));
-    temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies,:);
-    temp.curr_active_pair_labels = num2str(temp.curr_active_pair_values(:,2));
+    temp.curr_active_unit_index = reference_unit_index;
+%     temp.curr_active_unit_index = filter_config.filter_active_pair_values(reference_unit_index, 1);
+%     temp.curr_active_pair_indicies = (temp.curr_active_unit_index == filter_config.filter_active_pair_values(:,1));
+%     temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies,:);
+%     temp.curr_active_pair_labels = num2str(temp.curr_active_pair_values(:,2));
     
-  
+    %% New
+    [temp.is_pair_included, temp.original_pair_index] = fnFilterPairsWithCriteria(general_results, temp.curr_active_unit_index);
+    % original_pair_index: 126x1 double
+    filtered.is_pair_included = temp.is_pair_included(filter_config.filter_active_pairs, 1); % 3655x1 logical
+    filtered.original_pair_index = temp.original_pair_index(filter_config.filter_active_units, 1); % 86x1 double
+    
+    temp.curr_active_pair_indicies = find(filtered.is_pair_included);
+    temp.curr_active_pair_values = filter_config.filter_active_pair_values(temp.curr_active_pair_indicies, :);
+    temp.curr_active_pair_other_unit_index = ones([size(temp.curr_active_pair_values, 1), 1]);
+    temp.curr_active_pair_other_unit_values = zeros([size(temp.curr_active_pair_values, 1), 1]);
+    
+    % Find the value in the pair that DOESN'T correspond to the active index (to get the other relevant unit)
+    for i = 1:size(temp.curr_active_pair_values, 1)
+        if (temp.curr_active_pair_values(i,1) == temp.curr_active_unit_index)
+            temp.curr_active_pair_other_unit_index(i) = 2; % Use the other index for the value;
+            temp.curr_active_pair_other_unit_values(i) = temp.curr_active_pair_values(i,2); 
+        else
+            temp.curr_active_pair_other_unit_index(i) = 1; % Use this index for the value;
+            temp.curr_active_pair_other_unit_values(i) = temp.curr_active_pair_values(i,1);
+        end
+    end
+    
+    temp.curr_active_pair_labels = num2str(temp.curr_active_pair_other_unit_values);
+    
     [xcorr_fig, heatmap_handle] = fnPlotAcrossREMXcorrHeatmap(results.all.per_period.xcorr_all_lags(:, temp.curr_active_pair_indicies)); % 668x3655 double
 
     heatmap_axis = gca;    
