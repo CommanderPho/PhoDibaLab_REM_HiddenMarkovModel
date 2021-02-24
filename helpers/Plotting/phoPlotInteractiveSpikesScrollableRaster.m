@@ -35,7 +35,7 @@ curr_i = 1;
 [extantFigH, currPlotHandle, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 scrollHandles = scrollplot(currPlotHandle, 'WindowSizeX', plotting_options.window_duration);
 
-
+% linkaxes([currPlotHandle currStateMapHandle],'x'); 
 
 %% INFO:
 % Can get scroll handles (the blue adjustment handle positions) using
@@ -56,7 +56,7 @@ scrollHandles = scrollplot(currPlotHandle, 'WindowSizeX', plotting_options.windo
 %% Set the current window to the specified range:
 xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 
-xlim(currStateMapHandle, xlim(scrollHandles.ParentAxesHandle))
+% xlim(currStateMapHandle, xlim(scrollHandles.ParentAxesHandle))
 
 %% Get the current window:
 xlim(scrollHandles.ParentAxesHandle)
@@ -110,18 +110,14 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
 %     ax.YMinorGrid = 'on';
     yticks(ax, 1:temp.num_active_units);
     
-    %% TODO: Add the state_map:
+    %% Add the state_map:
     state_statemapPlottingOptions.orientation = 'horizontal';
     state_statemapPlottingOptions.plot_variable = 'behavioral_state';
     state_statemapPlottingOptions.vertical_state_mode = 'combined';
     state_statemapPlottingOptions.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
     
-%     scrollHandles.ParentAxesHandle
-    temp.updated_main_axes_pos = ax.Position;
-%     temp.updated_main_axes_pos(2) = 0.1; % Move left edge (x) to 0.1 in relative coords.
-%     temp.updated_heatmap_pos(3) = temp.curr_heatmap_pos(3) * 0.9; % Set to 90% of original width
-%     ax.Position = temp.updated_main_axes_pos;
-    
+    % Get the position of the main raster plot axes:
+    temp.updated_main_axes_pos = ax.Position;    
     
     %% Puts Above
     temp.statemap_pos = temp.updated_main_axes_pos;
@@ -131,10 +127,7 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     subplot('Position', temp.statemap_pos);
     [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
     
+    % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added.
+    linkaxes([ax stateMapHandle],'x'); 
     
-    %     [ax] = fnPlotStateDiagram(active_processing, plotting_options);
-    
-    
-    
-% %     drawnow;
 end
