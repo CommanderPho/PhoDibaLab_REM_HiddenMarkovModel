@@ -65,11 +65,11 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
     if plotting_options.showOnlyAlwaysStableCells
 %         isAlwaysStable = (active_processing.spikes.stability_count == 3);
         numAlwaysStableCells = sum(plot_outputs.filter_active_units, 'all');
-        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Stable Unit Index')
         title(sprintf('Spike Train for Always Stable Units (%d of %d total)', numAlwaysStableCells, length(active_processing.spikes.time)));
     else
-        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = plotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Unit Index')
         title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     end
