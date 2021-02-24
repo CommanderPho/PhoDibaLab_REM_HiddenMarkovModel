@@ -12,6 +12,11 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
         
         plottingOptions.plot_variable = 'behavioral_epoch';
     %     plottingOptions.plot_variable = 'behavioral_state';
+    
+    
+        plottingOptions.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
+%         plottingOptions.x_axis = 'index'; % Equal-sized bins
+        
 
         % 
     end
@@ -26,9 +31,23 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
         end
         
         state_names = active_processing.definitions.behavioral_epoch.classNames;
-        states = [active_processing.behavioral_periods_table.epoch_start_seconds, ...
-            active_processing.behavioral_periods_table.epoch_end_seconds, ...
-            double(active_processing.behavioral_periods_table.behavioral_epoch)];
+        
+        if strcmpi(plottingOptions.x_axis, 'timestamp')
+            states = [active_processing.behavioral_periods_table.epoch_start_seconds, ...
+                active_processing.behavioral_periods_table.epoch_end_seconds, ...
+                double(active_processing.behavioral_periods_table.behavioral_epoch)];
+        else
+%             linear_start_indicies = 0:1:(length(active_processing.behavioral_periods_table.behavioral_epoch)-1);
+%             linear_end_indicies = linear_start_indicies + 1;
+%                        
+            linear_end_indicies = [1:length(active_processing.behavioral_periods_table.behavioral_epoch)];
+            linear_start_indicies = linear_end_indicies - 1;
+            states = [linear_start_indicies', ...
+                linear_end_indicies', ...
+                double(active_processing.behavioral_periods_table.behavioral_epoch)];
+            
+        end
+        
         color_state = active_processing.definitions.behavioral_epoch.classColors;
            
     elseif strcmpi(plottingOptions.plot_variable, 'behavioral_state')
@@ -40,9 +59,22 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
                1.0, 0.0, 0.0];
         end
         state_names = active_processing.definitions.behavioral_state.classNames;
-        states = [active_processing.behavioral_periods_table.epoch_start_seconds, ...
-            active_processing.behavioral_periods_table.epoch_end_seconds, ...
-            double(active_processing.behavioral_periods_table.type)];
+        
+        if strcmpi(plottingOptions.x_axis, 'timestamp')
+            states = [active_processing.behavioral_periods_table.epoch_start_seconds, ...
+                active_processing.behavioral_periods_table.epoch_end_seconds, ...
+                double(active_processing.behavioral_periods_table.type)];
+        else
+%             linear_start_indicies = 0:1:(length(active_processing.behavioral_periods_table.behavioral_epoch)-1);
+%             linear_end_indicies = linear_start_indicies + 1;
+            linear_end_indicies = [1:length(active_processing.behavioral_periods_table.behavioral_epoch)];
+            linear_start_indicies = linear_end_indicies - 1;
+            
+            
+            states = [linear_start_indicies', ...
+                linear_end_indicies', ...
+                double(active_processing.behavioral_periods_table.type)];
+        end
         color_state = active_processing.definitions.behavioral_state.classColors;
     else
         error('invalid plottingOptions.plot_variable');

@@ -2,6 +2,10 @@ function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr
 %FNPLOTADDSTATEMAPSUBPLOT adds a state map/partition subplot to indicate the state as a function of time or period index.
     % By default adds them to the right side of the plot.
 
+%     common_statemapPlottingOptions.x_axis = 'timestamp';% Timestamp-appropriate relative bins (default)
+    common_statemapPlottingOptions.x_axis = 'index'; % Equal-sized bins
+    
+    
     % Resize current plots:
     temp.curr_heatmap_pos = curr_axis.Position;
     temp.updated_heatmap_pos = curr_axis.Position;
@@ -14,6 +18,9 @@ function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr
     state_statemapPlottingOptions.orientation = 'vertical';
     state_statemapPlottingOptions.vertical_state_mode = 'combined';
     state_statemapPlottingOptions.plot_variable = 'behavioral_state';
+    state_statemapPlottingOptions.x_axis = common_statemapPlottingOptions.x_axis;
+    
+    
     
     temp.statemap_pos = temp.updated_heatmap_pos;
     temp.statemap_pos(1) = 0.9;
@@ -28,6 +35,8 @@ function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr
     epoch_statemapPlottingOptions.orientation = 'vertical';
     epoch_statemapPlottingOptions.vertical_state_mode = 'combined';
     epoch_statemapPlottingOptions.plot_variable = 'behavioral_epoch';
+    epoch_statemapPlottingOptions.x_axis = common_statemapPlottingOptions.x_axis;
+    
     temp.epoch_statemap_pos = temp.statemap_pos;
     temp.epoch_statemap_pos(1) = temp.statemap_pos(1) + temp.statemap_pos(3);
     temp.epoch_statemap_pos(3) = 0.025;
