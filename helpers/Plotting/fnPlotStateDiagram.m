@@ -4,22 +4,26 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
 
 
     if ~exist('plottingOptions','var')
-        plottingOptions.orientation = 'vertical';
-%         plottingOptions.orientation = 'horizontal';
-        
-    %     plottingOptions.vertical_state_mode = 'stacked';
-        plottingOptions.vertical_state_mode = 'combined';
-        
-        plottingOptions.plot_variable = 'behavioral_epoch';
-    %     plottingOptions.plot_variable = 'behavioral_state';
-    
-    
-        plottingOptions.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
-%         plottingOptions.x_axis = 'index'; % Equal-sized bins
-        
-
-        % 
+         plottingOptions = struct();
     end
+    
+    plottingOptions = fnAddDefaultOptionalArgs({'orientation', 'vertical_state_mode', 'plot_variable', 'x_axis'}, ...
+        {'vertical', 'combined', 'behavioral_state', 'timestamp'}, ...
+        plottingOptions);
+    
+    
+%         plottingOptions.orientation = 'vertical';
+% %         plottingOptions.orientation = 'horizontal';
+%         
+%     %     plottingOptions.vertical_state_mode = 'stacked';
+%         plottingOptions.vertical_state_mode = 'combined';
+%         
+%         plottingOptions.plot_variable = 'behavioral_epoch';
+%     %     plottingOptions.plot_variable = 'behavioral_state';
+%         
+%         plottingOptions.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
+% %         plottingOptions.x_axis = 'index'; % Equal-sized bins
+%         
 
 
     if strcmpi(plottingOptions.plot_variable, 'behavioral_epoch')

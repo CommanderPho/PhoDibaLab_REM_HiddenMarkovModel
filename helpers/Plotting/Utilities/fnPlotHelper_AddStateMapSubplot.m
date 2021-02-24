@@ -1,23 +1,28 @@
-function [state_ax, epoch_ax] = fnPlotHelper_AddStateMapSubplot(active_processing, curr_axis)
+function [state_ax, epoch_ax] = fnPlotHelper_AddStateMapSubplot(active_processing, curr_axis, plottingOptions)
 %fnPlotHelper_AddStateMapSubplot adds a state map/partition subplot to indicate the state as a function of time or period index.
     % By default adds them to the right side of the plot.
 
-%     common_statemapPlottingOptions.x_axis = 'timestamp';% Timestamp-appropriate relative bins (default)
-    common_statemapPlottingOptions.x_axis = 'index'; % Equal-sized bins
-    common_statemapPlottingOptions.orientation = 'vertical';
-    common_statemapPlottingOptions.vertical_state_mode = 'combined';
+    
+% %     common_statemapPlottingOptions.x_axis = 'timestamp';% Timestamp-appropriate relative bins (default)
+%     common_statemapPlottingOptions.x_axis = 'index'; % Equal-sized bins
+%     common_statemapPlottingOptions.orientation = 'vertical';
+%     common_statemapPlottingOptions.vertical_state_mode = 'combined';
     
     
-    {'x_axis', 'orientation', 'vertical_state_mode'}; % Field Names
-    {'index', 'vertical', 'combined'} % Default Values
+     if ~exist('plottingOptions','var')
+         plottingOptions = struct();
+     end
     
+     common_statemapPlottingOptions = fnAddDefaultOptionalArgs({'x_axis', 'orientation', 'vertical_state_mode'}, ...
+        {'index', 'vertical', 'combined'}, ...
+        plottingOptions);
     
     
     
     % Resize current plots:
     temp.curr_heatmap_pos = curr_axis.Position;
     temp.updated_heatmap_pos = curr_axis.Position;
-    temp.updated_heatmap_pos(1) = 0.1; 
+    temp.updated_heatmap_pos(1) = 0.1; % Move left edge (x) to 0.1 in relative coords.
 %     temp.updated_heatmap_pos(3) = temp.curr_heatmap_pos(3) * 0.9; % Set to 90% of original width
     curr_axis.Position =  temp.updated_heatmap_pos;
     

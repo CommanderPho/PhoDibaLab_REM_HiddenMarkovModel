@@ -32,8 +32,9 @@ extantFigH = figure(12);
 
 %% Scrollplot mode:
 curr_i = 1;
-[extantFigH, currPlot, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
-scrollHandles = scrollplot(currPlot, 'WindowSizeX', plotting_options.window_duration);
+[extantFigH, currPlotHandle, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
+scrollHandles = scrollplot(currPlotHandle, 'WindowSizeX', plotting_options.window_duration);
+
 
 
 %% INFO:
@@ -55,6 +56,8 @@ scrollHandles = scrollplot(currPlot, 'WindowSizeX', plotting_options.window_dura
 %% Set the current window to the specified range:
 xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 
+xlim(currStateMapHandle, xlim(scrollHandles.ParentAxesHandle))
+
 %% Get the current window:
 xlim(scrollHandles.ParentAxesHandle)
 
@@ -64,7 +67,7 @@ xlim(scrollHandles.ParentAxesHandle)
 % slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 % 
 %% Plot function called as a callback on update
-function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, filter_config, plotting_options, extantFigH, curr_windowIndex)
+function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, filter_config, plotting_options, extantFigH, curr_windowIndex)
     
 
     %% Get filter info for active units
@@ -92,11 +95,11 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
     if plotting_options.showOnlyAlwaysStableCells
 %         isAlwaysStable = (active_processing.spikes.stability_count == 3);
         numAlwaysStableCells = sum(plot_outputs.filter_active_units, 'all');
-        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Stable Unit Index')
         title(sprintf('Spike Train for Always Stable Units (%d of %d total)', numAlwaysStableCells, length(active_processing.spikes.time)));
     else
-        [plot_outputs.x_points, plot_outputs.y_points, plotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
+        [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Unit Index')
         title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     end
@@ -108,11 +111,28 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
     yticks(ax, 1:temp.num_active_units);
     
     %% TODO: Add the state_map:
-%     plotting_options.orientation = 'horizontal';
-%     plotting_options.plot_variable = 'behavioral_state';
-%     plotting_options.vertical_state_mode = 'combined';
-%     plotting_options.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
-%     [ax] = fnPlotStateDiagram(active_processing, plotting_options);
+    state_statemapPlottingOptions.orientation = 'horizontal';
+    state_statemapPlottingOptions.plot_variable = 'behavioral_state';
+    state_statemapPlottingOptions.vertical_state_mode = 'combined';
+    state_statemapPlottingOptions.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
+    
+%     scrollHandles.ParentAxesHandle
+    temp.updated_main_axes_pos = ax.Position;
+%     temp.updated_main_axes_pos(2) = 0.1; % Move left edge (x) to 0.1 in relative coords.
+%     temp.updated_heatmap_pos(3) = temp.curr_heatmap_pos(3) * 0.9; % Set to 90% of original width
+%     ax.Position = temp.updated_main_axes_pos;
+    
+    
+    %% Puts Above
+    temp.statemap_pos = temp.updated_main_axes_pos;
+    temp.statemap_pos(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
+    temp.statemap_pos(4) = 0.05;
+    
+    subplot('Position', temp.statemap_pos);
+    [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
+    
+    
+    %     [ax] = fnPlotStateDiagram(active_processing, plotting_options);
     
     
     
