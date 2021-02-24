@@ -425,7 +425,7 @@ function [xcorr_fig] = fnPlotCellPairsByPeriodHeatmap(active_processing, general
     xticklabels('manual')
     xtickangle(90)
 
-    [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, heatmap_axis);
+    [state_ax, epoch_ax] = fnPlotHelper_AddStateMapSubplot(active_processing, heatmap_axis);
 
     temp.curr_ref_unit_index_string = sprintf('unit[%d]', reference_unit_index);
     sgtitle([plottingOptions.curr_expt_string ' : XCorr for ' temp.curr_ref_unit_index_string ' and all units - All Periods - Good Units'])

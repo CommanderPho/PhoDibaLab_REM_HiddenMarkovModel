@@ -1,9 +1,17 @@
-function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr_axis)
-%FNPLOTADDSTATEMAPSUBPLOT adds a state map/partition subplot to indicate the state as a function of time or period index.
+function [state_ax, epoch_ax] = fnPlotHelper_AddStateMapSubplot(active_processing, curr_axis)
+%fnPlotHelper_AddStateMapSubplot adds a state map/partition subplot to indicate the state as a function of time or period index.
     % By default adds them to the right side of the plot.
 
 %     common_statemapPlottingOptions.x_axis = 'timestamp';% Timestamp-appropriate relative bins (default)
     common_statemapPlottingOptions.x_axis = 'index'; % Equal-sized bins
+    common_statemapPlottingOptions.orientation = 'vertical';
+    common_statemapPlottingOptions.vertical_state_mode = 'combined';
+    
+    
+    {'x_axis', 'orientation', 'vertical_state_mode'}; % Field Names
+    {'index', 'vertical', 'combined'} % Default Values
+    
+    
     
     
     % Resize current plots:
@@ -15,8 +23,8 @@ function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr
     
     
     %% Add the behavioral period map:
-    state_statemapPlottingOptions.orientation = 'vertical';
-    state_statemapPlottingOptions.vertical_state_mode = 'combined';
+    state_statemapPlottingOptions.orientation = common_statemapPlottingOptions.orientation;
+    state_statemapPlottingOptions.vertical_state_mode = common_statemapPlottingOptions.vertical_state_mode;
     state_statemapPlottingOptions.plot_variable = 'behavioral_state';
     state_statemapPlottingOptions.x_axis = common_statemapPlottingOptions.x_axis;
     
@@ -32,8 +40,8 @@ function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr
 
     
     %% Plot Epoch Position map
-    epoch_statemapPlottingOptions.orientation = 'vertical';
-    epoch_statemapPlottingOptions.vertical_state_mode = 'combined';
+    epoch_statemapPlottingOptions.orientation = common_statemapPlottingOptions.orientation;
+    epoch_statemapPlottingOptions.vertical_state_mode = common_statemapPlottingOptions.vertical_state_mode;
     epoch_statemapPlottingOptions.plot_variable = 'behavioral_epoch';
     epoch_statemapPlottingOptions.x_axis = common_statemapPlottingOptions.x_axis;
     
@@ -42,6 +50,6 @@ function [state_ax, epoch_ax] = fnPlotAddStateMapSubplot(active_processing, curr
     temp.epoch_statemap_pos(3) = 0.025;
     
     subplot('Position', temp.epoch_statemap_pos);
-    [epoch_ax] = fnPlotStateDiagram(active_processing, epoch_statemapPlottingOptions);
+%     [epoch_ax] = fnPlotStateDiagram(active_processing, epoch_statemapPlottingOptions);
 end
 

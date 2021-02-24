@@ -5,8 +5,8 @@
 %   Spawns an interactive slider that allows you to specify the current window to look at, acting as a paginated manner.
 
 %% Filtering Options:
-filter_config.filter_included_cell_types = {};
-% filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {};
+filter_config.filter_included_cell_types = {'pyramidal'};
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 
@@ -35,6 +35,31 @@ curr_i = 1;
 [extantFigH, currPlot, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 scrollHandles = scrollplot(currPlot, 'WindowSizeX', plotting_options.window_duration);
 
+
+%% INFO:
+% Can get scroll handles (the blue adjustment handle positions) using
+% [scrollHandles.ScrollMin, scrollHandles.ScrollMax];
+
+
+% scrollHandles.ScrollPatchHandle: Patch (scrollPatch) object
+% scrollHandles.ScrollPatchHandle.Vertices: [4x2 double] like:
+%     [57     0
+%     57    80
+%     67    80
+%     67     0]
+
+% scrollHandles.ScrollSideBarHandles: [1x2 Line array]
+% scrollHandles.ScrollSideBarHandles(1).Color = [1 0 0];
+
+
+%% Set the current window to the specified range:
+xlim(scrollHandles.ParentAxesHandle, [1800 1860])
+
+%% Get the current window:
+xlim(scrollHandles.ParentAxesHandle)
+
+
+
 % %% Pho Scrollable Mode:
 % slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 % 
@@ -45,7 +70,9 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
     %% Get filter info for active units
     [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, plotting_options.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
         filter_config.filter_maximum_included_contamination_level);
-    fprintf('Filter: Including %d of %d total units\n', sum(plot_outputs.filter_active_units, 'all'), length(plot_outputs.filter_active_units));
+    
+    temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
+    fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
     
     
@@ -75,5 +102,19 @@ function [plotted_figH, plotHandle, plot_outputs] = pho_plot_spikeRaster(active_
     end
     xlabel('Time [seconds]')
     
-    drawnow;
+    ax = gca;
+    ax.YGrid = 'on';
+%     ax.YMinorGrid = 'on';
+    yticks(ax, 1:temp.num_active_units);
+    
+    %% TODO: Add the state_map:
+%     plotting_options.orientation = 'horizontal';
+%     plotting_options.plot_variable = 'behavioral_state';
+%     plotting_options.vertical_state_mode = 'combined';
+%     plotting_options.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
+%     [ax] = fnPlotStateDiagram(active_processing, plotting_options);
+    
+    
+    
+% %     drawnow;
 end

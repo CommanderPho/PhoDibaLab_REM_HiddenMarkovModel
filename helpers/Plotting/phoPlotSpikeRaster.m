@@ -141,8 +141,8 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 	spikes = p.Results.spikes;
 	figH = p.Results.FigHandle;
 	plotType = lower(p.Results.PlotType);
-	lineFormat = struct2opt(p.Results.LineFormat);
-	markerFormat = struct2opt(p.Results.MarkerFormat);
+	lineFormat = struct2argsList(p.Results.LineFormat);
+	markerFormat = struct2argsList(p.Results.MarkerFormat);
 	autoLabel = p.Results.AutoLabel;
 	xLimForCell = p.Results.XLimForCell;
 	timePerBin = p.Results.TimePerBin;
@@ -390,7 +390,7 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 		
 		if strcmpi(plotType,'vertline') || strcmpi(plotType,'horzline')
 			%% Vertical or horizontal line logic
-			nTotalSpikes = sum(cellfun(@length,spikes));
+			nTotalSpikes = sum(cellfun(@length, spikes));
 			
 			% Preallocation is possible since we know how many points to
 			% plot, unlike discrete case. 3 points per spike - the top pt,
@@ -493,28 +493,11 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 	end
 
 
+	%% Add additional desired features (row shading, etc)
+
+
 
 
 	hold off;
 
 end % main function
-
-function paramCell = struct2opt(paramStruct)
-% Converts structure to parameter-value pairs
-%   Example usage:
-%       formatting = struct()
-%       formatting.color = 'black';
-%       formatting.fontweight = 'bold';
-%       formatting.fontsize = 24;
-%       formatting = struct2opt(formatting);
-%       xlabel('Distance', formatting{:});
-% Adapted from:
-% http://stackoverflow.com/questions/15013026/how-can-i-unpack-a-matlab-structure-into-function-arguments
-% by user 'yuk'
-
-fname = fieldnames(paramStruct);
-fval = struct2cell(paramStruct);
-paramCell = [fname, fval]';
-paramCell = paramCell(:);
-
-end % struct2opt
