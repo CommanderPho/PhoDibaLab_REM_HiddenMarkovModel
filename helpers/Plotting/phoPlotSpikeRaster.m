@@ -142,6 +142,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 	p.addParamValue('VertSpikeHeight',1,@(x) isnumeric(x) && isscalar(x));
 
 	p.addParamValue('TrialBackgroundColors', [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]',@(x) isnumeric(x) && ismatrix(x));
+	% p.addParamValue('TrialSpikeColors', [0.1, 0.1, 0.2;  0.2, 0.1, 0.1]',@(x) isnumeric(x) && ismatrix(x));
 
 	p.parse(spikes,varargin{:});
 
@@ -160,6 +161,8 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 	vertSpikeHeight = p.Results.VertSpikeHeight;
 
 	trialBackgroundColors = p.Results.TrialBackgroundColors;
+	% trialSpikeColors = p.Results.TrialSpikeColors;
+
 
 	if ~isnan(rasterWindowOffset) && relSpikeStartTime==0
 		relSpikeStartTime = rasterWindowOffset;

@@ -71,6 +71,19 @@ xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 %% Get the current window:
 xlim(scrollHandles.ParentAxesHandle)
 
+% enable interactive section selection
+secsel(currPlotHandle);
+
+% Instructions for use:
+% - Double click the left mouse button to place the first mark line to a 
+%   new possition;
+% - Double click the right mouse button to place the second mark line to a 
+%   new possition;
+% - Press "Enter" key in order to save the selected 2D plot section as a
+%   mat. data file;
+% - Press "End" key in order to close the interactive section selection
+%   regime.
+
 
 
 % %% Pho Scrollable Mode:
@@ -87,8 +100,6 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
     fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
-    
-    
     %% Build colors
 %     active_processing.definitions.speculated_unit_info.classColors
     
