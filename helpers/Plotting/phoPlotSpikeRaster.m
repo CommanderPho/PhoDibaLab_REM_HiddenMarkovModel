@@ -91,6 +91,10 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 	%           Determines height of spike for 'vertline' plots. Decrease to
 	%           separate trials with a gap.
 	%
+	%       TrialBackgroundColors - default [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]' (alternating white & grey backgrounds for each trial).
+	%           Determines color of rectangular background for 'vertline' plots. Can provide up to nTrials column 3-vectors ([R G B]') to use as the background.
+
+	%
 	%   Examples:
 	%       plotSpikeRaster(spikeTimes);
 	%               Plots raster plot with horizontal lines.
@@ -136,6 +140,9 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 	p.addParamValue('RasterWindowOffset',NaN,@(x) isnumeric(x) && isscalar(x));
 	p.addParamValue('VertSpikePosition',0,@(x) isnumeric(x) && isscalar(x));
 	p.addParamValue('VertSpikeHeight',1,@(x) isnumeric(x) && isscalar(x));
+
+	p.addParamValue('TrialBackgroundColors', [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]',@(x) isnumeric(x) && isvector(x));
+
 	p.parse(spikes,varargin{:});
 
 	spikes = p.Results.spikes;
@@ -151,6 +158,8 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 	rasterWindowOffset = p.Results.RasterWindowOffset;
 	vertSpikePosition = p.Results.VertSpikePosition;
 	vertSpikeHeight = p.Results.VertSpikeHeight;
+
+	trialBackgroundColors = p.Results.TrialBackgroundColors;
 
 	if ~isnan(rasterWindowOffset) && relSpikeStartTime==0
 		relSpikeStartTime = rasterWindowOffset;
@@ -403,8 +412,9 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 
 			% temp.backgroundRectColors = repmat([0.5, 0.5, 0.5;  0.9, 0.9, 0.9]', [1 (nTrials/2)]);
 			
-			temp.alternatingBackgroundRectColors = [0.5, 0.5, 0.5;  0.9, 0.9, 0.9]';
-
+			temp.alternatingBackgroundRectColors = [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]';
+			
+			temp.alternatingBackgroundRectColors = trialBackgroundColors;
 
 			% We make a flattened 1D representation to hold the x-values
 			xPoints = NaN(nTotalSpikes*3,1);
@@ -434,7 +444,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 					% Alterantive color: color_state(states(s_idx,3),:)
 					temp.currTrialBackgroundRect_pos = [newLim(1), (trialIndex-halfSpikeHeight), newLim(2), vertSpikeHeight];
 					%% Rectangles:
-					temp.currTrialColor = temp.alternatingBackgroundRectColors(:, (rem(trialIndex, 2) + 1))';
+					temp.currTrialColor = temp.alternatingBackgroundRectColors(:, (rem(trialIndex, size(temp.alternatingBackgroundRectColors, 2)) + 1))';
 
 					rectangle('Position', temp.currTrialBackgroundRect_pos,...
                     	'LineStyle','none','facecolor', temp.currTrialColor)
