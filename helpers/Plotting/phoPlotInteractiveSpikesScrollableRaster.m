@@ -77,8 +77,6 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
     fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
-    
-    
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else

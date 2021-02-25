@@ -1,4 +1,4 @@
-function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
+function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,varargin)
 	% phoPlotSpikeRaster Create raster plot from binary spike data or spike times
 	%   Efficiently creates raster plots with formatting support. Faster than
 	%   common implementations. Multiple plot types and parameters available!
@@ -182,16 +182,16 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 			case 'horzline'
 				%% Horizontal Lines
 				% Find the trial (yPoints) and timebin (xPoints) of each spike
-				[trials,timebins] = find(spikes);
-				trials = trials';
+				[trialIndex,timebins] = find(spikes);
+				trialIndex = trialIndex';
 				timebins = timebins';
 
 				xPoints = [ timebins + relSpikeStartTime;
 							timebins + relSpikeStartTime + spikeDuration;
 							NaN(size(timebins)) ];
-				yPoints = [ trials + vertSpikePosition;
-							trials + vertSpikePosition;
-							NaN(size(trials)) ];
+				yPoints = [ trialIndex + vertSpikePosition;
+							trialIndex + vertSpikePosition;
+							NaN(size(trialIndex)) ];
 						
 				xPoints = xPoints(:);
 				yPoints = yPoints(:);
@@ -199,17 +199,17 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 			case 'vertline'
 				%% Vertical Lines
 				% Find the trial (yPoints) and timebin (xPoints) of each spike
-				[trials,timebins] = find(spikes);
-				trials = trials';
+				[trialIndex,timebins] = find(spikes);
+				trialIndex = trialIndex';
 				timebins = timebins';
 				halfSpikeHeight = vertSpikeHeight/2;
 				
 				xPoints = [ timebins + relSpikeStartTime;
 							timebins + relSpikeStartTime;
 							NaN(size(timebins)) ];
-				yPoints = [ trials - halfSpikeHeight + vertSpikePosition;
-							trials + halfSpikeHeight + vertSpikePosition;
-							NaN(size(trials)) ];
+				yPoints = [ trialIndex - halfSpikeHeight + vertSpikePosition;
+							trialIndex + halfSpikeHeight + vertSpikePosition;
+							NaN(size(trialIndex)) ];
 
 				xPoints = xPoints(:);
 				yPoints = yPoints(:);
@@ -221,15 +221,15 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 				xPoints = [];
 				yPoints = [];
 				
-				for trials = 1:nTrials
+				for trialIndex = 1:nTrials
 					% If there are spikes, plot a line. Otherwise, do nothing.
-					if sum(spikes(trials,:)) > 0
+					if sum(spikes(trialIndex,:)) > 0
 						
 						% Find the difference in spike times. Padding at the
 						% front and back with a zero accounts for spikes in
 						% the first and last indices, and keeps startY and endY
 						% the same size
-						spikeDiff = diff([0 spikes(trials,:) 0]);
+						spikeDiff = diff([0 spikes(trialIndex,:) 0]);
 						% Ex. [0 1 1] -> [0 0 1 1 0]. diff(...) -> [0 1 0 -1]
 						
 						% Find line segments to plot (line segments longer than
@@ -256,7 +256,7 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 						
 						% Add y points centered on the trial by default
 						% (adjustable with vertSpikePosition parameter)
-						trialYPoints = trials*ones(size(trialXPoints)) + vertSpikePosition;
+						trialYPoints = trialIndex*ones(size(trialXPoints)) + vertSpikePosition;
 						
 						% Store this trial's x and y points. Unfortunately,
 						% preallocating and trimming may actually be slower,
@@ -369,18 +369,21 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 		% automatically set them. This is because we don't assume spikes start
 		% at 0 - we can have negative spike times.
 		limitsToSet = isnan(xLimForCell);
-		if sum(limitsToSet) > 0
-			% First find range of spike times
-			minTimes = cellfun(@min,spikes,'UniformOutput',false);
-			minTime = min( [ minTimes{:} ] );
-			maxTimes = cellfun(@max,spikes,'UniformOutput',false);
-			maxTime = max( [ maxTimes{:} ] );
-			timeRange = maxTime - minTime;
+
+
+		% First find range of spike times
+		minTimes = cellfun(@min,spikes,'UniformOutput',false);
+		minTime = min( [ minTimes{:} ] );
+		maxTimes = cellfun(@max,spikes,'UniformOutput',false);
+		maxTime = max( [ maxTimes{:} ] );
+		timeRange = maxTime - minTime;
+		% Find 0.05% of the range.
+		xStartOffset = relSpikeStartTime - 0.0005*timeRange;
+		xEndOffset = relSpikeStartTime + 0.0005*timeRange + spikeDuration;
+		newLim = [ minTime+xStartOffset, maxTime+xEndOffset ];
+
+		if sum(limitsToSet) > 0	
 			
-			% Find 0.05% of the range.
-			xStartOffset = relSpikeStartTime - 0.0005*timeRange;
-			xEndOffset = relSpikeStartTime + 0.0005*timeRange + spikeDuration;
-			newLim = [ minTime+xStartOffset, maxTime+xEndOffset ];
 			xLimForCell(limitsToSet) = newLim(limitsToSet);
 			% End result, if both limits are automatically set, is that the x
 			% axis is expanded 0.1%, so you can see initial and final spikes.
@@ -390,11 +393,20 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 		
 		if strcmpi(plotType,'vertline') || strcmpi(plotType,'horzline')
 			%% Vertical or horizontal line logic
+
+			% nTotalSpikes: these are the number of spikes across all trials/channels combined as a single scalar value
 			nTotalSpikes = sum(cellfun(@length, spikes));
 			
 			% Preallocation is possible since we know how many points to
 			% plot, unlike discrete case. 3 points per spike - the top pt,
 			% bottom pt, and NaN.
+
+			% temp.backgroundRectColors = repmat([0.5, 0.5, 0.5;  0.9, 0.9, 0.9]', [1 (nTrials/2)]);
+			
+			temp.alternatingBackgroundRectColors = [0.5, 0.5, 0.5;  0.9, 0.9, 0.9]';
+
+
+			% We make a flattened 1D representation to hold the x-values
 			xPoints = NaN(nTotalSpikes*3,1);
 			yPoints = xPoints;
 			currentInd = 1;
@@ -402,37 +414,50 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 			if strcmpi(plotType,'vertline')
 				%% Vertical Lines
 				halfSpikeHeight = vertSpikeHeight/2;
-				for trials = 1:nTrials
-					nSpikes = length(spikes{trials});
+				for trialIndex = 1:nTrials
+					nSpikes = length(spikes{trialIndex});
 					nanSeparator = NaN(1,nSpikes);
 					
-					trialXPoints = [ spikes{trials} + relSpikeStartTime;...
-						spikes{trials} + relSpikeStartTime; nanSeparator ];
-					trialXPoints = trialXPoints(:);
+					% trialXPoints: [3 x nSpikes]
+					% 	the duplicate x values for the top two rows are to represent the top and bottom point of each spike, the corresponding y-values are what's changing
+					trialXPoints = [ spikes{trialIndex} + relSpikeStartTime;...
+						spikes{trialIndex} + relSpikeStartTime; nanSeparator ];
+					trialXPoints = trialXPoints(:); % Flatten to 1D I believe?
 					
-					trialYPoints = [ (trials-halfSpikeHeight)*ones(1,nSpikes);...
-						(trials+halfSpikeHeight)*ones(1,nSpikes); nanSeparator ];
-					trialYPoints = trialYPoints(:);
+					% trialYPoints: [3 x nSpikes]
+					%	the spikes are centered at the y-value 'trials', and the bottom point (top row) is obtained by subtracting the halfSpikeHeight and the top point by adding it to this center.
+					trialYPoints = [ (trialIndex-halfSpikeHeight)*ones(1,nSpikes);...
+						(trialIndex+halfSpikeHeight)*ones(1,nSpikes); nanSeparator ];
+					trialYPoints = trialYPoints(:); % Again flatten to 1D.
 					
-					% Save points and update current index
+					%% TEMP: Trial Background Rectangles:
+					% Alterantive color: color_state(states(s_idx,3),:)
+					temp.currTrialBackgroundRect_pos = [newLim(1), (trialIndex-halfSpikeHeight), newLim(2), vertSpikeHeight];
+					%% Rectangles:
+					temp.currTrialColor = temp.alternatingBackgroundRectColors(:, (rem(trialIndex, 2) + 1))';
+
+					rectangle('Position', temp.currTrialBackgroundRect_pos,...
+                    	'LineStyle','none','facecolor', temp.currTrialColor)
+
+					% Save points and update current index, setting the values as a 1D linear array
 					xPoints(currentInd:currentInd+nSpikes*3-1) = trialXPoints;
 					yPoints(currentInd:currentInd+nSpikes*3-1) = trialYPoints;
-					currentInd = currentInd + nSpikes*3;
+					currentInd = currentInd + nSpikes*3; % get the next linear index after adding these points
 				end
 				
 			else % (if plotType is 'horzline')
 				%% Horizontal Lines
-				for trials = 1:nTrials
-					nSpikes = length(spikes{trials});                
+				for trialIndex = 1:nTrials
+					nSpikes = length(spikes{trialIndex});                
 					nanSeparator = NaN(1,nSpikes);
 					
-					trialXPoints = [ spikes{trials} + relSpikeStartTime;...
-						spikes{trials} + relSpikeStartTime + spikeDuration;...
+					trialXPoints = [ spikes{trialIndex} + relSpikeStartTime;...
+						spikes{trialIndex} + relSpikeStartTime + spikeDuration;...
 						nanSeparator ];
 					trialXPoints = trialXPoints(:);
 					
-					trialYPoints = [ trials*ones(1,nSpikes);...
-						trials*ones(1,nSpikes); nanSeparator ];
+					trialYPoints = [ trialIndex*ones(1,nSpikes);...
+						trialIndex*ones(1,nSpikes); nanSeparator ];
 					trialYPoints = trialYPoints(:);
 					
 					% Save points and update current index
@@ -442,7 +467,8 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 				end
 				
 			end
-			
+
+			hold on;
 			% Plot everything at once! We will reverse y-axis direction later.
 			plotHandle = plot(xPoints, yPoints, 'k', lineFormat{:});
 			
@@ -453,13 +479,13 @@ function [xPoints, yPoints, plotHandle] = phoPlotSpikeRaster(spikes,varargin)
 			
 			% Getting the trials is trickier. 3 steps:
 			% 1. First convert all the spike times into ones.
-			trials = cellfun( @(x) {ones(size(x))}, spikes );
+			trialIndex = cellfun( @(x) {ones(size(x))}, spikes );
 			% 2. Then multiply by trial number.
 			for trialNum = 1:length(spikes)
-				trials{trialNum} = trialNum*trials{trialNum};
+				trialIndex{trialNum} = trialNum*trialIndex{trialNum};
 			end
 			% 3. Finally convert into a vector
-			yPoints = [ trials{:} ];
+			yPoints = [ trialIndex{:} ];
 			
 			% Now we can plot! We will reverse y-axis direction later.
 			plotHandle = plot(xPoints,yPoints,'.k',markerFormat{:});
