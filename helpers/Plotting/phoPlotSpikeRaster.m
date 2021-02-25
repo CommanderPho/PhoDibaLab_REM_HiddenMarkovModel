@@ -141,7 +141,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 	p.addParamValue('VertSpikePosition',0,@(x) isnumeric(x) && isscalar(x));
 	p.addParamValue('VertSpikeHeight',1,@(x) isnumeric(x) && isscalar(x));
 
-	p.addParamValue('TrialBackgroundColors', [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]',@(x) isnumeric(x) && isvector(x));
+	p.addParamValue('TrialBackgroundColors', [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]',@(x) isnumeric(x) && ismatrix(x));
 
 	p.parse(spikes,varargin{:});
 

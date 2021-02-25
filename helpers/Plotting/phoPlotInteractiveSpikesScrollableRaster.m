@@ -5,15 +5,25 @@
 %   Spawns an interactive slider that allows you to specify the current window to look at, acting as a paginated manner.
 
 %% Filtering Options:
-% filter_config.filter_included_cell_types = {};
-filter_config.filter_included_cell_types = {'pyramidal'};
+filter_config.filter_included_cell_types = {};
+% filter_config.filter_included_cell_types = {'pyramidal'};
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 
 plotting_options.window_duration = 10; % 10 seconds
 
+
 temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
 temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
+
+
+% define cell type ({'pyramidal', 'contaminated', 'interneurons'}) colors: 
+if ~isfield(temp.curr_active_processing.definitions.speculated_unit_info, 'classColors')
+    temp.curr_active_processing.definitions.speculated_unit_info.classColors = [0.8, 0.5, 0.1
+       0.5, 0.1, 0.1
+       0.0, 0.7, 0.7
+     ];
+end
 
 plotting_options.active_timesteps = temp.curr_timesteps_array{1};
 plotting_options.total_duration = plotting_options.active_timesteps(end) - plotting_options.active_timesteps(1);
@@ -77,6 +87,16 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
     fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
+    
+    
+    %% Build colors
+%     active_processing.definitions.speculated_unit_info.classColors
+    
+    temp.active_units_speculated_type = double(active_processing.spikes.speculated_unit_type(plot_outputs.filter_active_units));
+        
+%     plotting_options.unitBackgroundColors = [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]';
+    plotting_options.unitBackgroundColors = active_processing.definitions.speculated_unit_info.classColors(temp.active_units_speculated_type,:)';
+    
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else
@@ -90,14 +110,15 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     % rasterWindowOffset: x-axis window start time
 %     hold off
     
+
+    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
+        'TrialBackgroundColors', plotting_options.unitBackgroundColors);
+
     if plotting_options.showOnlyAlwaysStableCells
-%         isAlwaysStable = (active_processing.spikes.stability_count == 3);
         numAlwaysStableCells = sum(plot_outputs.filter_active_units, 'all');
-        [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Stable Unit Index')
         title(sprintf('Spike Train for Always Stable Units (%d of %d total)', numAlwaysStableCells, length(active_processing.spikes.time)));
     else
-        [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window);
         ylabel('Unit Index')
         title(sprintf('Spike Train for %d second window from [%d, %d]', plotting_options.window_duration, curr_window(1), curr_window(end)));
     end
