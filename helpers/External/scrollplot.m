@@ -951,6 +951,7 @@ function mouseMoveCallback(varargin)
                     fuzz = 0.01 * diff(limits);  % tolerances (1%) in axes units
                 end
                 if isempty(barXs),  return;  end
+               
                 %disp(abs(cy-barXs)')
                 if strcmpi(axName,'x')
                     inXTest = any(barXs-fuzz < cx) & any(cx < barXs+fuzz);
@@ -963,6 +964,18 @@ function mouseMoveCallback(varargin)
                     cx = cy;  % for use in mouseWithinPatch below
                 end
                 
+                %% disable dragging the side bars (handles) when the patch is too small to do this precisely.
+                % NOTE: Not tested with log-axes
+                totalScrollbarXWidth = abs(diff(limits));
+                patchWidth = abs(diff(barXs));
+                patchPercentWidth = patchWidth / totalScrollbarXWidth;
+%                 fprintf('patchPercentWidth: %d\n', patchPercentWidth); 
+                temp.disableDraggingHandles = (patchPercentWidth < 0.01); % Disable dragging if patch percent width is less than 1%
+                if temp.disableDraggingHandles
+                    % NOTE: setting isOverBar to false doesn't impact whether the bars can be dragged, it only seems to effect whether the cursor is changed.
+                    isOverBar = false; % Disable handle/bar based dragging if the disable variable is true. Allows only patch drag in this case. 
+                end
+
                 scrollPatch = scrollPatch(inXTest & inYTest); % If both aren't true, it sets scrollPatch to an empty patch array
                 if strcmpi(get(hAx,[axName 'Scale']), 'log')
                     cx = 10^cx;  % used below
@@ -1003,7 +1016,7 @@ function mouseMoveCallback(varargin)
 
 %% Mouse click down callback function. Set as the ButtonDownFcn on the patch and the bars.
 function mouseDownCallback(varargin)
-    temp.disableDraggingHandles = true;
+    
     try
         % Modify the cursor shape (close hand)
         hFig = gcbf;  %varargin{3};
@@ -1038,6 +1051,7 @@ function mouseDownCallback(varargin)
             else  % Y scroll
                 cx = cp(1,2);  % actually, this gets the y value...
             end
+
             if strcmpi(get(hAx,[axName 'Scale']), 'log')
                 fuzz = 0.01 * diff(log(abs(limits)));  % tolerances (1%) in axes units
                 barXs = log10(barXs);
@@ -1049,11 +1063,17 @@ function mouseDownCallback(varargin)
             scrollBarIdx = find(inTest);
             scrollBarIdx = scrollBarIdx(min(1:end));  %#ok - find(x,1) is unsupported on Matlab 6!
             
+            %% disable dragging the side bars (handles) when the patch is too small to do this precisely.
+            % NOTE: Not tested with log-axes
+            totalScrollbarXWidth = abs(diff(limits));
+            patchWidth = abs(diff(barXs));
+            patchPercentWidth = patchWidth / totalScrollbarXWidth;
+%             fprintf('patchPercentWidth: %d\n', patchPercentWidth); 
+            temp.disableDraggingHandles = (patchPercentWidth < 0.01); % Disable dragging if patch percent width is less than 1%
+            
             if temp.disableDraggingHandles
-                % NOTE: setting isOverBar to false doesn't impact whether the bars can be dragged, it only seems to effect whether the cursor is changed.
-%                 isOverBar = false; % Disable handle/bar based dragging if the disable variable is true. Allows only patch drag in this case. 
+                % Set the scrollBarIdx to an empty array to indicate that no scrollbar is being dragged, but the patch itself.
                 scrollBarIdx = [];
-
             end
                 
             if strcmpi(get(hAx,[axName 'Scale']), 'log')
