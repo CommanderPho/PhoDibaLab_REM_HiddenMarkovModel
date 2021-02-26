@@ -1003,6 +1003,7 @@ function mouseMoveCallback(varargin)
 
 %% Mouse click down callback function. Set as the ButtonDownFcn on the patch and the bars.
 function mouseDownCallback(varargin)
+    temp.disableDraggingHandles = true;
     try
         % Modify the cursor shape (close hand)
         hFig = gcbf;  %varargin{3};
@@ -1047,6 +1048,14 @@ function mouseDownCallback(varargin)
             inTest = abs(cx-barXs)<fuzz; %(barXs-fuzz < cx) & (cx < barXs+fuzz);
             scrollBarIdx = find(inTest);
             scrollBarIdx = scrollBarIdx(min(1:end));  %#ok - find(x,1) is unsupported on Matlab 6!
+            
+            if temp.disableDraggingHandles
+                % NOTE: setting isOverBar to false doesn't impact whether the bars can be dragged, it only seems to effect whether the cursor is changed.
+%                 isOverBar = false; % Disable handle/bar based dragging if the disable variable is true. Allows only patch drag in this case. 
+                scrollBarIdx = [];
+
+            end
+                
             if strcmpi(get(hAx,[axName 'Scale']), 'log')
                 cx = 10^cx;       % used below
                 barXs = 10.^barXs; % used below
