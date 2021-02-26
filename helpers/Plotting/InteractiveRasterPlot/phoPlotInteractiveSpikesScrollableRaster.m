@@ -72,7 +72,7 @@ xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 % xlim(scrollHandles.ParentAxesHandle)
 
 % enable interactive section selection
-% secsel(currPlotHandle);
+phoSelectionAnnotations(currPlotHandle);
 
 % Instructions for use:
 % - Double click the left mouse button to place the first mark line to a 
