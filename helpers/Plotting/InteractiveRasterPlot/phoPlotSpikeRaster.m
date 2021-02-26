@@ -415,10 +415,13 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 
 			% temp.backgroundRectColors = repmat([0.5, 0.5, 0.5;  0.9, 0.9, 0.9]', [1 (nTrials/2)]);
 			
-			temp.alternatingBackgroundRectColors = [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]';
-			
+% 			temp.alternatingBackgroundRectColors = [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]';
 			temp.alternatingBackgroundRectColors = trialBackgroundColors;
 
+            %% Pre-allocate output variables
+            outputs.TrialBackgroundRects.pos = zeros([nTrials 4]);
+            outputs.TrialBackgroundRects.handles = gobjects([nTrials 1]);
+            
 			% We make a flattened 1D representation to hold the x-values
 			xPoints = NaN(nTotalSpikes*3,1);
 			yPoints = xPoints;
@@ -445,12 +448,13 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,var
 					
 					%% TEMP: Trial Background Rectangles:
 					% Alterantive color: color_state(states(s_idx,3),:)
-					temp.currTrialBackgroundRect_pos = [newLim(1), (trialIndex-halfSpikeHeight), newLim(2), vertSpikeHeight];
-					%% Rectangles:
+                    outputs.TrialBackgroundRects.pos(trialIndex, :) = [newLim(1), (trialIndex-halfSpikeHeight), newLim(2), vertSpikeHeight];
+
+                    %% Rectangles:
 					temp.currTrialColor = temp.alternatingBackgroundRectColors(:, (rem(trialIndex, size(temp.alternatingBackgroundRectColors, 2)) + 1))';
 
-					rectangle('Position', temp.currTrialBackgroundRect_pos,...
-                    	'LineStyle','none','facecolor', temp.currTrialColor)
+					outputs.TrialBackgroundRects.handles(trialIndex) = rectangle('Position', outputs.TrialBackgroundRects.pos(trialIndex, :),...
+                    	'LineStyle','none','facecolor', temp.currTrialColor);
 
 					% Save points and update current index, setting the values as a 1D linear array
 					xPoints(currentInd:currentInd+nSpikes*3-1) = trialXPoints;

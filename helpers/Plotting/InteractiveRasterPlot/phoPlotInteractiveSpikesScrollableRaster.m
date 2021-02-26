@@ -71,6 +71,30 @@ xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 %% Get the current window:
 % xlim(scrollHandles.ParentAxesHandle)
 
+
+%% Rectangle Selection:
+plot_outputs.compOutputs.TrialBackgroundRects.pos % [nTrials x 4]
+plot_outputs.compOutputs.TrialBackgroundRects.pos(:, 2) % y-offsets [0.5, 1.5, 2.5, ...]
+
+% plot_outputs.compOutputs.TrialBackgroundRects.handles % Handles to the Rectangle objects that represent each trial row and span all of the data
+
+plotting_options.trialSelection.RectangleProperties.normal.EdgeColor = [0.00,0.00,0.00];
+plotting_options.trialSelection.RectangleProperties.normal.LineStyle = 'none';
+plotting_options.trialSelection.RectangleProperties.normal.LineWidth = 0.5;
+
+
+plotting_options.trialSelection.RectangleProperties.selected.EdgeColor = [0.00,1.00,0.00];
+plotting_options.trialSelection.RectangleProperties.selected.LineStyle = '-.';
+plotting_options.trialSelection.RectangleProperties.selected.LineWidth = 2;
+
+% Select:
+paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.selected);
+
+% Deselect:
+paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.normal);
+
+set(plot_outputs.compOutputs.TrialBackgroundRects.handles(1), paramCell{:});
+
 % enable interactive section selection
 phoSelectionAnnotations(currPlotHandle);
 
@@ -133,7 +157,7 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
 %     hold off
     
 
-    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
+    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
         'TrialBackgroundColors', plotting_options.unitBackgroundColors);
 
     if plotting_options.showOnlyAlwaysStableCells
