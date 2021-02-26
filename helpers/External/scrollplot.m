@@ -657,15 +657,15 @@ function myError(id,msg)
     end
 %end  % myError  %#ok for Matlab 6 compatibility
 
-%% Get ancestor figure - used for old Matlab versions that don't have a built-in ancestor()
-function hObj = ancestor(hObj,type)
-    if ~isempty(hObj) & ishandle(hObj)  %#ok for Matlab 6 compatibility
-        %if ~isa(handle(hObj),type)  % this is best but always returns 0 in Matlab 6!
-        if ~strcmpi(get(hObj,'type'),type)
-            hObj = ancestor(get(handle(hObj),'parent'),type);
-        end
-    end
-%end  % ancestor  %#ok for Matlab 6 compatibility
+% %% Get ancestor figure - used for old Matlab versions that don't have a built-in ancestor()
+% function hObj = ancestor(hObj,type)
+%     if ~isempty(hObj) & ishandle(hObj)  %#ok for Matlab 6 compatibility
+%         %if ~isa(handle(hObj),type)  % this is best but always returns 0 in Matlab 6!
+%         if ~strcmpi(get(hObj,'type'),type)
+%             hObj = ancestor(get(handle(hObj),'parent'),type);
+%         end
+%     end
+% %end  % ancestor  %#ok for Matlab 6 compatibility
 
 %% Helper function to extract first data value(s) from an array
 function data = getFirstVals(vals)
@@ -681,7 +681,12 @@ function data = getFirstVals(vals)
     end
 %end  % getFirstVal  %#ok for Matlab 6 compatibility
 
-%% Mouse movement outside the scroll patch area (anywhere on the figure)
+
+
+%%%%%%%% Mouse Callback Functions:
+%%%%%
+
+%% Mouse movement outside the scroll patch area (anywhere on the figure). Called only by mouseMoveCallback(...)
 function mouseOutsidePatch(hFig,inDragMode,hAx)  %#ok Hax is unused
     try
         % Restore the original figure pointer (probably 'arrow', but not necessarily)
@@ -732,7 +737,7 @@ function mouseOutsidePatch(hFig,inDragMode,hAx)  %#ok Hax is unused
     end
 %end  % outsideScrollCleanup  %#ok for Matlab 6 compatibility
 
-%% Mouse movement within the scroll patch area (the small head itself, not the whole bar)
+%% Mouse movement within the scroll patch area (the small head itself, not the whole bar). Called only by mouseMoveCallback(...)
 function mouseWithinPatch(hFig,inDragMode,hAx,scrollPatch,cx,isOverBar)
     try
         % Separate actions for X,Y scrolling
@@ -885,7 +890,7 @@ function mouseWithinPatch(hFig,inDragMode,hAx,scrollPatch,cx,isOverBar)
     end
 %end  % mouseWithinPatch  %#ok for Matlab 6 compatibility
 
-%% Mouse movement callback function
+%% Mouse movement callback function. Set as the WindowButtonMotionFcn for the figure. Also, called by moveCursor(...) to update the cursor shape.
 function mouseMoveCallback(varargin)
     try
         try
@@ -920,7 +925,7 @@ function mouseMoveCallback(varargin)
             mouseOutsidePatch(hFig,inDragMode,hAx);
         else
 
-            % Check whether the curser is over any side bar
+            % Check whether the curser is over any side bar (side bars are the two handles on each side of the patch)
             scrollPatch = findobj(hAx, 'tag','scrollPatch');
             isOverBar = 0;
             cx = [];
@@ -932,7 +937,7 @@ function mouseMoveCallback(varargin)
                 cy = cp(1,2);
                 xlim = get(hAx,'Xlim');
                 ylim = get(hAx,'Ylim');
-                limits = get(hAx,[axName 'Lim']);
+                limits = get(hAx,[axName 'Lim']); % total x-axis range, not just what's currently displayed [-424.21, 35775]
                 barXs = unique(get(scrollPatch,[axName 'Data']));
                 if strcmpi(get(hAx,[axName 'Scale']), 'log')
                     fuzz = 0.01 * diff(log(abs(limits)));  % tolerances (1%) in axes units
@@ -957,7 +962,8 @@ function mouseMoveCallback(varargin)
                     isOverBar = any(abs(cy-barXs)<fuzz); %(barXs-fuzz < cy) & (cy < barXs+fuzz));
                     cx = cy;  % for use in mouseWithinPatch below
                 end
-                scrollPatch = scrollPatch(inXTest & inYTest);
+                
+                scrollPatch = scrollPatch(inXTest & inYTest); % If both aren't true, it sets scrollPatch to an empty patch array
                 if strcmpi(get(hAx,[axName 'Scale']), 'log')
                     cx = 10^cx;  % used below
                 end
@@ -995,7 +1001,7 @@ function mouseMoveCallback(varargin)
     end
 %end  % mouseMoveCallback  %#ok for Matlab 6 compatibility
 
-%% Mouse click down callback function
+%% Mouse click down callback function. Set as the ButtonDownFcn on the patch and the bars.
 function mouseDownCallback(varargin)
     try
         % Modify the cursor shape (close hand)
@@ -1064,7 +1070,7 @@ function mouseDownCallback(varargin)
     end
 %end  % mouseDownCallback  %#ok for Matlab 6 compatibility
 
-%% Mouse click up callback function
+%% Mouse click up callback function. Set as 'MouseReleasedCallback' on the axisComponent and temporarily set as 'WindowButtonUpFcn' on the parent figure when within the patch (set during mouseWithinPatch and unset in mouseOutsidePatch)
 function mouseUpCallback(varargin)
     try
         % Restore the previous (pre-click) cursor shape
@@ -1127,6 +1133,8 @@ function mouseScrollCallback(hFig, src)
 %end  % mouseScrollCallback  %#ok for Matlab 6 compatibility
 
 
+%%%%%%%% Move Window Functions:
+%%%%%
 
 %% Helper: performMoveWindow 
 function performMoveWindowBy(hFig, newDelta)
@@ -1249,6 +1257,11 @@ function performMoveWindowTo(hFig, newPosition, isDelta)
 		rmappdataIfExists(hFig,'scrollBar_inProgress');
     end
 %end  % performMoveWindowTo  %#ok for Matlab 6 compatibility
+
+
+%%%%%%%% Misc Helper Functions:
+%%%%%
+
 
 %% Remove appdata if available
 function rmappdataIfExists(handle, name)
