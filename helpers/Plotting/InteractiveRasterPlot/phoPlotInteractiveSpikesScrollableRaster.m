@@ -69,10 +69,10 @@ xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 % xlim(currStateMapHandle, xlim(scrollHandles.ParentAxesHandle))
 
 %% Get the current window:
-xlim(scrollHandles.ParentAxesHandle)
+% xlim(scrollHandles.ParentAxesHandle)
 
 % enable interactive section selection
-secsel(currPlotHandle);
+% secsel(currPlotHandle);
 
 % Instructions for use:
 % - Double click the left mouse button to place the first mark line to a 
@@ -85,6 +85,17 @@ secsel(currPlotHandle);
 %   regime.
 
 
+
+% %% Testing for figure sizing:
+% % Get figure width:
+% temp.fig_width = extantFigH.Position(3);
+% 
+% xlim(scrollHandles.ParentAxesHandle)
+% 
+% scrollHandles.Position
+% % Postition: [0.13 0.11 0.775 0.0815]
+% 
+% scrollHandles.XAxis
 
 % %% Pho Scrollable Mode:
 % slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
