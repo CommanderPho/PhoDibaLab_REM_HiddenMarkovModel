@@ -49,7 +49,11 @@ function phoSelectionAnnotations(hPlot)
     % update the Handles Structure
     handles.hPlot = hPlot;
     handles.hLines = hLines;
-    guidata(gcf, handles)
+    
+    % Pack Gui Data:
+    data.handles = handles;
+    
+    guidata(gcf, data)
 
 end
 
@@ -60,9 +64,11 @@ function mouseDownCallback_phoSelectionAnnotations(src, eventdata)
     % of the two mouse button is double clicked. The Matlab do not support  
     % such feature as an build-in functionality.
 
-    % retrive the Handles Structure
-    handles = guidata(gcf);
-
+    % retrive the Gui data Structure
+    dataPack = guidata(gcf);
+    % Un-Pack Gui Data:
+    handles = dataPack.handles;
+    
     % make the variable "left" persistent - its value must 
     % retained in memory between calls of the function
     persistent left
@@ -91,8 +97,10 @@ function mouseDownCallback_phoSelectionAnnotations(src, eventdata)
         drawnow
     end
 
-    % update the Handles Structure
-    guidata(gcf, handles)
+    % Pack Gui Data:
+    dataPack.handles = handles;
+    % update the Gui Data Structure
+    guidata(gcf, dataPack)
 
 end
 
@@ -102,8 +110,10 @@ function keyPressCallback_phoSelectionAnnotations(src, eventdata)
     temp.persistToBaseWorkspace = true;
     temp.persistToMatFile = false;
     
-    % retrive the Handles Structure
-    handles = guidata(gcf);
+    % retrive the Gui data Structure
+    dataPack = guidata(gcf);
+    % Un-Pack Gui Data:
+    handles = dataPack.handles;
     
     switch eventdata.Key
 
