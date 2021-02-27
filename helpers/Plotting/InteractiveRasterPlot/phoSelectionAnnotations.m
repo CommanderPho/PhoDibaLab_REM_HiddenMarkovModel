@@ -205,6 +205,26 @@ function keyPressCallback_phoSelectionAnnotations(src, eventdata)
 end
 
 
+
+
+function addAnnotations_phoSelectionAnnotations(hFig, annotations)
+    %% addAnnotations_phoSelectionAnnotations: add one or more annotation objects to the current annotations list. Should be called by the double click function and such.
+    % annotations: cell array of RasterplotAnnotation objects.
+%     obj = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, unitIDs);
+    %% TODO: Develop the data model that keeps track of the annotations. Maybe look at //Matlab-Pho-Helper-Tools/Interactive/UserAnnotationsManager/UserAnnotationsManager.m for inspiration.
+    
+
+end
+
+
+function renderAnnotations_phoSelectionAnnotations(hFig)
+    %% renderAnnotations_phoSelectionAnnotations: render the current set of annotations out to the figure as lines and windows
+    %% TODO: Implement so that it doesn't redraw pointlessly every time a single annotation is added, but it can render the annotations easily.
+    
+end
+
+
+
 function loadAnnotations_phoSelectionAnnotations(hFig)
     %% loadAnnotations_phoSelectionAnnotations: Loads the annotations from the base workspace
     % hFig: the figure handle

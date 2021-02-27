@@ -108,6 +108,18 @@ phoSelectionAnnotations(currPlotHandle, plotting_options);
 
 
 
+% i = 1;
+% annotations{i}.unitIDs = {1, 5, 9}; % The absolute unit ID (original/unfiltered ID) of each unit included
+% annotations{i}.referenceTimes = {1080, [1440 1467]}; % The index timestamps of which to make a line-annotation
+% % the scalar is an example of a point annotation (to highlight an event) and the second a window annotation (to highlight a range of timestamps)
+% annotations{i}.notes = {'', ''};
+% 
+% obj = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, unitIDs);
+% 
+% endTimestamp
+
+
+
 function performToggleRectangleSelection_phoTrialRectangles(rectangleHandle, plottingOptions)
     
 
