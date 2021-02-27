@@ -73,30 +73,49 @@ xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 
 
 %% Rectangle Selection:
-plot_outputs.compOutputs.TrialBackgroundRects.pos % [nTrials x 4]
-plot_outputs.compOutputs.TrialBackgroundRects.pos(:, 2) % y-offsets [0.5, 1.5, 2.5, ...]
+% plot_outputs.compOutputs.TrialBackgroundRects.pos % [nTrials x 4]
+% plot_outputs.compOutputs.TrialBackgroundRects.pos(:, 2) % y-offsets [0.5, 1.5, 2.5, ...]
 
 % plot_outputs.compOutputs.TrialBackgroundRects.handles % Handles to the Rectangle objects that represent each trial row and span all of the data
+
+plotting_options.lineVisibleColor = [0.95 0.95 0.95];
 
 plotting_options.trialSelection.RectangleProperties.normal.EdgeColor = [0.00,0.00,0.00];
 plotting_options.trialSelection.RectangleProperties.normal.LineStyle = 'none';
 plotting_options.trialSelection.RectangleProperties.normal.LineWidth = 0.5;
 
-
 plotting_options.trialSelection.RectangleProperties.selected.EdgeColor = [0.00,1.00,0.00];
 plotting_options.trialSelection.RectangleProperties.selected.LineStyle = '-.';
 plotting_options.trialSelection.RectangleProperties.selected.LineWidth = 2;
 
-% Select:
-paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.selected);
 
-% Deselect:
-paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.normal);
+% Set the actual background rectangle properties for access in the phoSelectionAnnotations(...) functions:
+plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.TrialBackgroundRects;
 
-set(plot_outputs.compOutputs.TrialBackgroundRects.handles(1), paramCell{:});
+
+
+
+% % Select:
+% paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.selected);
+% 
+% % Deselect:
+% paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.normal);
+% 
+% set(plot_outputs.compOutputs.TrialBackgroundRects.handles(1), paramCell{:});
 
 % enable interactive section selection
-phoSelectionAnnotations(currPlotHandle);
+phoSelectionAnnotations(currPlotHandle, plotting_options);
+
+
+
+function performToggleRectangleSelection_phoTrialRectangles(rectangleHandle, plottingOptions)
+    
+
+end
+
+function mouseDownCallback_phoTrialRectangles(src, eventdata)
+    
+end
 
 % Instructions for use:
 % - Double click the left mouse button to place the first mark line to a 

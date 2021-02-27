@@ -24,7 +24,14 @@
 % - Press "End" key in order to close the interactive section selection
 %   regime.
 
-function phoSelectionAnnotations(hPlot)
+function phoSelectionAnnotations(hPlot, plottingOptions)
+
+    %% plottingOptions: a structure with the following properties:
+        %% Rectangle Selection Properties:
+        % plottingOptions.trialSelection.TrialBackgroundRects.handles
+        % plottingOptions.trialSelection.TrialBackgroundRects.pos % [nTrials x 4]
+        % plottingOptions.trialSelection.TrialBackgroundRects.pos(:, 2) % y-offsets [0.5, 1.5, 2.5, ...]
+
 
     % determine the axes limits                 
     axlms = axis(get(hPlot, 'Parent'));                                                                
@@ -46,13 +53,25 @@ function phoSelectionAnnotations(hPlot)
     set(gcf, 'WindowButtonDownFcn', @mouseDownCallback_phoSelectionAnnotations)
     set(gcf, 'KeyPressFcn', @keyPressCallback_phoSelectionAnnotations)
 
+    % Probably need to use
+%     'WindowButtonMotionFcn'
+    
+
     % update the Handles Structure
     handles.hPlot = hPlot;
     handles.hLines = hLines;
     
+    
+    
     % Pack Gui Data:
     dataPack.handles = handles;
-    dataPack.plottingOptions.lineVisibleColor = [0.95 0.95 0.95];
+    dataPack.plottingOptions = plottingOptions;
+    
+    %% Build the required variables for interaction
+    dataPack.plottingOptions.trialSelection.TrialBackgroundRects.numTrials = length(dataPack.plottingOptions.trialSelection.TrialBackgroundRects.handles);
+    dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected = false([dataPack.plottingOptions.trialSelection.TrialBackgroundRects.numTrials 1]);
+    
+    
     guidata(gcf, dataPack)
 
 end
@@ -83,6 +102,39 @@ function mouseDownCallback_phoSelectionAnnotations(src, eventdata)
     elseif strcmp(get(src, 'SelectionType'), 'open')
         % get the current pointer possition
         ppos = get(gca, 'CurrentPoint');
+        
+        %% Test Trial Rectangle Functionality
+        temp.rectYOffsets = dataPack.plottingOptions.trialSelection.TrialBackgroundRects.pos(:, 2); % y-offsets [0.5, 1.5, 2.5, ...]
+        % Need height of elements by subtracting y-offsets (any two, they should all be the same
+        temp.rectHeight = temp.rectYOffsets(2) - temp.rectYOffsets(1);
+        temp.rectHalfHeight = temp.rectHeight ./ 2;
+        
+%         temp.rectYOffsetStarts = temp.rectYOffsets - temp.rectHalfHeight;
+%         temp.rectYOffsetEnds = temp.rectYOffsets + temp.rectHalfHeight;
+%         
+        inRectIndex = floor(ppos(1,2) ./ temp.rectHeight);
+        fprintf('Click was in rect[%d]\n', inRectIndex);
+        
+        % Toggle the isSelected property for this rectangle/trial:
+%         dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected(inRectIndex) = ~dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected(inRectIndex);
+        if (dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected(inRectIndex))
+            % Deselect it:
+            paramCell = struct2argsList(dataPack.plottingOptions.trialSelection.RectangleProperties.normal);
+            dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected(inRectIndex) = false;
+            
+            
+        else
+             % Select:
+            paramCell = struct2argsList(dataPack.plottingOptions.trialSelection.RectangleProperties.selected);
+            dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected(inRectIndex) = true;
+            
+        end
+        % Set the property on the rectangle to visually update its selection:
+        set(dataPack.plottingOptions.trialSelection.TrialBackgroundRects.handles(inRectIndex), paramCell{:});
+
+
+        
+        %% Normal Functionality
         if left
             % the left mouse button is double clicked, so place the first mark
             % line to the new pointer possition 
@@ -107,10 +159,6 @@ end
 %% keyPressCallback
 function keyPressCallback_phoSelectionAnnotations(src, eventdata)
 
-    
-    
-
-    
     switch eventdata.Key
 
         case 'l'
