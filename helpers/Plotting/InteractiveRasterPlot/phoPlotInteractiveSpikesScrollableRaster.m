@@ -93,6 +93,9 @@ plotting_options.trialSelection.RectangleProperties.selected.LineWidth = 2;
 plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.TrialBackgroundRects;
 
 
+%% Annotations Testing:
+[test_annotations] = testAnnotations_phoTrialRectangles();
+plotting_options.annotations = test_annotations;
 
 
 % % Select:
@@ -117,6 +120,25 @@ phoSelectionAnnotations(currPlotHandle, plotting_options);
 % obj = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, unitIDs);
 % 
 % endTimestamp
+
+
+function [annotations] = testAnnotations_phoTrialRectangles()
+    %% testAnnotations_phoTrialRectangles: build test annotations
+    % annotations: cell array of RasterplotAnnotation objects.
+    annotationLists.unitIDs = [{1, 5, 9}, {2, 3, 4, 7}]; % The absolute unit ID (original/unfiltered ID) of each unit included
+    annotationLists.referenceTimes = [1080, nan; 1440, 1467]; % The index timestamps of which to make a line-annotation
+    % the scalar is an example of a point annotation (to highlight an event) and the second a window annotation (to highlight a range of timestamps)
+    annotationLists.notes = {'', ''};
+    
+    for i = 1:length(annotationLists.notes)
+        startTimestamp = annotationLists.referenceTimes(i, 1);
+        endTimestamp = annotationLists.referenceTimes(i, 2);
+        comment = annotationLists.notes{i};
+        typeName = 'Temp';
+        annotations{i} = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, annotationLists.unitIDs{i});
+    end
+
+end
 
 
 

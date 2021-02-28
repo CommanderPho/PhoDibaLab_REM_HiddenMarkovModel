@@ -62,7 +62,6 @@ function phoSelectionAnnotations(hPlot, plottingOptions)
     handles.hLines = hLines;
     
     
-    
     % Pack Gui Data:
     dataPack.handles = handles;
     dataPack.plottingOptions = plottingOptions;
@@ -73,6 +72,11 @@ function phoSelectionAnnotations(hPlot, plottingOptions)
     
     
     guidata(gcf, dataPack)
+    
+    
+    % Render any passed-in annotations:
+    performRenderAnnotations_phoSelectionAnnotations(gcf, dataPack.plottingOptions.annotations);
+    
 
 end
 
@@ -217,9 +221,50 @@ function addAnnotations_phoSelectionAnnotations(hFig, annotations)
 end
 
 
-function renderAnnotations_phoSelectionAnnotations(hFig)
-    %% renderAnnotations_phoSelectionAnnotations: render the current set of annotations out to the figure as lines and windows
+function performRenderAnnotations_phoSelectionAnnotations(hFig, desiredAnnotations)
+    %% performRenderAnnotations_phoSelectionAnnotations: render the current set of annotations out to the figure as lines and windows
     %% TODO: Implement so that it doesn't redraw pointlessly every time a single annotation is added, but it can render the annotations easily.
+    
+    % retrive the Gui data Structure
+    dataPack = guidata(hFig);
+    
+    %% Need Trial Rectangle Positions to Set y-positions of created objects:
+    temp.rectYOffsets = dataPack.plottingOptions.trialSelection.TrialBackgroundRects.pos(:, 2); % y-offsets [0.5, 1.5, 2.5, ...]
+    % Need height of elements by subtracting y-offsets (any two, they should all be the same
+    temp.rectHeight = temp.rectYOffsets(2) - temp.rectYOffsets(1);
+    temp.rectHalfHeight = temp.rectHeight ./ 2;
+
+    numUpdatedRenderedAnnotations = length(desiredAnnotations);
+    lineAnnotations.xPositions = []; % Create an empty array to hold line annotation x-positions
+    lineAnnotations.associatedData = {};
+    
+    for i = 1:numUpdatedRenderedAnnotations
+        curr_start_timestamp = desiredAnnotations{i}.timestamp;
+        
+        if ~isnan(desiredAnnotations{i}.endTimestamp)
+            % Has an end timestamp, meaning that it's a window
+            % TODO:
+            warning('Skipping rectangles for now!');
+            
+        else
+            % No end timestamp means that it's a line
+%             inRectIndex = floor(ppos(1,2) ./ temp.rectHeight);
+%             fprintf('Click was in rect[%d]\n', inRectIndex);
+            
+            lineAnnotations.xPositions(end+1) = curr_start_timestamp;
+            lineAnnotations.associatedData{end+1} = struct;
+        end
+        
+        
+    end
+    
+    
+    %% convert to the form that the build lines function can read and build the lines from them:
+    buildLines_phoSelectionAnnotations(lineAnnotations.xPositions, lineAnnotations.associatedData, hFig);
+    
+    %% TODO: Add rectangles option too:
+    
+    
     
 end
 
