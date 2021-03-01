@@ -339,11 +339,22 @@ function performSaveAnnotations_phoSelectionAnnotations(hFig)
 end
 
  
-function buildLines_phoSelectionAnnotations(xPositions, associatedData, hFig)
+function buildLines_phoSelectionAnnotations(xPositions, yTrials, associatedData, hFig)
     %% buildLines_phoSelectionAnnotations: creates or updates the lines in the handles of the given figure
     
     % xPositions: a vector of x-positions at which to draw the lines
+    % yTrials: a list of indicies to draw the track over. (TODO: how to deal with discontinuities?
     % associatedData: a structure-array containing other associated properties (like line colors, labels, etc) which to attach to the lines.
+    
+    
+    %% TODO: figure out better way of drawing the lines over discontinuous tracks. Ideally they wouldn't all be separate annotations, or if they would they could be readjusted/deleted/labeled etc
+    % could do a system of linking annotations as related in a group or something, but this got complicated pretty fast.
+    
+    % the unfiltered y-lims (spanning all units) is [axlms(3), axlms(4)]
+    if ~exist('yTrials')
+        
+    end
+    
     
     if ~exist('hFig','var')
         hFig = gcf;
