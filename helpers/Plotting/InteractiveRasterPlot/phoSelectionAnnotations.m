@@ -236,6 +236,8 @@ function performRenderAnnotations_phoSelectionAnnotations(hFig, desiredAnnotatio
 
     numUpdatedRenderedAnnotations = length(desiredAnnotations);
     lineAnnotations.xPositions = []; % Create an empty array to hold line annotation x-positions
+    lineAnnotations.yPositions = []; % Create an empty array to hold line annotation y-positions
+    
     lineAnnotations.associatedData = {};
     
     for i = 1:numUpdatedRenderedAnnotations

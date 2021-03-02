@@ -69,12 +69,9 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
                 active_processing.behavioral_periods_table.epoch_end_seconds, ...
                 double(active_processing.behavioral_periods_table.type)];
         else
-%             linear_start_indicies = 0:1:(length(active_processing.behavioral_periods_table.behavioral_epoch)-1);
-%             linear_end_indicies = linear_start_indicies + 1;
             linear_end_indicies = [1:length(active_processing.behavioral_periods_table.behavioral_epoch)];
             linear_start_indicies = linear_end_indicies - 1;
-            
-            
+                    
             states = [linear_start_indicies', ...
                 linear_end_indicies', ...
                 double(active_processing.behavioral_periods_table.type)];
@@ -117,10 +114,7 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
         % combined mode:
         state_stack_dim.Tick = [];
         state_stack_dim.TickLabel = '';
-        state_stack_dim.Lim = 0.5+[0,1];
-        
-%         ax.YLim=0.5+[0,1];
-%         ax.YTickLabel='';
+        state_stack_dim.Lim = 0.5 + [0,1];
         
     end
      
