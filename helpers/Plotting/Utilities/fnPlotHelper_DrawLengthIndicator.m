@@ -31,6 +31,9 @@ function [plotHandle] = fnPlotHelper_DrawLengthIndicator(centerPoint, plottingOp
         struct();}, ...
         plottingOptions);
     
+%     testPlottingOptions.plotMode = 'plot';
+    testPlottingOptions.plotMode = 'figure';
+    
     
     if ~isfield(plottingOptions, 'barbLineFormat')
        plottingOptions.barbLineFormat = plottingOptions.lineFormat;
@@ -58,6 +61,10 @@ function [plotHandle] = fnPlotHelper_DrawLengthIndicator(centerPoint, plottingOp
     if includeNegativeBarb
         barbMinMaxMinorAxisPoints = barbMinMaxMinorAxisPoints + [(-minorAxisMidpointOffset), 0];
     end
+    
+     % Convert to argument lists:
+    lineFormat = struct2argsList(plottingOptions.lineFormat);
+    barLineFormat = struct2argsList(plottingOptions.barbLineFormat);
     
         
     numPreallocPoints = numIndicators * 2 * 3; % 2 points for each line, 3 lines total, times numIndicators
@@ -101,13 +108,53 @@ function [plotHandle] = fnPlotHelper_DrawLengthIndicator(centerPoint, plottingOp
         % Draw Barbs (Along minor axis)
     end
     
-    % Convert to argument lists:
-    lineFormat = struct2argsList(plottingOptions.lineFormat);
-    barLineFormat = struct2argsList(plottingOptions.barbLineFormat);
+   
     
-    plotHandle.MainLine = plot(xPoints, yPoints, 'k', lineFormat{:});
-    plotHandle.Barbs = plot(barbs.xPoints, barbs.yPoints, 'b', barLineFormat{:});
-    
-    
+    if strcmpi(testPlottingOptions.plotMode, 'plot')
+        plotHandle.MainLine = plot(xPoints, yPoints, 'k', lineFormat{:});
+        plotHandle.Barbs = plot(barbs.xPoints, barbs.yPoints, 'b', barLineFormat{:});
+
+    else
+        set(gcf,'Units','normalized');
+        
+        %% Convert to Figure Coordinates:
+        figureXPoints = reshape(xPoints,3, [])';
+        figureYPoints = reshape(yPoints,3, [])';
+       
+        
+        barbs.figureXPoints = reshape(barbs.xPoints,3, [])';
+        barbs.figureYPoints = reshape(barbs.yPoints,3, [])';
+        
+         % Drop the NaN Columns:
+        figureXPoints(:,end) = [];
+        figureYPoints(:,end) = [];
+        
+        barbs.figureXPoints(:,end) = [];
+        barbs.figureYPoints(:,end) = [];
+        
+%         
+%         figureXPoints = reshape(figureXPoints,[],3);
+%         figureYPoints = reshape(figureYPoints,[],3);
+                
+        
+        [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
+        [barbs.figureXPoints, barbs.figureYPoints] = axescoord2figurecoord(barbs.figureXPoints, barbs.figureYPoints);
+
+        for i = 1:numIndicators
+    %     h = annotation('textbox', [0.5, 0.2, 0.1, 0.1], 'String', titles{s_idx});
+
+            plotHandle.MainLine = annotation('line', figureXPoints(i,:), figureYPoints(i,:), lineFormat{:});
+            
+            minBarbIndex = 2*i - 1;
+            plotHandle.Barbs = annotation('line', barbs.figureXPoints(minBarbIndex,:), barbs.figureYPoints(minBarbIndex,:), barLineFormat{:});
+            maxBarbIndex = 2*i;
+            plotHandle.Barbs = annotation('line', barbs.figureXPoints(maxBarbIndex,:), barbs.figureYPoints(maxBarbIndex,:), barLineFormat{:});
+            
+            %% TODO: Draw the other barb too, as there are two barbs added for each main line:
+            
+
+        end
+        
+    end
 end
 
