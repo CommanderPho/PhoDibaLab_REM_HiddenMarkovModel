@@ -69,6 +69,53 @@ for expt_index = 1:active_num_experiments
     temp.curr_processed = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index};
     active_results = across_experiment_results{expt_index}.results_array{current_binning_index};
 
+    
+    %% Look at Transitions from/to REM:
+    % Concept: Look at the periods immediately surrounding the transitions to characterize differences between states.
+    %   Comparing differences at transitions is more representitive 
+    temp.currentEpochs = across_experiment_results{expt_index}.active_processing.behavioral_periods_table.type;
+    temp.nextEpoch = ['<undefined>'; across_experiment_results{expt_index}.active_processing.behavioral_periods_table.type];
+    % Drop the last item, which has no transition
+    temp.nextEpoch(end) = [];
+    
+    % first entry is invalid!
+    
+    % Build the all-valids transition matrix (for the first N-1 times)
+%     temp.currentTransitions = [temp.currentEpochs(2:end), temp.nextEpoch(2:end)];
+    temp.currentTransitions = [temp.currentEpochs, temp.nextEpoch];
+    % Drop first row:
+    temp.currentTransitions(1,:) = [];
+    
+%     temp.currentTransitions(2:end,:) = 
+    
+    temp.indicies.fromRemIndicies = (temp.currentTransitions(:,1) == 'rem');
+    
+    % Drop rows that don't end up in REM:
+    temp.indicies.toRemIndicies = (temp.currentTransitions(:,2) == 'rem');
+    
+    
+    state_names = {'rem', 'nrem','quiet','active'};
+    for i = 1:length(state_names)
+        % From X to REM:
+        temp.indicies.to.(state_names{i}) = (temp.currentTransitions(:,2) == state_names{i});
+        % From REM to X
+        temp.indicies.from.(state_names{i}) = (temp.currentTransitions(:,1) == state_names{i});
+    end
+    
+    % Get All transitions from REM to anything else:
+    temp.indicies.active.fromRemToAny = temp.indicies.fromRemIndicies & (temp.indicies.to.nrem | temp.indicies.to.quiet | temp.indicies.to.active);
+    temp.indicies.active.toRemFromAny = temp.indicies.toRemIndicies & (temp.indicies.from.nrem | temp.indicies.from.quiet | temp.indicies.from.active);
+    
+    sum(temp.indicies.active.fromRemToAny, 'all')
+    
+    sum(temp.indicies.active.toRemFromAny, 'all')
+    
+    
+%     ['rem'], {'nrem','quiet','active'}]
+    
+    
+    
+
 %     [temp.outputPlottingResults{expt_index}, filtered, results] = fnPerformAcrossREMTesting(across_experiment_results{expt_index}.active_processing, ...
 %         across_experiment_results{expt_index}.general_results, ...
 %         across_experiment_results{expt_index}.results_array{current_binning_index}, ...
@@ -87,19 +134,19 @@ end
 % temp.figureTypesList = fieldnames(temp.outputPlottingResults{expt_index}.figures);
 % temp.currFiguresToLayout = cellfun(@(aFigType) temp.outputPlottingResults{expt_index}.figures.(aFigType), temp.figureTypesList);
 
-temp.figureTypesList = fieldnames(temp.outputPlottingResults{expt_index}.figures);
-temp.currFiguresToLayout = cellfun(@(aFigResults) aFigResults.figures.meanSpikeRateAllPeriodsFig, temp.outputPlottingResults);
-
-
-% Align the figures:
-% align_figure(linkedFigureHandles);
-figureLayoutManager.figuresSize.width = 880;
-figureLayoutManager.figuresSize.height = 600;
-figureLayoutManager.verticalSpacing = 30;
-figureLayoutManager.horizontalSpacing = 5;
-
-align_figure(temp.currFiguresToLayout, 1, figureLayoutManager.figuresSize.width, figureLayoutManager.figuresSize.height,...
-    100, figureLayoutManager.verticalSpacing, figureLayoutManager.horizontalSpacing, 100);
+% temp.figureTypesList = fieldnames(temp.outputPlottingResults{expt_index}.figures);
+% temp.currFiguresToLayout = cellfun(@(aFigResults) aFigResults.figures.meanSpikeRateAllPeriodsFig, temp.outputPlottingResults);
+% 
+% 
+% % Align the figures:
+% % align_figure(linkedFigureHandles);
+% figureLayoutManager.figuresSize.width = 880;
+% figureLayoutManager.figuresSize.height = 600;
+% figureLayoutManager.verticalSpacing = 30;
+% figureLayoutManager.horizontalSpacing = 5;
+% 
+% align_figure(temp.currFiguresToLayout, 1, figureLayoutManager.figuresSize.width, figureLayoutManager.figuresSize.height,...
+%     100, figureLayoutManager.verticalSpacing, figureLayoutManager.horizontalSpacing, 100);
 
 
 function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
