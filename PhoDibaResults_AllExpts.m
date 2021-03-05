@@ -60,6 +60,9 @@ active_num_experiments = length(temp.curr_active_experiment_names);
 
 temp.outputPlottingResults = cell([active_num_experiments 1]);
 
+% Before/After Range:
+transitionAnalysis.config.beforeAfterDurations = [seconds(9), seconds(9)];
+
 % Loop through each experiment:
 for expt_index = 1:active_num_experiments
     expt_info.index = expt_index;
@@ -109,6 +112,20 @@ for expt_index = 1:active_num_experiments
     sum(temp.indicies.active.fromRemToAny, 'all')
     
     sum(temp.indicies.active.toRemFromAny, 'all')
+    
+    
+    % From Period Indicies where transitions occured, get the timestamp:
+    
+    transitionAnalysis.results.toRem.transitionTimestamps = across_experiment_results{expt_index}.active_processing.behavioral_periods_table.epoch_start_seconds(temp.indicies.active.toRemFromAny);
+
+    % Get the range of start/stop timestamps surrounding the transition period.
+    transitionAnalysis.results.toRem.transitionTimestampRange = [(transitionAnalysis.results.toRem.transitionTimestamps - transitionAnalysis.config.beforeAfterDurations(1)), (transitionAnalysis.results.toRem.transitionTimestamps + transitionAnalysis.config.beforeAfterDurations(2))];
+    
+    
+    %% Now I can use the above start/stop ranges to average activity around the transitions.
+    % Could also get nearest bins and operate on those binned results.
+    
+   
     
     
 %     ['rem'], {'nrem','quiet','active'}]

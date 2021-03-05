@@ -209,9 +209,13 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     % rasterWindowOffset: x-axis window start time
 %     hold off
     
+    % Can specify line colors here, default is black ('k'):
+    plotting_options.spikeLinesFormat.Color = 'b';
+
 
     [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
-        'TrialBackgroundColors', plotting_options.unitBackgroundColors);
+        'TrialBackgroundColors', plotting_options.unitBackgroundColors, ...
+        'LineFormat', plotting_options.spikeLinesFormat);
 
     if plotting_options.showOnlyAlwaysStableCells
         numAlwaysStableCells = sum(plot_outputs.filter_active_units, 'all');
