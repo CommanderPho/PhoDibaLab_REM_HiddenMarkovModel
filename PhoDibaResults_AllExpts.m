@@ -55,6 +55,9 @@ plottingOptions.outputs.rootPath = '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 
 
 active_binning_resolution = active_step_sizes{current_binning_index};
 
+% Build the range used for plotting the offset from transition points:
+transitionAnalysis.results.beforeAfterDurationRange = -transitionAnalysis.config.beforeAfterDurations(1):seconds(active_binning_resolution):transitionAnalysis.config.beforeAfterDurations(2);
+
 temp.curr_active_experiment_names = active_experiment_names(1); % Only get the first one for testing.
 active_num_experiments = length(temp.curr_active_experiment_names);
 
@@ -71,6 +74,9 @@ for expt_index = 1:active_num_experiments
     temp.curr_timestamps = across_experiment_results{expt_index}.timesteps_array{current_binning_index};
     temp.curr_processed = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index};
     active_results = across_experiment_results{expt_index}.results_array{current_binning_index};
+    
+    [temp.active_binned_spike_data_matrix] = fnUnitDataCells2mat(temp.curr_processed.all.binned_spike_counts);  % 35351x126 double;
+    
 
     
     %% Look at Transitions from/to REM:
@@ -113,21 +119,79 @@ for expt_index = 1:active_num_experiments
     
     sum(temp.indicies.active.toRemFromAny, 'all')
     
-    
     % From Period Indicies where transitions occured, get the timestamp:
-    
-    transitionAnalysis.results.toRem.transitionTimestamps = across_experiment_results{expt_index}.active_processing.behavioral_periods_table.epoch_start_seconds(temp.indicies.active.toRemFromAny);
+    transitionAnalysis.results.toRem.transitionTimestamps = seconds(across_experiment_results{expt_index}.active_processing.behavioral_periods_table.epoch_start_seconds(temp.indicies.active.toRemFromAny));
 
     % Get the range of start/stop timestamps surrounding the transition period.
     transitionAnalysis.results.toRem.transitionTimestampRange = [(transitionAnalysis.results.toRem.transitionTimestamps - transitionAnalysis.config.beforeAfterDurations(1)), (transitionAnalysis.results.toRem.transitionTimestamps + transitionAnalysis.config.beforeAfterDurations(2))];
     
+    % [temp.filtered.any_REM_indicies] = fnFilterPeriodsWithCriteria(active_processing, [], {'rem'}); % 668x1
     
     %% Now I can use the above start/stop ranges to average activity around the transitions.
+    % I do this in other places: [temp.active_binned_spike_data_matrix] = fnUnitDataCells2mat(temp.curr_processed.all.binned_spike_counts);  % 35351x126 double
     % Could also get nearest bins and operate on those binned results.
     
-   
+    % Translate each timestamp into its nearest bin index:
+    transitionAnalysis.results.toRem.numTransitions = length(transitionAnalysis.results.toRem.transitionTimestamps);
+    transitionAnalysis.results.toRem.transitionBinTimesteps = round(seconds(transitionAnalysis.results.toRem.transitionTimestamps) ./ active_binning_resolution);
+    transitionAnalysis.results.toRem.transitionBinTimestepRange = round(seconds(transitionAnalysis.results.toRem.transitionTimestampRange) ./ active_binning_resolution);
     
     
+%     transitionAnalysis.results.
+    transitionAnalysis.results.toRem.transitionBinMask = zeros([length(temp.curr_timestamps)-1, 1]);
+    
+    % Get the binned spike counts:
+    
+    for transitionIndex = 1:transitionAnalysis.results.toRem.numTransitions
+        
+        transitionAnalysis.results.toRem.transitionBinIndicies(transitionIndex,:) = transitionAnalysis.results.toRem.transitionBinTimestepRange(transitionIndex,1):transitionAnalysis.results.toRem.transitionBinTimestepRange(transitionIndex,2); % Results in 23x181 array
+        
+        transitionAnalysis.results.toRem.transitionBinMask(transitionAnalysis.results.toRem.transitionBinIndicies(transitionIndex,:)) = 1; % Include the regions within the bounds of the timestep range.
+%         transitionAnalysis.results.toRem.alignedSpikes = across_experiment_results{expt_index}.active_processing.processed_array{current_binning_index}.all.binned_spike_counts(;
+    
+    
+    end
+    
+    % Filter down to the aligned transitionBinMasks for all cells
+    transitionAnalysis.results.toRem.alignedBinnedSpikeCounts = temp.active_binned_spike_data_matrix(logical(transitionAnalysis.results.toRem.transitionBinMask), :); % 4163x126 double
+%     transitionAnalysis.results.toRem.alignedBinnedSpikeCounts(1,1)
+%     transitionAnalysis.results.toRem.alignedBinnedSpikeCounts(181,1)
+%     transitionAnalysis.results.toRem.alignedBinnedSpikeCounts(182,1) % Belongs to next block, and corresponds to same timepoint as (1,1)
+    
+    
+    
+    % Getting only the relevant ranges means that the transition ranges are back-to-back aligned for all units. We want to shape them correctly.
+    transitionAnalysis.results.toRem.alignedBinnedSpikeCounts = reshape(transitionAnalysis.results.toRem.alignedBinnedSpikeCounts, 181, [], 126); % 181x23x126 double
+%     transitionAnalysis.results.toRem.alignedBinnedSpikeCounts(1, 1, 1)
+%     transitionAnalysis.results.toRem.alignedBinnedSpikeCounts(end, 1, 1)
+%     transitionAnalysis.results.toRem.alignedBinnedSpikeCounts(1, 2, 1) % Belongs to next block, and corresponds to same timepoint as (1,1)
+    
+    
+    transitionAnalysis.results.toRem.alignedBinnedMeanSpikeCounts = squeeze(mean(transitionAnalysis.results.toRem.alignedBinnedSpikeCounts, 2)); % Averaged over all the found ranges, preserving transition-offset and unit
+    
+    
+    
+    figure(19);
+    clf;
+    
+%     num_timesteps = size(varargin{i},2);
+    zero_timestep = find(transitionAnalysis.results.beforeAfterDurationRange == 0);
+
+    temp.labels = sprintf('%s', transitionAnalysis.results.beforeAfterDurationRange);
+
+    temp.handles.meanAlignedSpikeCountsHandle = imagesc(transitionAnalysis.results.toRem.alignedBinnedMeanSpikeCounts');
+
+    ylabel('Unit Index')
+    xlabel('Offset from Transition (Seconds)')
+    xticks([1, zero_timestep, 181]);
+%     xticklabels(temp.labels([1 81 181]));
+    xticklabels({'-9 sec', '0 sec', '9 sec'})
+
+%     xticks(seconds(transitionAnalysis.results.beforeAfterDurationRange))
+%     xticklabels()
+    
+    title('Transitions to Rem from Any: mean binned spike counts');
+    xline(zero_timestep,'-.','Transition', 'Color', 'white', 'LineWidth', 3.5);
 %     ['rem'], {'nrem','quiet','active'}]
     
     
@@ -164,6 +228,9 @@ end
 % 
 % align_figure(temp.currFiguresToLayout, 1, figureLayoutManager.figuresSize.width, figureLayoutManager.figuresSize.height,...
 %     100, figureLayoutManager.verticalSpacing, figureLayoutManager.horizontalSpacing, 100);
+
+
+
 
 
 function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
