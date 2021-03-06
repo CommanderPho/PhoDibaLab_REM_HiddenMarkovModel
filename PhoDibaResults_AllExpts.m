@@ -191,11 +191,9 @@ for expt_index = 1:active_num_experiments
     figure(19);
     clf;
     
-%     num_timesteps = size(varargin{i},2);
     zero_timestep = find(transitionAnalysis.results.beforeAfterDurationRange == 0);
 
     temp.labels = sprintf('%s', transitionAnalysis.results.beforeAfterDurationRange);
-    
     temp.handles.meanAlignedSpikeCountsHandle = imagesc(temp.activeData');
 
     ylabel('Unit Index')
