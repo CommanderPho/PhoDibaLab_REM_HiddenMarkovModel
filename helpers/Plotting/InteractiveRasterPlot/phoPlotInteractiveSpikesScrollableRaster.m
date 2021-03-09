@@ -42,9 +42,53 @@ extantFigH = figure(12);
 %% Scrollplot mode:
 curr_i = 1;
 [extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
+
+
+%% Build the scrollable interaction bar that sits below the main raster plot:
 scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
 
-% linkaxes([currPlotHandle currStateMapHandle],'x'); 
+%% Add Blurred Spike Overlays:
+numBlurredSpikeOutputs = length(unitStatistics.blurredSpikeOutputs);
+unitStatistics.blurredStats.max = cellfun(@max, unitStatistics.blurredSpikeOutputs);
+unitStatistics.blurredStats.min = cellfun(@min, unitStatistics.blurredSpikeOutputs);
+unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatistics.blurredStats.min;
+
+%% Axes:
+
+% temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
+temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
+% Subdivide its height into equal rectangles
+temp.currNumOfHeightSubdivisions = length(plotting_options.trialSelection.TrialBackgroundRects.pos);
+
+temp.subplotHeight = temp.currRasterAxisPosition(3) ./ temp.currNumOfHeightSubdivisions;
+% Get the subplot's y-offset for each subplot:
+
+
+
+hold on;
+for i = 1:numBlurredSpikeOutputs
+%     ax(i) = subplot(numBlurredSpikeOutputs,1,i);
+    % Need to convert to parent-space:
+    
+    currSubplotPositionRect = temp.currRasterAxisPosition;
+    currSubplotPositionRect(3) = temp.subplotHeight; % Set to the common height
+    currSubplotPositionRect(2) = temp.currRasterAxisPosition(2) + ((i-1) * temp.subplotHeight);
+    
+%     [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
+    ax(i) = axes('Position', currSubplotPositionRect,'Color','none');
+    % Normalize the blurredSpikeOutputs down to unit height for plotting:
+    h(i) = plot(ax(i), seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
+    xlabel(ax(i), [])
+    xticks(ax(i), [])
+    box off
+    yticks(ax(i), [])
+    ylabel(ax(i),'')
+end
+
+%% Set the current window to the specified range:
+% xlim(ax, xlim(scrollHandles.ParentAxesHandle))
+linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
+
 
 %% INFO:
 % Can get scroll handles (the blue adjustment handle positions) using
@@ -96,7 +140,6 @@ plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.
 [test_annotations] = testAnnotations_phoTrialRectangles();
 plotting_options.annotations = test_annotations;
 
-
 % % Select:
 % paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.selected);
 % 
@@ -120,39 +163,9 @@ phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
 
 
 
-figure;
+% figure;
 % hold on;
-numBlurredSpikeOutputs = length(unitStatistics.blurredSpikeOutputs);
 
-unitStatistics.blurredStats.max = cellfun(@max, unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.min = cellfun(@min, unitStatistics.blurredSpikeOutputs);
-
-unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatistics.blurredStats.min;
-
-% Normalize the blurredSpikeOutputs down to unit height for plotting:
-
-% unitStatistics.blurredSpikeNormalizedOutputs = unitStatistics.blurredSpikeOutputs ./ unitStatistics.blurredStats.range;
-
-%% Axes:
-currPlotHandles.axesHandle;
-   
-
-for i = 1:numBlurredSpikeOutputs
-    plotting_options.trialSelection.TrialBackgroundRects.pos(i,:);
-    
-    ax(i) = subplot(numBlurredSpikeOutputs,1,i);
-    h(i) = plot(seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
-    xlabel(ax(i), [])
-    xticks(ax(i), [])
-    box off
-    yticks(ax(i), [])
-    ylabel(ax(i),'')
-end
-
-%% Set the current window to the specified range:
-xlim(ax, xlim(scrollHandles.ParentAxesHandle))
-
-linkaxes([currPlotHandles.axesHandle ax],'x'); 
 
 
 
@@ -225,9 +238,7 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
 
     %% Build colors
 %     active_processing.definitions.speculated_unit_info.classColors
-    
     temp.active_units_speculated_type = double(active_processing.spikes.speculated_unit_type(plot_outputs.filter_active_units));
-        
 %     plotting_options.unitBackgroundColors = [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]';
     plotting_options.unitBackgroundColors = active_processing.definitions.speculated_unit_info.classColors(temp.active_units_speculated_type,:)';
     
