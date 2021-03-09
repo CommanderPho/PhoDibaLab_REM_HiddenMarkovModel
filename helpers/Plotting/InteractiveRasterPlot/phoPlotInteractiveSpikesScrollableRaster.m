@@ -71,13 +71,17 @@ for i = 1:numBlurredSpikeOutputs
     % Need to convert to parent-space:
     
     currSubplotPositionRect = temp.currRasterAxisPosition;
-    currSubplotPositionRect(3) = temp.subplotHeight; % Set to the common height
+    currSubplotPositionRect(4) = temp.subplotHeight; % Set to the common height
     currSubplotPositionRect(2) = temp.currRasterAxisPosition(2) + ((i-1) * temp.subplotHeight);
+    
+    %% Reversed Y-axis:
+%     currSubplotPositionRect(2) = temp.currRasterAxisPosition(3) - currSubplotPositionRect(2);
     
 %     [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
     ax(i) = axes('Position', currSubplotPositionRect,'Color','none');
     % Normalize the blurredSpikeOutputs down to unit height for plotting:
     h(i) = plot(ax(i), seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
+    ax(i).Color = 'none';
     xlabel(ax(i), [])
     xticks(ax(i), [])
     box off
@@ -97,28 +101,12 @@ linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the ma
 
 % scrollHandles.ScrollPatchHandle: Patch (scrollPatch) object
 % scrollHandles.ScrollPatchHandle.Vertices: [4x2 double] like:
-%     [57     0
-%     57    80
-%     67    80
-%     67     0]
-
-% scrollHandles.ScrollSideBarHandles: [1x2 Line array]
-% scrollHandles.ScrollSideBarHandles(1).Color = [1 0 0];
-
 
 %% Set the current window to the specified range:
 xlim(scrollHandles.ParentAxesHandle, [1800 1860])
 
-% xlim(currStateMapHandle, xlim(scrollHandles.ParentAxesHandle))
-
-%% Get the current window:
-% xlim(scrollHandles.ParentAxesHandle)
-
 
 %% Rectangle Selection:
-% plot_outputs.compOutputs.TrialBackgroundRects.pos % [nTrials x 4]
-% plot_outputs.compOutputs.TrialBackgroundRects.pos(:, 2) % y-offsets [0.5, 1.5, 2.5, ...]
-
 % plot_outputs.compOutputs.TrialBackgroundRects.handles % Handles to the Rectangle objects that represent each trial row and span all of the data
 
 plotting_options.lineVisibleColor = [0.95 0.95 0.95];
