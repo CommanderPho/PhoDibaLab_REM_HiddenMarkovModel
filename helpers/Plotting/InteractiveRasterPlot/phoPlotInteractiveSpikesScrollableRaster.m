@@ -16,7 +16,6 @@ plotting_options.window_duration = 10; % 10 seconds
 temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
 temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
 
-
 % define cell type ({'pyramidal', 'contaminated', 'interneurons'}) colors: 
 if ~isfield(temp.curr_active_processing.definitions.speculated_unit_info, 'classColors')
     temp.curr_active_processing.definitions.speculated_unit_info.classColors = [0.8, 0.5, 0.1
@@ -42,8 +41,8 @@ extantFigH = figure(12);
 
 %% Scrollplot mode:
 curr_i = 1;
-[extantFigH, currPlotHandle, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
-scrollHandles = scrollplot(currPlotHandle, 'WindowSizeX', plotting_options.window_duration);
+[extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
+scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
 
 % linkaxes([currPlotHandle currStateMapHandle],'x'); 
 
@@ -107,9 +106,7 @@ plotting_options.annotations = test_annotations;
 % set(plot_outputs.compOutputs.TrialBackgroundRects.handles(1), paramCell{:});
 
 % enable interactive section selection
-phoSelectionAnnotations(currPlotHandle, plotting_options);
-
-
+phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
 
 % i = 1;
 % annotations{i}.unitIDs = {1, 5, 9}; % The absolute unit ID (original/unfiltered ID) of each unit included
@@ -120,6 +117,44 @@ phoSelectionAnnotations(currPlotHandle, plotting_options);
 % obj = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, unitIDs);
 % 
 % endTimestamp
+
+
+
+figure;
+% hold on;
+numBlurredSpikeOutputs = length(unitStatistics.blurredSpikeOutputs);
+
+unitStatistics.blurredStats.max = cellfun(@max, unitStatistics.blurredSpikeOutputs);
+unitStatistics.blurredStats.min = cellfun(@min, unitStatistics.blurredSpikeOutputs);
+
+unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatistics.blurredStats.min;
+
+% Normalize the blurredSpikeOutputs down to unit height for plotting:
+
+% unitStatistics.blurredSpikeNormalizedOutputs = unitStatistics.blurredSpikeOutputs ./ unitStatistics.blurredStats.range;
+
+%% Axes:
+currPlotHandles.axesHandle;
+   
+
+for i = 1:numBlurredSpikeOutputs
+    plotting_options.trialSelection.TrialBackgroundRects.pos(i,:);
+    
+    ax(i) = subplot(numBlurredSpikeOutputs,1,i);
+    h(i) = plot(seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
+    xlabel(ax(i), [])
+    xticks(ax(i), [])
+    box off
+    yticks(ax(i), [])
+    ylabel(ax(i),'')
+end
+
+%% Set the current window to the specified range:
+xlim(ax, xlim(scrollHandles.ParentAxesHandle))
+
+linkaxes([currPlotHandles.axesHandle ax],'x'); 
+
+
 
 
 function [annotations] = testAnnotations_phoTrialRectangles()
@@ -178,8 +213,8 @@ end
 % slider_controller = fnBuildCallbackInteractiveSliderController(iscInfo, @(curr_i) (pho_plot_spikeRaster(active_processing, plotting_options, extantFigH, curr_i)) );
 % 
 %% Plot function called as a callback on update
-function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, filter_config, plotting_options, extantFigH, curr_windowIndex)
-    
+function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_plot_spikeRaster(active_processing, filter_config, plotting_options, extantFigH, curr_windowIndex)
+    %% pho_plot_spikeRaster
 
     %% Get filter info for active units
     [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, plotting_options.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
@@ -210,10 +245,10 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
 %     hold off
     
     % Can specify line colors here, default is black ('k'):
-    plotting_options.spikeLinesFormat.Color = 'b';
+    plotting_options.spikeLinesFormat.Color = 'k';
 
 
-    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
+    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
         'TrialBackgroundColors', plotting_options.unitBackgroundColors, ...
         'LineFormat', plotting_options.spikeLinesFormat);
 
@@ -228,6 +263,7 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     xlabel('Time [seconds]')
     
     ax = gca;
+    rasterPlotHandles.axesHandle = ax;
     ax.YGrid = 'on';
 %     ax.YMinorGrid = 'on';
     yticks(ax, 1:temp.num_active_units);
@@ -241,7 +277,7 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     % Get the position of the main raster plot axes:
     temp.updated_main_axes_pos = ax.Position;    
     
-    %% Puts Above
+    %% Puts Above the main raster plot box:
     temp.statemap_pos = temp.updated_main_axes_pos;
     temp.statemap_pos(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
     temp.statemap_pos(4) = 0.05;
@@ -249,7 +285,7 @@ function [plotted_figH, rasterPlotHandle, stateMapHandle, plot_outputs] = pho_pl
     subplot('Position', temp.statemap_pos);
     [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
     
-    % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added.
+    % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
     linkaxes([ax stateMapHandle],'x'); 
     
 end
