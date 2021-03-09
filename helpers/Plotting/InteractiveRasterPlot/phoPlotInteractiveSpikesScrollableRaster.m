@@ -56,11 +56,11 @@ unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatis
 %% Axes:
 
 % temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
-temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
+temp.currRasterAxisPosition = scrollHandles.ParentAxesHandle.Position;
 % Subdivide its height into equal rectangles
 temp.currNumOfHeightSubdivisions = length(plotting_options.trialSelection.TrialBackgroundRects.pos);
 
-temp.subplotHeight = temp.currRasterAxisPosition(3) ./ temp.currNumOfHeightSubdivisions;
+temp.subplotHeight = (temp.currRasterAxisPosition(3)-0.12) ./ temp.currNumOfHeightSubdivisions;
 % Get the subplot's y-offset for each subplot:
 
 
@@ -125,8 +125,8 @@ plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.
 
 
 %% Annotations Testing:
-[test_annotations] = testAnnotations_phoTrialRectangles();
-plotting_options.annotations = test_annotations;
+% [test_annotations] = testAnnotations_phoTrialRectangles();
+% plotting_options.annotations = test_annotations;
 
 % % Select:
 % paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.selected);
@@ -137,25 +137,7 @@ plotting_options.annotations = test_annotations;
 % set(plot_outputs.compOutputs.TrialBackgroundRects.handles(1), paramCell{:});
 
 % enable interactive section selection
-phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
-
-% i = 1;
-% annotations{i}.unitIDs = {1, 5, 9}; % The absolute unit ID (original/unfiltered ID) of each unit included
-% annotations{i}.referenceTimes = {1080, [1440 1467]}; % The index timestamps of which to make a line-annotation
-% % the scalar is an example of a point annotation (to highlight an event) and the second a window annotation (to highlight a range of timestamps)
-% annotations{i}.notes = {'', ''};
-% 
-% obj = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, unitIDs);
-% 
-% endTimestamp
-
-
-
-% figure;
-% hold on;
-
-
-
+% phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
 
 
 function [annotations] = testAnnotations_phoTrialRectangles()
@@ -174,17 +156,6 @@ function [annotations] = testAnnotations_phoTrialRectangles()
         annotations{i} = RasterplotAnnotation(typeName, startTimestamp, endTimestamp, comment, annotationLists.unitIDs{i});
     end
 
-end
-
-
-
-function performToggleRectangleSelection_phoTrialRectangles(rectangleHandle, plottingOptions)
-    
-
-end
-
-function mouseDownCallback_phoTrialRectangles(src, eventdata)
-    
 end
 
 % Instructions for use:
@@ -281,10 +252,11 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     temp.statemap_pos(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
     temp.statemap_pos(4) = 0.05;
     
-    subplot('Position', temp.statemap_pos);
-    [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
-    
-    % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
-    linkaxes([ax stateMapHandle],'x'); 
+    stateMapHandle = [];
+%     subplot('Position', temp.statemap_pos);
+%     [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
+%     
+%     % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
+%     linkaxes([ax stateMapHandle],'x'); 
     
 end
