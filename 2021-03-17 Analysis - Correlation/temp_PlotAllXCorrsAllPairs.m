@@ -1,14 +1,20 @@
 % Currently plots a column of XCorr values that were loaded by running Mar17Analysis.mlx (which itself requires loading data from LoadSingleExperimentCombinedResults.m)
+% Pho Hale - 2021-03-22
+
 
 
 %% Set Plotting Options:
+
+%% Limit the xlims displayed
+plotting_options.restricted_xlim_limits = [-200, 200]; % specified in [ms] because I'm using active_results.all.pairwise_xcorrelations.lag_offsets_ms
+
 plotting_options.should_use_custom_subplots = true;
 
 % Options for tightening up the subplots:
 if plotting_options.should_use_custom_subplots
 %     plotting_options.subtightplot.gap = [0.01 0.01]; % [intra_graph_vertical_spacing, intra_graph_horizontal_spacing]
     plotting_options.subtightplot.gap = [0.001 0.01]; % [intra_graph_vertical_spacing, intra_graph_horizontal_spacing]
-    plotting_options.subtightplot.width_h = [0.01 0.01]; % Looks like [padding_bottom, padding_top]
+    plotting_options.subtightplot.width_h = [0.02 0.025]; % Looks like [padding_bottom, padding_top]
     plotting_options.subtightplot.width_w = [0.001 0.001];
 
     plotting_options.opt = {plotting_options.subtightplot.gap, plotting_options.subtightplot.width_h, plotting_options.subtightplot.width_w}; % {gap, width_h, width_w}
@@ -20,7 +26,20 @@ end
 %% Customize the plotting command to use (stem, plot, area, etc):
 % active_plot_cmd = @(ax,x,y) stem(ax, x, y);
 % active_plot_cmd = @(ax,x,y) plot(ax, x, y);
-active_plot_cmd = @(ax,x,y) reduce_plot(x, y);
+active_plot_cmd = @(ax,x,y) reduce_plot(x, y, 'Marker','o','MarkerFaceColor','red');
+
+% Convert lag offsets to milliseconds for use
+active_results.all.pairwise_xcorrelations.lag_offsets_ms = active_results.all.pairwise_xcorrelations.lag_offsets * 1000.0;
+
+
+plotting_results.total_plot_xlims = active_results.all.pairwise_xcorrelations.lag_offsets_ms([1 end]);
+
+
+if ~isempty(plotting_options.restricted_xlim_limits)
+     plotting_results.active_plot_xlims = plotting_options.restricted_xlim_limits;
+else
+     plotting_results.active_plot_xlims = plotting_results.total_plot_xlims;
+end
 
 
 %% Plot all at once:
@@ -86,9 +105,21 @@ for active_unit_A_index = 1:temp.num_valid_units
                 %% Single Plot for All Time:
     %             fnPlotXCorrStem(active_results.all.pairwise_xcorrelations.lag_offsets, temp.curr_xcorr_forPair, 'all');
 %                 axes(xcorr_all_plots.subplots(temp.linear_subplot_accumulator);
-                active_plot_cmd(xcorr_all_plots.subplots(temp.linear_subplot_accumulator), active_results.all.pairwise_xcorrelations.lag_offsets, temp.curr_xcorr_forPair);
+
+                
+                active_plot_cmd(xcorr_all_plots.subplots(temp.linear_subplot_accumulator), active_results.all.pairwise_xcorrelations.lag_offsets_ms, temp.curr_xcorr_forPair);
+                
+                xlim(plotting_results.active_plot_xlims);
+                
                 xline(xcorr_all_plots.subplots(temp.linear_subplot_accumulator), 0, '-r');
-                set(xcorr_all_plots.subplots(temp.linear_subplot_accumulator),'xtick',[],'ytick',[])
+                
+                if (plotting_options.new_xcorr_plot.num_subplots == temp.linear_subplot_accumulator)
+                    % Check if this subplot is the last one (the bottom if it's in column form) meaning it should show the xlabels and ticks
+                    set(xcorr_all_plots.subplots(temp.linear_subplot_accumulator),'ytick',[])
+                else
+                    set(xcorr_all_plots.subplots(temp.linear_subplot_accumulator),'xtick',[],'ytick',[])
+                
+                end
                 title(xcorr_all_plots.subplots(temp.linear_subplot_accumulator), sprintf('Xcorr(u%d, u%d)', active_unit_A_index, active_unit_B_index),'Interpreter','none') % (first is same for entire column)
 %                 title(xcorr_all_plots.subplots(temp.linear_subplot_accumulator), sprintf('(linear: %d, corrected_linear: %d, row: %d, col: %d)', temp.linear_subplot_accumulator, corrected_active_subplot_index, curr_row, curr_col),'Interpreter','none') % second is the same for entire column
             end % end if active_pair_index > 0
@@ -96,7 +127,7 @@ for active_unit_A_index = 1:temp.num_valid_units
         end
         temp.linear_accumulator = temp.linear_accumulator + 1;
     end
-    drawnow
+%     drawnow
 end
 
 
