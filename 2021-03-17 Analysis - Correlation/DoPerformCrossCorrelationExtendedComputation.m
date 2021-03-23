@@ -178,8 +178,8 @@ temp.plot_pre_track_data.ax.YAxisLocation = 'origin';
 % daspect([1 1 1])
 % set(temp.plot_pre_track_data.ax,'DataAspectRatio',[1 1 1])
 
-xlabel('Bias on track')
-ylabel('Bias in pre_sleep')
+xlabel('Bias on track','Interpreter','none')
+ylabel('Bias in pre_sleep','Interpreter','none')
 
 
 temp.plot_post_track_data.ax = subplot(2,1,2);
@@ -196,10 +196,10 @@ temp.plot_post_track_data.ax.YAxisLocation = 'origin';
 % daspect([1 1 1])
 % set(temp.plot_post_track_data.ax,'DataAspectRatio',[1 1 1])
 
-xlabel('Bias on track')
-ylabel('Bias in post_sleep')
+xlabel('Bias on track','Interpreter','none')
+ylabel('Bias in post_sleep','Interpreter','none')
 
-
+sgtitle('Temporal Bias B')
 
 % %%% Perform for all **experiment epochs**:
 % for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
