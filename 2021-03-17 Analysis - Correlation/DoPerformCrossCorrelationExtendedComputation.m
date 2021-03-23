@@ -73,6 +73,8 @@ temp.by_behavioral_period.curr_xcorr_allPairs.globally_normalized = temp.by_beha
 
 
 
+%% Temporal Bias and ByEpoch analysis:
+active_results.by_epoch.pre_sleep.pairwise_xcorrelations.xcorr
 
 
 % Temporal Bias "B" as defined in SkaggsMcNaughtonScience1996.pdf:
