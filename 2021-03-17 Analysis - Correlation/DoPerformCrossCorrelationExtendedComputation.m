@@ -74,27 +74,122 @@ temp.by_behavioral_period.curr_xcorr_allPairs.globally_normalized = temp.by_beha
 
 
 %% Temporal Bias and ByEpoch analysis:
-active_results.by_epoch.pre_sleep.pairwise_xcorrelations.xcorr
+
+%%% Compute for all **experiment epochs**:
+for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+    temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
+   
+    % Perform required normalizations:
+    % Get active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr and normalize it if it hasn't been done before.
+    if ~isstruct(active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr)
+        [temp.output] = fnNormalizeAllPairsXCorr(active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr);
+         % Replaces xcorr matrix with structure containing both raw and normalized versions. Original can be accessed by using .raw version.
+        active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr = output.xcorr;
+    end
+    
+%     temp.xcorr_input =  active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr.raw;
+    temp.xcorr_input =  active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr.globally_normalized;
+    temp.xcorr_input_transformed = fnConvertLinearPairQuantityToUnitByUnit(temp.xcorr_input, general_results, filter_config);
+    % Compute the Temporal Bias "B" as defined in SkaggsMcNaughtonScience1996.pdf for this epoch:
+    [active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.B, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.integration_info] = fnTemporalBias_SkaggsMcNaughton(active_results.all.pairwise_xcorrelations.lag_offsets, temp.xcorr_input_transformed, [-2.0, 2.0]);
+    
+end
 
 
-% Temporal Bias "B" as defined in SkaggsMcNaughtonScience1996.pdf:
-% One for each behavioral period:
-B = sum(temp.by_behavioral_period.curr_xcorr_forPair(:, temp.curr_xcorr_integration_range.upperIndicies),2) - sum(temp.by_behavioral_period.curr_xcorr_forPair(:, temp.curr_xcorr_integration_range.lowerIndicies), 2);
-
-% For all: a scalar quantity:
-B = sum(temp.all.curr_xcorr_forPair(temp.curr_xcorr_integration_range.upperIndicies)) - sum(temp.all.curr_xcorr_forPair(temp.curr_xcorr_integration_range.lowerIndicies));
-
-
-
-figure
-plot(B)
+% figure
+% plot(B)
 
 % Pre-sleep:
-B(temp.filtered.pre_sleep_REM_indicies)
-
-B(temp.filtered.post_sleep_REM_indicies)
+% B(temp.filtered.pre_sleep_REM_indicies)
+% 
+% B(temp.filtered.post_sleep_REM_indicies)
 
 %active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_all_periods = squeeze(mean(active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full, 1)); % [num_unique_pairs x num_lag_steps] array
 
 % active_results.all.pairwise_xcorrelations.xcorr
 
+
+%% Testing: Plot the Temporal Bias results:
+% active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.B
+
+% temp.B = triu(active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.B);
+% temp.B(temp.B == 0) = nan;
+
+temp.plot_pre_track_data.x = [];
+temp.plot_pre_track_data.y = [];
+
+temp.plot_post_track_data.x = [];
+temp.plot_post_track_data.y = [];
+
+for active_unit_A_index = 1:dim_1.num_valid_units
+        
+        for active_unit_B_index = 1:dim_2.num_valid_units
+            
+            % Get current unit bias for each epoch:
+             
+            temp.curr_pre = active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B(active_unit_A_index, active_unit_B_index);
+            temp.curr_track = active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B(active_unit_A_index, active_unit_B_index);
+            temp.curr_post = active_results.by_epoch.post_sleep.pairwise_xcorrelations.temporalBias.B(active_unit_A_index, active_unit_B_index);
+            
+            if ~isnan(temp.curr_track) & ~isnan(temp.curr_pre)
+                temp.plot_pre_track_data.x(end+1) = temp.curr_track;
+                temp.plot_pre_track_data.y(end+1) = temp.curr_pre;
+            end
+            
+            if ~isnan(temp.curr_track) & ~isnan(temp.curr_post)
+                temp.plot_post_track_data.x(end+1) = temp.curr_track;
+                temp.plot_post_track_data.y(end+1) = temp.curr_post;
+            end
+           
+        end % end for dim_2
+end % end for dim_1
+    
+temp.plot_pre_track_data.M = [temp.plot_pre_track_data.x; temp.plot_pre_track_data.y];
+temp.plot_post_track_data.M = [temp.plot_post_track_data.x; temp.plot_post_track_data.y];
+
+figure(9);
+clf;
+scatter(temp.plot_pre_track_data.y, ...
+     temp.plot_post_track_data.y, ...
+    'filled')
+% 
+% subplot(2,1,1)
+% % plot(reshape(active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B, [], 1), ...
+% %     reshape(active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B, [], 1), ...
+% %     'filled')
+% 
+% scatter(temp.plot_pre_track_data.x', ...
+%      temp.plot_pre_track_data.y', ...
+%     'filled')
+% 
+% xlabel('Bias on track')
+% ylabel('Bias in pre_sleep')
+% 
+% subplot(2,1,2)
+% % scatter(reshape(active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
+% %     reshape(active_results.by_epoch.post_sleep.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
+% %     'filled')
+% 
+% scatter(temp.plot_post_track_data.x, ...
+%     temp.plot_post_track_data.y, ...
+%     'filled')
+% 
+% 
+% xlabel('Bias on track')
+% ylabel('Bias in post_sleep')
+
+
+
+% %%% Perform for all **experiment epochs**:
+% for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
+%     temp.curr_epoch_name = active_processing.definitions.behavioral_epoch.classNames{i};
+%    
+%     subplot(3,1,i);
+%     active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.B
+%     
+%     % Flatten to a row vector:
+%     reshape(active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.B, 1,[])
+% 
+%     % Plot each point:
+%     plot(
+% end
