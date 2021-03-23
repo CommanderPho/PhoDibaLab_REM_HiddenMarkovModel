@@ -87,12 +87,12 @@ for i = 1:length(active_processing.definitions.behavioral_epoch.classNames)
         active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr = temp.output.xcorr;
     end
     
-%     temp.xcorr_input =  active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr.raw;
-    temp.xcorr_input =  active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr.globally_normalized;
+    temp.xcorr_input =  active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr.raw;
+%     temp.xcorr_input =  active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.xcorr.globally_normalized;
     temp.xcorr_input_transformed = fnConvertLinearPairQuantityToUnitByUnit(temp.xcorr_input, general_results, filter_config);
     % Compute the Temporal Bias "B" as defined in SkaggsMcNaughtonScience1996.pdf for this epoch:
     [active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.B, active_results.by_epoch.(temp.curr_epoch_name).pairwise_xcorrelations.temporalBias.integration_info] = fnTemporalBias_SkaggsMcNaughton(active_results.all.pairwise_xcorrelations.lag_offsets,...
-        temp.xcorr_input_transformed, [-2.0, 2.0]);
+        temp.xcorr_input_transformed, [-0.2, 0.2]);
     
 end
 
@@ -148,36 +148,53 @@ end % end for dim_1
 temp.plot_pre_track_data.M = [temp.plot_pre_track_data.x; temp.plot_pre_track_data.y];
 temp.plot_post_track_data.M = [temp.plot_post_track_data.x; temp.plot_post_track_data.y];
 
+
+%% Customize the plotting command to use (stem, plot, area, etc):
+% active_plot_cmd = @(ax,x,y) stem(ax, x, y);
+% active_plot_cmd = @(ax,x,y) plot(ax, x, y);
+active_plot_cmd = @(ax,x,y) scatter(ax, x, y, 'Marker','.','MarkerFaceColor','red');
 figure(9);
 % clf;
 % scatter(temp.plot_pre_track_data.y, ...
 %      temp.plot_post_track_data.y, ...
 %     'filled')
 % 
-subplot(2,1,1)
+temp.plot_pre_track_data.ax = subplot(2,1,1);
 % plot(reshape(active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B, [], 1), ...
 %     reshape(active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B, [], 1), ...
 %     'filled')
 
-scatter(temp.plot_pre_track_data.x', ...
-     temp.plot_pre_track_data.y', ...
-    'filled')
-gca.XAxisLocation = 'origin'; 
-gca.YAxisLocation = 'origin';
+% scatter(temp.plot_pre_track_data.ax, temp.plot_pre_track_data.x', ...
+%      temp.plot_pre_track_data.y', ...
+%     'filled')
 
+active_plot_cmd(temp.plot_pre_track_data.ax, temp.plot_pre_track_data.x', ...
+     temp.plot_pre_track_data.y')
+
+
+temp.plot_pre_track_data.ax.XAxisLocation = 'origin'; 
+temp.plot_pre_track_data.ax.YAxisLocation = 'origin';
+% axis equal
+% daspect([1 1 1])
+% set(temp.plot_pre_track_data.ax,'DataAspectRatio',[1 1 1])
 
 xlabel('Bias on track')
 ylabel('Bias in pre_sleep')
 
-subplot(2,1,2)
+
+temp.plot_post_track_data.ax = subplot(2,1,2);
 % scatter(reshape(active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
 %     reshape(active_results.by_epoch.post_sleep.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
 %     'filled')
 
-scatter(temp.plot_post_track_data.x, ...
-    temp.plot_post_track_data.y, ...
-    'filled')
+active_plot_cmd(temp.plot_post_track_data.ax, temp.plot_post_track_data.x, ...
+    temp.plot_post_track_data.y)
 
+temp.plot_post_track_data.ax.XAxisLocation = 'origin'; 
+temp.plot_post_track_data.ax.YAxisLocation = 'origin';
+% axis equal
+% daspect([1 1 1])
+% set(temp.plot_post_track_data.ax,'DataAspectRatio',[1 1 1])
 
 xlabel('Bias on track')
 ylabel('Bias in post_sleep')
