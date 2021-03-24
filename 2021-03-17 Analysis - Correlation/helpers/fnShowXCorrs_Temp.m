@@ -1,4 +1,28 @@
 function fnShowXCorrs_Temp(temp, lag_offsets, xcorr_input, active_pair_index)
+% fnShowXCorrs_Temp - One line description of what the function or script performs (H1 line)
+% Optional file header info (to give more details about the function than in the H1 line)
+% 
+% Syntax:  
+%     fnShowXCorrs_Temp(temp, lag_offsets, xcorr_input, active_pair_index)
+% 
+% Inputs:
+%    input1 - Description
+%    input2 - Description
+%    input3 - Description
+% 
+% Outputs:
+%    output1 - Description
+%    output2 - Description
+% 
+
+% Author: Pho Hale
+% PhoHale.com 
+% email: halechr@umich.edu
+% Created: 24-Mar-2021 ; Last revision: 24-Mar-2021 
+
+% ------------- BEGIN CODE --------------
+
+
     temp.by_behavioral_period.curr_xcorr_forPair = squeeze(xcorr_input(:, active_pair_index, :)); % [num_of_behavioral_state_periods x num_lag_steps]
     
     %% Single Plot for All Time:
@@ -44,11 +68,14 @@ function fnShowXCorrs_Temp(temp, lag_offsets, xcorr_input, active_pair_index)
     sgtitle(temp.curr_fig_title)
     
     
-
 end
+
 
 function fnPlotXCorrStem(lag_offsets, plotVals, curr_fig_title)
     stem(lag_offsets, plotVals);
     xline(0);
     title(curr_fig_title,'Interpreter','none')
 end
+
+
+% ------------- END OF CODE --------------

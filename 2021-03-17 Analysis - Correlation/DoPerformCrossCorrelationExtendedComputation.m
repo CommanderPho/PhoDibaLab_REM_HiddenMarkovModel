@@ -2,6 +2,8 @@
 % Pho Hale - 2021-03-22
 % Performs extended cross-correlation computations. Shows nothing. Requisite to 'temp_PlotAllXCorrsAllPairs.m'
 
+addpath(genpath('helpers'));
+
 active_expt_index = 1;
 current_binning_index = 1;
 
@@ -121,6 +123,10 @@ temp.plot_pre_track_data.y = [];
 
 temp.plot_post_track_data.x = [];
 temp.plot_post_track_data.y = [];
+
+dim_1.num_valid_units = size(active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B, 1);
+dim_2.num_valid_units = size(active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B, 2);
+    
 
 for active_unit_A_index = 1:dim_1.num_valid_units
         
