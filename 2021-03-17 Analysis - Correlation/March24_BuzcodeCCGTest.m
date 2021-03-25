@@ -41,7 +41,9 @@ temp.curr_num_of_behavioral_states = height(active_processing.behavioral_periods
 % test = cellfun(@(I,s) (I == s), active_processing.spikes.behavioral_duration_indicies, {1:temp.curr_num_of_behavioral_states},'UniformOutput',false);
 
 % Allocate a new array to hold the output: which is an array of spike times for each unit for each behavioral state (columns)
-behavioral_epoch_spikes = cell(temp.curr_num_of_units, temp.curr_num_of_behavioral_states);
+if ~exist('behavioral_epoch_spikes','var')
+    behavioral_epoch_spikes = cell(temp.curr_num_of_units, temp.curr_num_of_behavioral_states); % 126x668
+end
 
 
 %% Compute CCG Storage:
@@ -56,8 +58,28 @@ else
 end
 % active_results.by_behavioral_period.
 
+%% TEMP:
+% Reshape the 126x668 cell matrix into a (126 * 668)x1 column vector
+behavioral_epoch_spikes_flat = reshape(behavioral_epoch_spikes,[],1);
+% size(behavioral_epoch_spikes_flat): 84168x1 cell
+% Convert Back:
+% behavioral_epoch_spikes = reshape(behavioral_epoch_spikes,temp.curr_num_of_units, temp.curr_num_of_behavioral_states);
+
+
+% [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~] = CCG(behavioral_epoch_spikes_flat, [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
+
+% [ccg_results.by_behavioral_period.ccg.raw_flat(:, :, :, :), ~] = CCG(behavioral_epoch_spikes_flat, [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
+% [201, 3780, 3780]
+
+% Split back into the appropriate dimensions:
+
+
+unit_has_no_spikes = false(temp.curr_num_of_units, temp.curr_num_of_behavioral_states);
+
+%% /TEMP
+
 % Loop over behavioral activities
-for state_index = 1:temp.curr_num_of_behavioral_states
+for state_index = 29:temp.curr_num_of_behavioral_states
     
 %     cellfun(@(X,I) X(i), active_processing.spikes.time, active_processing.spikes.behavioral_duration_indicies(state_index) ==  ,'un',0)
     
@@ -67,8 +89,13 @@ for state_index = 1:temp.curr_num_of_behavioral_states
     % Returns the times only for the spikes that occur within this region:
     behavioral_epoch_spikes(:, state_index) = cellfun(@(X,I) X(I == state_index), active_processing.spikes.time, active_processing.spikes.behavioral_duration_indicies,'UniformOutput',false);
     
+    % Find any units that have no spikes for this behavioral_epoch. This epoch will be excluded from analysis for those epochs then.
+    unit_has_no_spikes(:, state_index) = cellfun(@isempty, behavioral_epoch_spikes(:, state_index)); 
+    
+    
+    
     % Do CCG Here too:
-    [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~] = CCG(active_processing.spikes.time, [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
+%     [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~] = CCG(behavioral_epoch_spikes(:, state_index), [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
     
     % [t x ngroups x ngroups] matrix where ccg(t,i,j) is the
 %           number (or rate) of events of group j at time lag t with  
