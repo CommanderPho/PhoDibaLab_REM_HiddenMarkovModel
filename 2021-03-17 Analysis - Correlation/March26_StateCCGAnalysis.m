@@ -98,8 +98,16 @@ end
 
 % analysisGroupResults.(temp.curr_group_name).ccg.mean: 201x126x126
 
+% plotting_options.active_plot_cmd = @(ax,x,y) stem(ax, x, y);
+% plotting_options.active_plot_cmd = @(ax,x,y) plot(ax, x, y);
+plotting_options.active_plot_cmd = @(ax,x,y) scatter(ax, x, y, 'Marker','.','MarkerFaceColor','red');
 
-    
+[fig, h] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
+        analysisGroupResults.track_ALL.temporalBias, ...
+        analysisGroupResults.post_sleep_REM.temporalBias, ...
+        plotting_options);
+
+
 function [is_period_included, numIncludedPeriods] = fnComputeAnalysisGroupIndexMask(active_processing, analysisGroups)
     %% fnComputeAnalysisGroupIndexMask: Takes a struct array of groups, which specify which epochs and states that should included, and returns the index mask for whether each of the behavioral periods should be included in that group.
     % analysisGroups: a struct array with fields 'included_epochs' and 'included_states', one entry for each group.
@@ -117,13 +125,87 @@ function [is_period_included, numIncludedPeriods] = fnComputeAnalysisGroupIndexM
 end
     
 
-function [plotResults, filtered, results] = fnPerformAcrossREMTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions)
-    % A REM specific setup for fnPerformAcrossPeriodTesting 
-    plottingOptions.group_name_list = {'pre_sleep_REM', 'post_sleep_REM', 'any_REM', 'all_except_REM'};
-    plottingOptions.group_indexArray_variableName_list = strcat(plottingOptions.group_name_list, '_indicies');
-    plottingOptions.num_groups = length(plottingOptions.group_name_list);
-    plottingOptions.group_included_epochs = {{'pre_sleep'}, {'post_sleep'}, {}, {}};
-    plottingOptions.group_included_states = {{'rem'}, {'rem'}, {'rem'}, {'nrem', 'quiet', 'active'}};
-    
-    [plotResults, filtered, results] = fnPerformAcrossPeriodTesting(active_processing, general_results, active_results, processing_config, filter_config, expt_info, plottingOptions);
+
+function [fig, h] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, postTemporalBias, plotting_options)
+
+    % preTemporalBias, trackTemporalBias, postTemporalBias: structs containing at least the field 'B' which contains the temporal bias matrix computed via fnTemporalBias_SkaggsMcNaughton
+    plot_pre_track_data.x = [];
+    plot_pre_track_data.y = [];
+
+    plot_post_track_data.x = [];
+    plot_post_track_data.y = [];
+
+    dim_1.num_valid_units = size(preTemporalBias.B, 1);
+    dim_2.num_valid_units = size(preTemporalBias.B, 2);
+
+    for active_unit_A_index = 1:dim_1.num_valid_units
+
+            for active_unit_B_index = 1:dim_2.num_valid_units
+
+                % Get current unit bias for each epoch:
+
+                curr_pre = preTemporalBias.B(active_unit_A_index, active_unit_B_index);
+                curr_track = trackTemporalBias.B(active_unit_A_index, active_unit_B_index);
+                curr_post = postTemporalBias.B(active_unit_A_index, active_unit_B_index);
+
+                if ~isnan(curr_track) & ~isnan(curr_pre)
+                    plot_pre_track_data.x(end+1) = curr_track;
+                    plot_pre_track_data.y(end+1) = curr_pre;
+                end
+
+                if ~isnan(curr_track) & ~isnan(curr_post)
+                    plot_post_track_data.x(end+1) = curr_track;
+                    plot_post_track_data.y(end+1) = curr_post;
+                end
+
+            end % end for dim_2
+    end % end for dim_1
+
+    [fig, h] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options);
+end
+
+
+function [fig, h] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options)
+% fnPlotTemporalBias: Plot the Temporal Bias results
+    % Called only by fnBuildTemporalBiasPlot(...) above
+    %% Customize the plotting command to use (stem, plot, area, etc):
+    fig = figure(9);
+    clf;
+    % scatter(temp.plot_pre_track_data.y, ...
+    %      temp.plot_post_track_data.y, ...
+    %     'filled')
+    % 
+    h.plot_pre_track_data.ax = subplot(2,1,1);
+
+    plotting_options.active_plot_cmd(h.plot_pre_track_data.ax, plot_pre_track_data.x', ...
+         plot_pre_track_data.y')
+
+
+    h.plot_pre_track_data.ax.XAxisLocation = 'origin'; 
+    h.plot_pre_track_data.ax.YAxisLocation = 'origin';
+    % axis equal
+    % daspect([1 1 1])
+    % set(temp.plot_pre_track_data.ax,'DataAspectRatio',[1 1 1])
+
+    xlabel('Bias on track','Interpreter','none')
+    ylabel('Bias in pre_sleep','Interpreter','none')
+
+    h.plot_post_track_data.ax = subplot(2,1,2);
+    % scatter(reshape(active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
+    %     reshape(active_results.by_epoch.post_sleep.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
+    %     'filled')
+
+    plotting_options.active_plot_cmd(h.plot_post_track_data.ax, plot_post_track_data.x, ...
+        plot_post_track_data.y)
+
+    h.plot_post_track_data.ax.XAxisLocation = 'origin'; 
+    h.plot_post_track_data.ax.YAxisLocation = 'origin';
+    % axis equal
+    % daspect([1 1 1])
+    % set(temp.plot_post_track_data.ax,'DataAspectRatio',[1 1 1])
+
+    xlabel('Bias on track','Interpreter','none')
+    ylabel('Bias in post_sleep','Interpreter','none')
+
+    sgtitle('Temporal Bias B')
 end

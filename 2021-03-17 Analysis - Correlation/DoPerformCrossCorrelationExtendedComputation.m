@@ -127,7 +127,6 @@ temp.plot_post_track_data.y = [];
 dim_1.num_valid_units = size(active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B, 1);
 dim_2.num_valid_units = size(active_results.by_epoch.pre_sleep.pairwise_xcorrelations.temporalBias.B, 2);
     
-
 for active_unit_A_index = 1:dim_1.num_valid_units
         
         for active_unit_B_index = 1:dim_2.num_valid_units
