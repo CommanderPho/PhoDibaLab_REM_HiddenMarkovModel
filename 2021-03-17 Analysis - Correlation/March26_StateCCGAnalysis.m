@@ -76,8 +76,8 @@ for i = 1:num_groups
 
     % Get the CCG results from this group:
     % Average Across all of behavioral periods in this group:
-%     analysisGroupResults.(temp.curr_group_name).ccg.mean = squeeze(mean(ccg_results.by_behavioral_period.ccg.repaired(is_period_included(:,i), :, :, :), 1,'omitnan')); % 201x126x126 double
-%     analysisGroupResults.(temp.curr_group_name).ccg.stdDev = squeeze(std(ccg_results.by_behavioral_period.ccg.repaired(is_period_included(:,i), :, :, :), 0, 1,'omitnan')); % 14x1 double
+    analysisGroupResults.(temp.curr_group_name).ccg.mean = squeeze(mean(ccg_results.by_behavioral_period.ccg.repaired(is_period_included(:,i), :, :, :), 1,'omitnan')); % 201x126x126 double
+    analysisGroupResults.(temp.curr_group_name).ccg.stdDev = squeeze(std(ccg_results.by_behavioral_period.ccg.repaired(is_period_included(:,i), :, :, :), 0, 1,'omitnan')); % 14x1 double
     
     
 %     %% xcorr_all_lags: averaged over lags, preserving all pairs.
@@ -101,12 +101,20 @@ end
 %% Plot the Temporal Bias information:
 
 % Unit Filtering:
-filter_config.filter_included_cell_types = {'pyramidal'};
-% filter_config.filter_included_cell_types = {'interneurons'};
+% filter_config.filter_included_cell_types = {};
+% filter_config.filter_included_cell_types = {'pyramidal'};
+filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 [filter_config.filter_active_units, filter_config.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
 fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
+
+temp.dest_dir = '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/ResultsTemp/March 26/';
+
+
+
+% '/Users/pho/Dropbox/Classes/Spring 2021/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/ResultsTemp/March 26/Temporal Bias B - All Cells.fig'
+
 
 %% Build plotting options:
 plotting_options.filter_config = filter_config;
@@ -114,13 +122,28 @@ plotting_options.filter_config = filter_config;
 % plotting_options.active_plot_cmd = @(ax,x,y) plot(ax, x, y);
 plotting_options.active_plot_cmd = @(ax,x,y) scatter(ax, x, y, 'Marker','.','MarkerFaceColor','red');
 
-[fig, h] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
+[filter_descriptions] = fnGenerateFilterDescriptionString(plotting_options.filter_config);
+
+plotting_options = fnSetStructureFields({'figure_name', 'additional_title'}, ...
+        {sprintf('March 26 - %s', filter_descriptions.cells), filter_descriptions.cells}, ...
+        plotting_options);
+    
+    
+[temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
         analysisGroupResults.track_ALL.temporalBias, ...
         analysisGroupResults.post_sleep_REM.temporalBias, ...
         plotting_options);
 
-
     
+output_filename = strrep(temp.info.fig_title,':','-');
+output_filepath = fullfile(temp.dest_dir, output_filename);
+
+
+
+savefig(temp.fig, output_filepath, 'compact');
+% Requires R2020a or later
+exportgraphics(temp.fig,[output_filepath '.pdf'],'ContentType','vector')    
+
     
 function [is_period_included, numIncludedPeriods] = fnComputeAnalysisGroupIndexMask(active_processing, analysisGroups)
     %% fnComputeAnalysisGroupIndexMask: Takes a struct array of groups, which specify which epochs and states that should included, and returns the index mask for whether each of the behavioral periods should be included in that group.
@@ -140,16 +163,18 @@ end
     
 
 
-function [fig, h] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, postTemporalBias, plotting_options)
+function [fig, h, info] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, postTemporalBias, plotting_options, extantFigH)
     % preTemporalBias, trackTemporalBias, postTemporalBias: structs containing at least the field 'B' which contains the temporal bias matrix computed via fnTemporalBias_SkaggsMcNaughton
-
-    plotting_options.filter_config.filter_active_units
+    % These are each of size numUnits x numUnits
     
+    if ~exist('extantFigH','var')
+        extantFigH = [];
+    end
     if isfield(plotting_options, 'filter_config')
         % Include all units if no filter
-        preTemporalBias.B = preTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units, :);
-        trackTemporalBias.B = trackTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units, :);
-        postTemporalBias.B = postTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units, :);
+        preTemporalBias.B = preTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units);
+        trackTemporalBias.B = trackTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units);
+        postTemporalBias.B = postTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units);
     end
     
     % size(analysisGroupResults.track_ALL.temporalBias.B): 201x126
@@ -178,8 +203,6 @@ function [fig, h] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, 
             for active_unit_B_index = 1:dim_2.num_valid_units
 
                 % Get current unit bias for each epoch:
-                 
-                
                 curr_pre = preTemporalBias.B(active_unit_A_index, active_unit_B_index);
                 curr_track = trackTemporalBias.B(active_unit_A_index, active_unit_B_index);
                 curr_post = postTemporalBias.B(active_unit_A_index, active_unit_B_index);
@@ -197,16 +220,34 @@ function [fig, h] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, 
             end % end for dim_2
     end % end for dim_1
 
-    [fig, h] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options);
+    [fig, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options, extantFigH);
 end
 
 
-function [fig, h] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options)
+function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options, extantFigH)
 % fnPlotTemporalBias: Plot the Temporal Bias results
     % Called only by fnBuildTemporalBiasPlot(...) above
-    %% Customize the plotting command to use (stem, plot, area, etc):
-    fig = figure(9);
-    clf;
+    % Customize the plotting command to use (stem, plot, area, etc):
+    
+    if ~exist('plotting_options','var')
+        plotting_options = struct();
+    end
+    
+    plotting_options = fnAddDefaultOptionalArgs({'figure_name', 'additional_title'}, ...
+        {'Untitled', ''}, ...
+        plotting_options);
+    
+    
+    % Either reuse ths specified figure or create a new figure
+    if ~exist('extantFigH','var') | isempty(extantFigH)
+        figH = createFigureWithNameIfNeeded(['Temporal Bias B Figure - ' plotting_options.figure_name]); % generate a new figure to plot the sessions.
+    else
+        figH = extantFigH; % use the existing provided figure    
+        figure(figH);
+    end
+    
+    clf(figH);
+    
     % scatter(temp.plot_pre_track_data.y, ...
     %      temp.plot_post_track_data.y, ...
     %     'filled')
@@ -243,5 +284,10 @@ function [fig, h] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_tra
     xlabel('Bias on track','Interpreter','none')
     ylabel('Bias in post_sleep','Interpreter','none')
 
-    sgtitle('Temporal Bias B')
+    if ~isempty(plotting_options.additional_title)
+        info.fig_title = sprintf('Temporal Bias B: %s', plotting_options.additional_title);
+    else
+        info.fig_title = 'Temporal Bias B';
+    end
+    sgtitle(info.fig_title,'Interpreter','none')
 end
