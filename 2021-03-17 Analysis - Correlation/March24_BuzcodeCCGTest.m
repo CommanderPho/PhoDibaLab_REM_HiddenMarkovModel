@@ -149,6 +149,8 @@ end
 
 ccg_results.all.ccg.aggregates.mean = squeeze(mean(ccg_results.by_behavioral_period.ccg.repaired, 1, 'omitnan'));
 
+[ccg_results.lag_offsets, ccg_results.nBins] = fnComputeCCGTimes(ccg_options.binSize, ccg_options.duration);
+
 
 
 
