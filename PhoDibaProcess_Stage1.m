@@ -121,7 +121,7 @@ for current_binning_index = 1:length(processing_config.step_sizes)
     
     % active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full: [num_of_behavioral_state_periods x num_unique_pairs x num_lag_steps] array
     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr_full = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs, pairwise_xcorrelations.num_lag_steps]);   
-%     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
+	%     active_results.by_behavioral_period.pairwise_xcorrelations.xcorr = zeros([num_of_behavioral_state_periods, general_results.indicies.num_unique_pairs]);   
     
     % Loop over behavioral periods
     for behavioral_period_index = 1:num_of_behavioral_state_periods

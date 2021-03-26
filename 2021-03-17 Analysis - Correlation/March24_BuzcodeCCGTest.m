@@ -98,7 +98,7 @@ for state_index = 1:temp.curr_num_of_behavioral_states
     
     
     % Do CCG Here too:
-    [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~, cell_conversion] = CCG(behavioral_epoch_spikes(:, state_index), [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
+    [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~, cell_conversion] = fnPhoCCG(behavioral_epoch_spikes(:, state_index), [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
     
     % [t x ngroups x ngroups] matrix where ccg(t,i,j) is the
 %           number (or rate) of events of group j at time lag t with  
