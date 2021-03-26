@@ -75,6 +75,24 @@ classdef Pho
         end
         
         
+        function [scriptText, scriptName] = getCurrentDocumentContents()
+           % Gets the contents of the current script/function as a multiline string
+           % get current active script and convert text to cell array of lines
+            % scriptText.raw: multiline string
+            % scriptText.lines: a cell array of lines
+            % scriptName: the filename of the current script
+            currentScript = matlab.desktop.editor.getActive;
+            scriptText.raw = currentScript.Text;
+            scriptText.lines = matlab.desktop.editor.textToLines(currentScript.Text);
+            
+            % get filename to update header template
+            scriptName = currentScript.Filename;
+           
+%             [parsed_fn] = fnParseMatlabScriptForFunctionDefinitions(matlabCodeText)
+            
+        end
+        
+        
     end
 end
 
