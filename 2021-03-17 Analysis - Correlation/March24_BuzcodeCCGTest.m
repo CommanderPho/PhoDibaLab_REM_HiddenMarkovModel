@@ -76,6 +76,9 @@ behavioral_epoch_spikes_flat = reshape(behavioral_epoch_spikes,[],1);
 
 unit_has_no_spikes = false(temp.curr_num_of_units, temp.curr_num_of_behavioral_states);
 
+% cell_conversion = zeros([ccg_options.duration, ccg_options.binSize]);
+
+
 %% /TEMP
 
 % Loop over behavioral activities
@@ -95,7 +98,7 @@ for state_index = 1:temp.curr_num_of_behavioral_states
     
     
     % Do CCG Here too:
-    [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~] = CCG(behavioral_epoch_spikes(:, state_index), [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
+    [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~, cell_conversion] = CCG(behavioral_epoch_spikes(:, state_index), [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
     
     % [t x ngroups x ngroups] matrix where ccg(t,i,j) is the
 %           number (or rate) of events of group j at time lag t with  
@@ -126,3 +129,26 @@ for state_index = 1:temp.curr_num_of_behavioral_states
 %     end
 
 end
+
+
+%% 
+% ccg_results.by_behavioral_period.ccg.raw: [668   201   126   126]
+%   ccg_results.by_behavioral_period.ccg.raw
+temp.isValidCCGResults = ~cellfun(@isempty, behavioral_epoch_spikes); %126x668
+% isempty(behavioral_epoch_spikes);
+
+
+ccg_results.by_behavioral_period.ccg.repaired = ccg_results.by_behavioral_period.ccg.raw;
+
+
+for i = 1:size(temp.isValidCCGResults, 1)
+    % Remove the bad entries:
+    ccg_results.by_behavioral_period.ccg.repaired(~temp.isValidCCGResults(i,:),:,i,i) = nan;
+end
+
+
+ccg_results.all.ccg.aggregates.mean = squeeze(mean(ccg_results.by_behavioral_period.ccg.repaired, 1, 'omitnan'));
+
+
+
+
