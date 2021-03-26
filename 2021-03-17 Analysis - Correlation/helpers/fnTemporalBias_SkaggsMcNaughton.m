@@ -1,4 +1,4 @@
-function [B, integration_info] = fnTemporalBias_SkaggsMcNaughton(lag_offsets, xcorr_input, integration_range)
+function [B, integration_info] = fnTemporalBias_SkaggsMcNaughton(lag_offsets, xcorr_input, integration_range, time_dimension_axis)
 %FNTEMPORALBIAS_SKAGGSMCNAUGHTON Temporal Bias "B" as defined in SkaggsMcNaughtonScience1996.pdf
 % 
 % measures the difference between the number of events in which a spike from cell i was followed within 200 ms by a spike from cell j and the
@@ -9,7 +9,12 @@ function [B, integration_info] = fnTemporalBias_SkaggsMcNaughton(lag_offsets, xc
 % lag_offsets: the mapping of the lag indicies to real values.
 % xcorr_input: a [num_units x num_units x lag_times] a matrix of cross-correlations X_ij(t).
 % integration_range: a 2x1 array where the first element is the time before zero to integrate over, and the second is the time after 0.
+% time_dimension_axis: which dimension/axis corresponds to the time dimension in the passed in xcorr_input
 
+if exist('time_dimension_axis','var')
+    % to go from [lag_times x num_units x num_units] to [num_units x num_units x lag_times]
+    xcorr_input = permute(xcorr_input, [2, 3, time_dimension_axis]);
+end
 
 %% Given a matrix of cross-correlations X_ij(t) provided as xcorr_input
 if ~exist('integration_range','var')

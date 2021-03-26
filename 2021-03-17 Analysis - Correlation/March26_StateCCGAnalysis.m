@@ -90,14 +90,26 @@ for i = 1:num_groups
 
     [analysisGroupResults.(temp.curr_group_name).temporalBias.B, analysisGroupResults.(temp.curr_group_name).temporalBias.integration_info] = fnTemporalBias_SkaggsMcNaughton(ccg_results.lag_offsets,...
             analysisGroupResults.(temp.curr_group_name).ccg.mean, ...
-            [-0.2, 0.2]); %201x126 double
+            [-0.2, 0.2],...
+            1); %201x126 double
     
     fprintf('%s: %d periods\n', temp.curr_group_name, analysisGroupResults.(temp.curr_group_name).num_behavioral_periods);
 end
 
-
 % analysisGroupResults.(temp.curr_group_name).ccg.mean: 201x126x126
 
+%% Plot the Temporal Bias information:
+
+% Unit Filtering:
+filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {'interneurons'};
+filter_config.filter_maximum_included_contamination_level = {2};
+[filter_config.filter_active_units, filter_config.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
+    filter_config.filter_maximum_included_contamination_level);
+fprintf('Filter: Including %d of %d total units\n', sum(filter_config.filter_active_units, 'all'), length(filter_config.filter_active_units));
+
+%% Build plotting options:
+plotting_options.filter_config = filter_config;
 % plotting_options.active_plot_cmd = @(ax,x,y) stem(ax, x, y);
 % plotting_options.active_plot_cmd = @(ax,x,y) plot(ax, x, y);
 plotting_options.active_plot_cmd = @(ax,x,y) scatter(ax, x, y, 'Marker','.','MarkerFaceColor','red');
@@ -108,6 +120,8 @@ plotting_options.active_plot_cmd = @(ax,x,y) scatter(ax, x, y, 'Marker','.','Mar
         plotting_options);
 
 
+    
+    
 function [is_period_included, numIncludedPeriods] = fnComputeAnalysisGroupIndexMask(active_processing, analysisGroups)
     %% fnComputeAnalysisGroupIndexMask: Takes a struct array of groups, which specify which epochs and states that should included, and returns the index mask for whether each of the behavioral periods should be included in that group.
     % analysisGroups: a struct array with fields 'included_epochs' and 'included_states', one entry for each group.
@@ -127,8 +141,20 @@ end
 
 
 function [fig, h] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, postTemporalBias, plotting_options)
-
     % preTemporalBias, trackTemporalBias, postTemporalBias: structs containing at least the field 'B' which contains the temporal bias matrix computed via fnTemporalBias_SkaggsMcNaughton
+
+    plotting_options.filter_config.filter_active_units
+    
+    if isfield(plotting_options, 'filter_config')
+        % Include all units if no filter
+        preTemporalBias.B = preTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units, :);
+        trackTemporalBias.B = trackTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units, :);
+        postTemporalBias.B = postTemporalBias.B(plotting_options.filter_config.filter_active_units, plotting_options.filter_config.filter_active_units, :);
+    end
+    
+    % size(analysisGroupResults.track_ALL.temporalBias.B): 201x126
+    
+    
     plot_pre_track_data.x = [];
     plot_pre_track_data.y = [];
 
@@ -138,12 +164,22 @@ function [fig, h] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporalBias, 
     dim_1.num_valid_units = size(preTemporalBias.B, 1);
     dim_2.num_valid_units = size(preTemporalBias.B, 2);
 
+%     if ~isfield(plotting_options, 'filter_config')
+%         % Include all units if no filter
+%         plotting_options.filter_config.filter_active_units = ones([dim_2.num_valid_units 1]);
+%     else
+%         
+%         dim_2.num_valid_units = sum(plotting_options.filter_config.filter_active_units, 'all');
+%     end
+    
+    
     for active_unit_A_index = 1:dim_1.num_valid_units
 
             for active_unit_B_index = 1:dim_2.num_valid_units
 
                 % Get current unit bias for each epoch:
-
+                 
+                
                 curr_pre = preTemporalBias.B(active_unit_A_index, active_unit_B_index);
                 curr_track = trackTemporalBias.B(active_unit_A_index, active_unit_B_index);
                 curr_post = postTemporalBias.B(active_unit_A_index, active_unit_B_index);
