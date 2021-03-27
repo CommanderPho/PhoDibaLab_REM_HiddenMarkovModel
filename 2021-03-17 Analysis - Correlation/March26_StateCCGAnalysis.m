@@ -27,6 +27,10 @@ analysisGroups(i).included_states = {'rem'};
 analysisGroups(i).name = 'pre_sleep_REM';
 i = i + 1;
 analysisGroups(i).included_epochs = {'pre_sleep'};
+analysisGroups(i).included_states = {'nrem'};
+analysisGroups(i).name = 'pre_sleep_NREM';
+i = i + 1;
+analysisGroups(i).included_epochs = {'pre_sleep'};
 analysisGroups(i).included_states = {'rem','nrem'};
 analysisGroups(i).name = 'pre_sleep_ALL';
 % i = i + 1;
@@ -40,6 +44,10 @@ i = i + 1;
 analysisGroups(i).included_epochs = {'post_sleep'};
 analysisGroups(i).included_states = {'rem'};
 analysisGroups(i).name = 'post_sleep_REM';
+i = i + 1;
+analysisGroups(i).included_epochs = {'post_sleep'};
+analysisGroups(i).included_states = {'nrem'};
+analysisGroups(i).name = 'post_sleep_NREM';
 i = i + 1;
 analysisGroups(i).included_epochs = {'post_sleep'};
 analysisGroups(i).included_states = {'rem','nrem'};
@@ -90,8 +98,8 @@ end
 
 % Unit Filtering:
 % filter_config.filter_included_cell_types = {};
-filter_config.filter_included_cell_types = {'pyramidal'};
-% filter_config.filter_included_cell_types = {'interneurons'};
+% filter_config.filter_included_cell_types = {'pyramidal'};
+filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 [filter_config.filter_active_units, filter_config.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
@@ -118,10 +126,17 @@ plotting_options = fnSetStructureFields({'figure_name', 'additional_title'}, ...
     
     
 %% REM Only Sleep:
-[temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
+% [temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
+%         analysisGroupResults.track_ALL.temporalBias, ...
+%         analysisGroupResults.post_sleep_REM.temporalBias, ...
+%         plotting_options);
+
+%% NREM Only Sleep:
+[temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_NREM.temporalBias, ...
         analysisGroupResults.track_ALL.temporalBias, ...
-        analysisGroupResults.post_sleep_REM.temporalBias, ...
+        analysisGroupResults.post_sleep_NREM.temporalBias, ...
         plotting_options);
+
     
 % %% All Sleep (REM and NREM):    
 % [temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_ALL.temporalBias, ...
