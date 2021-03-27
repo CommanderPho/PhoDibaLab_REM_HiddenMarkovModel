@@ -2,9 +2,6 @@
 %% Coming in with ccg_results.by_behavioral_period.ccg.repaired: [668   201   126   126]
 
 
-
-
-
 %% Get filter info for active units
 % [filter_config.filter_active_units, filter_config.filter_active_unit_original_indicies] = fnFilterUnitsWithCriteria(across_experiment_results{expt_index}.active_processing,...
 %     across_experiment_results{expt_index}.processing_config.showOnlyAlwaysStableCells,...
@@ -98,8 +95,8 @@ end
 
 % Unit Filtering:
 % filter_config.filter_included_cell_types = {};
-% filter_config.filter_included_cell_types = {'pyramidal'};
-filter_config.filter_included_cell_types = {'interneurons'};
+filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 [filter_config.filter_active_units, filter_config.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
@@ -125,17 +122,17 @@ plotting_options = fnSetStructureFields({'figure_name', 'additional_title'}, ...
         plotting_options);
     
     
-%% REM Only Sleep:
-% [temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
-%         analysisGroupResults.track_ALL.temporalBias, ...
-%         analysisGroupResults.post_sleep_REM.temporalBias, ...
-%         plotting_options);
-
-%% NREM Only Sleep:
-[temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_NREM.temporalBias, ...
+% REM Only Sleep:
+[temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_REM.temporalBias, ...
         analysisGroupResults.track_ALL.temporalBias, ...
-        analysisGroupResults.post_sleep_NREM.temporalBias, ...
+        analysisGroupResults.post_sleep_REM.temporalBias, ...
         plotting_options);
+
+% %% NREM Only Sleep:
+% [temp.fig, temp.h, temp.info] = fnBuildTemporalBiasPlot(analysisGroupResults.pre_sleep_NREM.temporalBias, ...
+%         analysisGroupResults.track_ALL.temporalBias, ...
+%         analysisGroupResults.post_sleep_NREM.temporalBias, ...
+%         plotting_options);
 
     
 % %% All Sleep (REM and NREM):    
@@ -229,6 +226,11 @@ function [fig, h, info] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporal
 
             end % end for dim_2
     end % end for dim_1
+    
+    %% Determine ranges:
+    plotting_options.lims.xrange = [min(plot_pre_track_data.x), max(plot_pre_track_data.x)];
+    plotting_options.lims.yrange = [min([plot_post_track_data.y, plot_pre_track_data.y]), max([plot_post_track_data.y, plot_pre_track_data.y])];
+    
 
     [fig, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options, extantFigH);
 end
@@ -274,6 +276,11 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     % daspect([1 1 1])
     % set(temp.plot_pre_track_data.ax,'DataAspectRatio',[1 1 1])
 
+    % Set the axis limits if they're specified:
+    if isfield(plotting_options, 'lims')
+       xlim(h.plot_pre_track_data.ax, plotting_options.lims.xrange);
+       ylim(h.plot_pre_track_data.ax, plotting_options.lims.yrange);
+    end
     xlabel('Bias on track','Interpreter','none')
     ylabel('Bias in pre_sleep','Interpreter','none')
 
@@ -290,7 +297,12 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     % axis equal
     % daspect([1 1 1])
     % set(temp.plot_post_track_data.ax,'DataAspectRatio',[1 1 1])
-
+    % Set the axis limits if they're specified:
+    if isfield(plotting_options, 'lims')
+       xlim(h.plot_pre_track_data.ax, plotting_options.lims.xrange);
+       ylim(h.plot_pre_track_data.ax, plotting_options.lims.yrange);
+    end
+    
     xlabel('Bias on track','Interpreter','none')
     ylabel('Bias in post_sleep','Interpreter','none')
 

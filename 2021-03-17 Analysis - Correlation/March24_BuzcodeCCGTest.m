@@ -107,27 +107,6 @@ for state_index = 1:temp.curr_num_of_behavioral_states
 
     fprintf('behavioral state progress: %d/%d\n', state_index, temp.curr_num_of_behavioral_states);
         
-%     temp.curr_state_start = active_processing.behavioral_periods_table.epoch_start_seconds(state_index);
-%     temp.curr_state_end = active_processing.behavioral_periods_table.epoch_end_seconds(state_index);
-%     temp.curr_state_type = active_processing.behavioral_periods_table.type(state_index);
-%     temp.curr_epoch_type = active_processing.behavioral_periods_table.behavioral_epoch(state_index);
-    
-%     temp.curr_state_spikes = cell(num_of_electrodes, 1);
-%     % Extract the spike train for each electrode
-%     for electrode_index = 1:num_of_electrodes
-%         % Convert spike times to relative to expt start and scale to seconds.
-%         temp.curr_electrode_spikes = active_processing.spikes.time{electrode_index};
-%         % Get the spike times that belong to this particular state.
-%         temp.curr_state_spikes_idx{electrode_index} = find((temp.curr_state_start < temp.curr_electrode_spikes) & (temp.curr_electrode_spikes < temp.curr_state_end));
-%         
-%         temp.curr_state_spikes{electrode_index} = temp.curr_electrode_spikes((temp.curr_state_start < temp.curr_electrode_spikes) & (temp.curr_electrode_spikes < temp.curr_state_end));
-%         
-%         temp.spikes_behavioral_states{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = temp.curr_state_type;
-%         temp.spikes_behavioral_epoch{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = temp.curr_epoch_type;
-%         
-%         active_processing.spikes.behavioral_duration_indicies{electrode_index}(temp.curr_state_spikes_idx{electrode_index}) = state_index;
-%     end
-
 end
 
 
