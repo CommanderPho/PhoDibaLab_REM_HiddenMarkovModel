@@ -94,8 +94,8 @@ end
 %% Plot the Temporal Bias information:
 
 % Unit Filtering:
-filter_config.filter_included_cell_types = {};
-% filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {};
+filter_config.filter_included_cell_types = {'pyramidal'};
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 [filter_config.filter_active_units, filter_config.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
@@ -204,6 +204,13 @@ function [fig, h, info] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporal
 %         dim_2.num_valid_units = sum(plotting_options.filter_config.filter_active_units, 'all');
 %     end
     
+
+%     [info.rho.plot_pre_track_data, info.p.plot_pre_track_data] = corr(trackTemporalBias.B, preTemporalBias.B, 'type', 'Spearman','Rows','complete')
+%     [info.rho.plot_post_track_data, info.p.plot_post_track_data] = corr(trackTemporalBias.B, postTemporalBias.B, 'type', 'Spearman','Rows','complete')
+%     
+%     plot_bias_delta_data.y = (plot_post_track_data.y - plot_pre_track_data.y);
+%     [info.rho.plot_bias_delta_data, info.p.plot_bias_delta_data] = corr(trackTemporalBias.B, plot_bias_delta_data.y, 'type', 'Spearman','Rows','complete')
+    
     
     for active_unit_A_index = 1:dim_1.num_valid_units
 
@@ -231,6 +238,14 @@ function [fig, h, info] = fnBuildTemporalBiasPlot(preTemporalBias, trackTemporal
     plotting_options.lims.xrange = [min(plot_pre_track_data.x), max(plot_pre_track_data.x)];
     plotting_options.lims.yrange = [min([plot_post_track_data.y, plot_pre_track_data.y]), max([plot_post_track_data.y, plot_pre_track_data.y])];
     
+%     [info.rho.plot_pre_track_data, info.p.plot_pre_track_data] = corr(plot_pre_track_data.x, plot_pre_track_data.y, 'type', 'Spearman','Rows','complete')
+%     [info.rho.plot_post_track_data, info.p.plot_post_track_data] = corr(plot_post_track_data.x, plot_post_track_data.y, 'type', 'Spearman','Rows','complete')
+% %     
+%     plot_bias_delta_data.y = (plot_post_track_data.y - plot_pre_track_data.y);
+%     [info.rho.plot_bias_delta_data, info.p.plot_bias_delta_data] = corr(plot_post_track_data.x, plot_bias_delta_data.y, 'type', 'Spearman','Rows','complete')
+    
+%     disp(info.rho);
+%     title('spearman \rho = %d', info.rho.plot_bias_delta_data)
 
     [fig, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_post_track_data, plotting_options, extantFigH);
 end
@@ -262,9 +277,13 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     clf(figH);
     
     
-    info.rho.plot_pre_track_data = corr(plot_pre_track_data.x, plot_pre_track_data.y, 'type', 'Spearman');
-    info.rho.plot_post_track_data = corr(plot_post_track_data.x, plot_post_track_data.y, 'type', 'Spearman');
+%     info.rho.plot_pre_track_data = corr(plot_pre_track_data.x, plot_pre_track_data.y, 'type', 'Spearman');
+%     info.rho.plot_post_track_data = corr(plot_post_track_data.x, plot_post_track_data.y, 'type', 'Spearman');
     
+    [info.rho.plot_pre_track_data, info.p.plot_pre_track_data] = corr(plot_pre_track_data.x', plot_pre_track_data.y', 'type', 'Spearman','Rows','complete');
+    [info.rho.plot_post_track_data, info.p.plot_post_track_data] = corr(plot_post_track_data.x', plot_post_track_data.y', 'type', 'Spearman','Rows','complete');
+    
+
     h.plot_pre_track_data.ax = subplot(num_subplot_rows,1,1);
 
     plotting_options.active_plot_cmd(h.plot_pre_track_data.ax, plot_pre_track_data.x', ...
@@ -310,15 +329,12 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     ylabel('Bias in post_sleep','Interpreter','none')
     title('spearman \rho = %d', info.rho.plot_post_track_data)
     
-    
-    
-    
     if num_subplot_rows > 2
         %% Change in Bias Subplot:
         h.plot_bias_delta_data.ax = subplot(num_subplot_rows,1,3);
 
         plot_bias_delta_data.y = (plot_post_track_data.y - plot_pre_track_data.y);
-        info.rho.plot_bias_delta_data = corr(plot_post_track_data.x, plot_bias_delta_data.y, 'type', 'Spearman');
+        [info.rho.plot_bias_delta_data, info.p.plot_bias_delta_data] = corr(plot_post_track_data.x', plot_bias_delta_data.y', 'type', 'Spearman');
         plotting_options.active_plot_cmd(h.plot_bias_delta_data.ax, plot_post_track_data.x, ...
             plot_bias_delta_data.y)
 

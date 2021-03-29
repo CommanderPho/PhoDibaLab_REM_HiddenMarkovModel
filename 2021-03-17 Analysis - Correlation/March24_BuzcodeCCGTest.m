@@ -5,14 +5,10 @@
 % [ccg, t] = CCG(active_processing.spikes.time, []);
 
 % Returns a 201x126x126 CCG
-
+addpath(genpath('helpers'));
 
 ccg_options.binSize = 0.01; % Seconds
 ccg_options.duration = 2; % Seconds
-
-
-
-
 
 %% Want the ccg for REM, NREM, etc to be the average of all ccg's for each behavioral substate. Not the concatenated values or anything.
 
@@ -72,30 +68,18 @@ behavioral_epoch_spikes_flat = reshape(behavioral_epoch_spikes,[],1);
 % [201, 3780, 3780]
 
 % Split back into the appropriate dimensions:
-
-
 unit_has_no_spikes = false(temp.curr_num_of_units, temp.curr_num_of_behavioral_states);
-
-% cell_conversion = zeros([ccg_options.duration, ccg_options.binSize]);
-
 
 %% /TEMP
 
 % Loop over behavioral activities
 for state_index = 1:temp.curr_num_of_behavioral_states
     
-%     cellfun(@(X,I) X(i), active_processing.spikes.time, active_processing.spikes.behavioral_duration_indicies(state_index) ==  ,'un',0)
-    
-    % Gets the matching indicies for this state:
-%     test = cellfun(@(I) (I == state_index), active_processing.spikes.behavioral_duration_indicies,'UniformOutput',false);
-
     % Returns the times only for the spikes that occur within this region:
     behavioral_epoch_spikes(:, state_index) = cellfun(@(X,I) X(I == state_index), active_processing.spikes.time, active_processing.spikes.behavioral_duration_indicies,'UniformOutput',false);
     
     % Find any units that have no spikes for this behavioral_epoch. This epoch will be excluded from analysis for those epochs then.
     unit_has_no_spikes(:, state_index) = cellfun(@isempty, behavioral_epoch_spikes(:, state_index)); 
-    
-    
     
     % Do CCG Here too:
     [ccg_results.by_behavioral_period.ccg.raw(state_index, :, :, :), ~, cell_conversion] = fnPhoCCG(behavioral_epoch_spikes(:, state_index), [], 'binSize', ccg_options.binSize, 'duration', ccg_options.duration);
