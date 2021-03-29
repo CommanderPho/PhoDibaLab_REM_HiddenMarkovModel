@@ -95,8 +95,8 @@ end
 
 % Unit Filtering:
 % filter_config.filter_included_cell_types = {};
-filter_config.filter_included_cell_types = {'pyramidal'};
-% filter_config.filter_included_cell_types = {'interneurons'};
+% filter_config.filter_included_cell_types = {'pyramidal'};
+filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 [filter_config.filter_active_units, filter_config.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, processing_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
@@ -276,14 +276,25 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     
     clf(figH);
     
-    
-%     info.rho.plot_pre_track_data = corr(plot_pre_track_data.x, plot_pre_track_data.y, 'type', 'Spearman');
-%     info.rho.plot_post_track_data = corr(plot_post_track_data.x, plot_post_track_data.y, 'type', 'Spearman');
-    
     [info.rho.plot_pre_track_data, info.p.plot_pre_track_data] = corr(plot_pre_track_data.x', plot_pre_track_data.y', 'type', 'Spearman','Rows','complete');
     [info.rho.plot_post_track_data, info.p.plot_post_track_data] = corr(plot_post_track_data.x', plot_post_track_data.y', 'type', 'Spearman','Rows','complete');
     
+%     %% Direct Pre vs. Post Plot:
+%     [info.rho.plot_pre_post_data, info.p.plot_pre_post_data] = corr(plot_pre_track_data.y', plot_post_track_data.y', 'type', 'Spearman','Rows','complete');
+%     
+%     h.plot_pre_post_data.ax = subplot(1,1,1);
+%     plotting_options.active_plot_cmd(h.plot_pre_post_data.ax, plot_pre_track_data.y', ...
+%          plot_post_track_data.y');
+%      
+%     h.plot_pre_post_data.ax.XAxisLocation = 'origin'; 
+%     h.plot_pre_post_data.ax.YAxisLocation = 'origin';
+%     xlabel('Bias on pre_sleep','Interpreter','none')
+%     ylabel('Bias in post_sleep','Interpreter','none')
+%     title('spearman \rho = %d', info.rho.plot_pre_post_data)
+    
+    
 
+    %% Conventional vs. Track plots:
     h.plot_pre_track_data.ax = subplot(num_subplot_rows,1,1);
 
     plotting_options.active_plot_cmd(h.plot_pre_track_data.ax, plot_pre_track_data.x', ...
@@ -307,9 +318,6 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     
     
     h.plot_post_track_data.ax = subplot(num_subplot_rows,1,2);
-    % scatter(reshape(active_results.by_epoch.track.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
-    %     reshape(active_results.by_epoch.post_sleep.pairwise_xcorrelations.temporalBias.B, 1,[]), ...
-    %     'filled')
 
     plotting_options.active_plot_cmd(h.plot_post_track_data.ax, plot_post_track_data.x, ...
         plot_post_track_data.y)
@@ -355,9 +363,7 @@ function [figH, h, info] = fnPerformPlotTemporalBias(plot_pre_track_data, plot_p
     end
     
     
-    
-    
-    
+    %% Build Figure Title:
     if ~isempty(plotting_options.additional_title)
         info.fig_title = sprintf('Temporal Bias B: %s', plotting_options.additional_title);
     else
