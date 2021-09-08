@@ -119,7 +119,7 @@ plotting_options.active_plot_cmd = @(ax,x,y) scatter(ax, x, y, 'Marker','.','Mar
 % Add the filter_descriptions strings to the plotting_options structure:
 plotting_options = fnSetStructureFields({'figure_name', 'additional_title'}, ...
         {sprintf('March 26 - %s', filter_descriptions.cells), filter_descriptions.cells}, ...
-        plotting_options);
+        plotting_options, true);
     
     
 % REM Only Sleep:

@@ -33,6 +33,13 @@ end
 %% Begin:
 fprintf('PhoDibaTest_PositionalAnalysis ready to process!\n');
 
+%% Binning Options:
+active_expt_index = 1;
+current_binning_index = 1;
+active_binning_resolution = across_experiment_results{active_expt_index}.processing_config.step_sizes{current_binning_index};
+
+
+
 % We have active_processing.position_table and active_processing.speed_table
 
 %% Computer displacements per timestep, velocities per timestep, etc.
@@ -51,14 +58,11 @@ positionalAnalysis.track_epoch.end = active_processing.behavioral_epochs.end_sec
 
 positionalAnalysis.plotting.filtering.use_focus_time = false; % If true, highlights the time range preceeding the focus time.
 
+active_step_sizes
+
 positionalAnalysis.plotting.filtering.previous_path_duration = 100 / active_binning_resolution; % Show 100 timesteps prior to the filter time
 positionalAnalysis.plotting.filtering.focus_time = positionalAnalysis.track_epoch.begin + positionalAnalysis.plotting.filtering.previous_path_duration; % The end time to show
 positionalAnalysis.plotting.filtering.initial_focus_time = positionalAnalysis.plotting.filtering.focus_time - positionalAnalysis.plotting.filtering.previous_path_duration;
-
-
-
-
-
 
 % Filter the timestamps where the animal was on the track:
 positionalAnalysis.track_indicies = ((positionalAnalysis.track_epoch.begin < active_processing.position_table.timestamp) & (active_processing.position_table.timestamp < positionalAnalysis.track_epoch.end));
@@ -66,10 +70,7 @@ positionalAnalysis.track_indicies = ((positionalAnalysis.track_epoch.begin < act
 [positionalAnalysis.plotting.bounds.x(1), positionalAnalysis.plotting.bounds.x(2)] = bounds(active_processing.position_table.x);
 [positionalAnalysis.plotting.bounds.y(1), positionalAnalysis.plotting.bounds.y(2)] = bounds(active_processing.position_table.y);
 
-
-
-plot(positionalAnalysis.displacement.velocity(positionalAnalysis.track_indicies));
-
+plot(positionalAnalysis.displacement.speeds(positionalAnalysis.track_indicies));
 
 if positionalAnalysis.plotting.filtering.use_focus_time
     % Build the focused indicies 
@@ -107,13 +108,6 @@ else
     positionalAnalysis.plotting.colorMap = linspace(1, 10, positionalAnalysis.plotting.num_location_points);
     
 end
-
-
-
-
-
-
-
 
 positionalAnalysis.plotting.h = scatter(active_processing.position_table.x(positionalAnalysis.plotting.active_indicies)', active_processing.position_table.y(positionalAnalysis.plotting.active_indicies)',...
     10,...
