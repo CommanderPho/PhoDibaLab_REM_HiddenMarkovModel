@@ -10,10 +10,6 @@ if ~exist('data_config','var')
     Config;
 end
 
-
-
-
-
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
     if exist('across_experiment_results','var')
         % Call the LoadFromMultiExperimentResults to load the single-experiment-style variables (active_processing, results_array, ...)
