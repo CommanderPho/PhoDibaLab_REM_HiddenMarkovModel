@@ -1,7 +1,5 @@
 function linearPos = linearizePosition2(fileinfo, behavior, mazeShape)
 
-
-
 time = fileinfo.xyt(:, 3);
 xpos = fileinfo.xyt(:, 1);
 ypos = fileinfo.xyt(:, 2);
@@ -14,7 +12,6 @@ xpos = xpos(runIdx);
 ypos = ypos(runIdx);
 
 nTimeBins = length(xpos);
-
 
 runLinearPos = nan(nTimeBins, 1);
 

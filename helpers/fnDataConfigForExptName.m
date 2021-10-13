@@ -11,7 +11,8 @@ function [data_config, processing_config, plotting_options] = fnDataConfigForExp
     end
 
 	if ~exist('active_root_path', 'var')
-		active_root_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+% 		active_root_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+        active_root_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
 	end
     
     % Process one of the experiments: 

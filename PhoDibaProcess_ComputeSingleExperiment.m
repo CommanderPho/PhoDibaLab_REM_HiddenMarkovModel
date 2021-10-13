@@ -11,7 +11,7 @@ temp.possibleRootPaths = {'/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataPro
 temp.possibleExperiments = {'RoyMaze1',	'RoyMaze2',	'RoyMaze3',	'TedMaze1',	'TedMaze2',	'TedMaze3',	'KevinMaze1'};
 
 % active_expt_name = 'TedMaze3';
-active_expt_name = 'RoyMaze3';
+active_expt_name = 'TedMaze1';
 % % auxillary pink rMBP:
 % active_root_path = temp.possibleRootPaths{1};
 % main rMBP:

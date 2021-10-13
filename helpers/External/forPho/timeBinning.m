@@ -23,9 +23,15 @@ Binnedfiring = cell(noEvents, length(binSizes));
 
 noFiringUnits = zeros(noEvents, 1);
 
+static_isSpikeMember = ismember(spike.qclu , qclus);
+
 for evt = 1:noEvents
     
-    spikeInd   = find(spike.t >= eventBeg(evt) & spike.t < eventEnd(evt) & ismember(spike.qclu , qclus));
+%     spikeInd   = find(spike.t >= eventBeg(evt) & spike.t < eventEnd(evt) & ismember(spike.qclu , qclus));
+    spikeInd   = find(spike.t >= eventBeg(evt) & spike.t < eventEnd(evt) & static_isSpikeMember);
+    
+    
+    
     spikeTimes = spike.t(spikeInd);
     spikeUnit  = spike.unit(spikeInd);
     

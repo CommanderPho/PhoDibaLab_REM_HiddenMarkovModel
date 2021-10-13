@@ -1,6 +1,18 @@
 function [laps, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, FileBase)
 
-
+% speed: struct
+    %% t: 3243057x1
+    %% v: 3243057x1
+% direction: string, specificies the directionality
+   % values: {'bi', 'uni'}
+% FileBase: string, file base path
+   % 
+   
+   
+   
+%% Outputs:
+% laps
+% turningPeriods
 %% position and speed data
 
 linearPos = fileinfo.xyt2(:, 1);
