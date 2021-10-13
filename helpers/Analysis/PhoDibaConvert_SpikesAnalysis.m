@@ -98,6 +98,9 @@ PhoDibaTest_PositionalAnalysis_temp.spike_cells = cellfun(@(cell_idx) [(cell_idx
     PhoDibaTest_PositionalAnalysis_temp.cell_indicies, ...
     'UniformOutput', false);
 
+% [includedCellIDs, unitSpikeCells, unitFlatIndicies] = fnFlatSpikesToUnitCells(spikeStruct.t, spikeStruct.unit, true);
+% cellfun(@(x) spikeStruct.ripple(find(x)), unitFlatIndicies, 'UniformOutput', false)
+
 
 % Save out positionalAnalysis data for Python:
 export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
