@@ -12,9 +12,13 @@ filter_config.filter_maximum_included_contamination_level = {2};
 
 plotting_options.window_duration = 10; % 10 seconds
 
-
-temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
-temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
+if exist('across_experiment_results','var')
+    temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
+    temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
+else
+    temp.curr_timesteps_array = timesteps_array;  
+    temp.curr_active_processing = active_processing;
+end
 
 % define cell type ({'pyramidal', 'contaminated', 'interneurons'}) colors: 
 if ~isfield(temp.curr_active_processing.definitions.speculated_unit_info, 'classColors')
@@ -48,51 +52,55 @@ curr_i = 1;
 scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
 
 %% Add Blurred Spike Overlays:
-numBlurredSpikeOutputs = length(unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.max = cellfun(@max, unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.min = cellfun(@min, unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatistics.blurredStats.min;
+if exist('unitStatistics','var')
+    numBlurredSpikeOutputs = length(unitStatistics.blurredSpikeOutputs);
+    unitStatistics.blurredStats.max = cellfun(@max, unitStatistics.blurredSpikeOutputs);
+    unitStatistics.blurredStats.min = cellfun(@min, unitStatistics.blurredSpikeOutputs);
+    unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatistics.blurredStats.min;
 
-%% Axes:
+    %% Axes:
 
-% temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
-temp.currRasterAxisPosition = scrollHandles.ParentAxesHandle.Position;
-% Subdivide its height into equal rectangles
-temp.currNumOfHeightSubdivisions = length(plotting_options.trialSelection.TrialBackgroundRects.pos);
+    % temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
+    temp.currRasterAxisPosition = scrollHandles.ParentAxesHandle.Position;
+    % Subdivide its height into equal rectangles
+    temp.currNumOfHeightSubdivisions = length(plotting_options.trialSelection.TrialBackgroundRects.pos);
 
-temp.subplotHeight = (temp.currRasterAxisPosition(3)-0.12) ./ temp.currNumOfHeightSubdivisions;
-% Get the subplot's y-offset for each subplot:
+    temp.subplotHeight = (temp.currRasterAxisPosition(3)-0.12) ./ temp.currNumOfHeightSubdivisions;
+    % Get the subplot's y-offset for each subplot:
 
 
 
-hold on;
-for i = 1:numBlurredSpikeOutputs
-%     ax(i) = subplot(numBlurredSpikeOutputs,1,i);
-    % Need to convert to parent-space:
-    
-    currSubplotPositionRect = temp.currRasterAxisPosition;
-    currSubplotPositionRect(4) = temp.subplotHeight; % Set to the common height
-    currSubplotPositionRect(2) = temp.currRasterAxisPosition(2) + ((i-1) * temp.subplotHeight);
-    
-    %% Reversed Y-axis:
-%     currSubplotPositionRect(2) = temp.currRasterAxisPosition(3) - currSubplotPositionRect(2);
-    
-%     [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
-    ax(i) = axes('Position', currSubplotPositionRect,'Color','none');
-    % Normalize the blurredSpikeOutputs down to unit height for plotting:
-    h(i) = plot(ax(i), seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
-    ax(i).Color = 'none';
-    xlabel(ax(i), [])
-    xticks(ax(i), [])
-    box off
-    yticks(ax(i), [])
-    ylabel(ax(i),'')
-end
+    hold on;
+    for i = 1:numBlurredSpikeOutputs
+    %     ax(i) = subplot(numBlurredSpikeOutputs,1,i);
+        % Need to convert to parent-space:
 
-%% Set the current window to the specified range:
-% xlim(ax, xlim(scrollHandles.ParentAxesHandle))
-linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
+        currSubplotPositionRect = temp.currRasterAxisPosition;
+        currSubplotPositionRect(4) = temp.subplotHeight; % Set to the common height
+        currSubplotPositionRect(2) = temp.currRasterAxisPosition(2) + ((i-1) * temp.subplotHeight);
 
+        %% Reversed Y-axis:
+    %     currSubplotPositionRect(2) = temp.currRasterAxisPosition(3) - currSubplotPositionRect(2);
+
+    %     [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
+        ax(i) = axes('Position', currSubplotPositionRect,'Color','none');
+        % Normalize the blurredSpikeOutputs down to unit height for plotting:
+        h(i) = plot(ax(i), seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
+        ax(i).Color = 'none';
+        xlabel(ax(i), [])
+        xticks(ax(i), [])
+        box off
+        yticks(ax(i), [])
+        ylabel(ax(i),'')
+    end
+
+    %% Set the current window to the specified range:
+    % xlim(ax, xlim(scrollHandles.ParentAxesHandle))
+    linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
+
+else
+    warning('unitStatistics variable does not exist, so cannot overlay the blurred spike outputs. Continuing.')
+end % end if exist('unitStatistics','var')
 
 %% INFO:
 % Can get scroll handles (the blue adjustment handle positions) using
@@ -253,10 +261,10 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     temp.statemap_pos(4) = 0.05;
     
     stateMapHandle = [];
-%     subplot('Position', temp.statemap_pos);
-%     [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
-%     
-%     % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
-%     linkaxes([ax stateMapHandle],'x'); 
+    subplot('Position', temp.statemap_pos);
+    [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
+    
+    % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
+    linkaxes([ax stateMapHandle],'x'); 
     
 end

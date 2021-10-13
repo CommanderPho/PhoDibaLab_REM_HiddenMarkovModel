@@ -1,5 +1,5 @@
 function [is_unit_included, original_unit_index] = fnFilterUnitsWithCriteria(active_processing, showOnlyAlwaysStableCells, included_cell_types, maximum_included_contamination_level)
-%fnFilterUnitsWithCriteria Summary of this function goes here
+%fnFilterUnitsWithCriteria Filters Units (proported neurons) based on their stability, suspected type, and other parameters.
 % showOnlyAlwaysStableCells: if true, returns only the cells that are stable across all three behavioral epochs.
 % included_cell_types: a cell array of cell types to include.
     % e.g. {'pyramidal', 'interneurons'}

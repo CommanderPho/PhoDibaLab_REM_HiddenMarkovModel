@@ -32,7 +32,6 @@ fprintf('PhoDibaTest_seqNMF ready to process!\n');
 
 plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
 
-
 current_binning_index = 1;
 active_binning_resolution = processing_config.step_sizes{current_binning_index};
 temp.curr_timestamps = timesteps_array{current_binning_index};
