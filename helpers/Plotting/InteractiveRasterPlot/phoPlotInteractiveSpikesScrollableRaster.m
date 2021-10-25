@@ -119,10 +119,8 @@ plotting_options.trialSelection.RectangleProperties.selected.EdgeColor = [0.00,1
 plotting_options.trialSelection.RectangleProperties.selected.LineStyle = '-.';
 plotting_options.trialSelection.RectangleProperties.selected.LineWidth = 2;
 
-
 % Set the actual background rectangle properties for access in the phoSelectionAnnotations(...) functions:
 plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.TrialBackgroundRects;
-
 
 %% Annotations Testing:
 % [test_annotations] = testAnnotations_phoTrialRectangles();
@@ -138,7 +136,6 @@ plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.
 
 % enable interactive section selection
 % phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
-
 
 function [annotations] = testAnnotations_phoTrialRectangles()
     %% testAnnotations_phoTrialRectangles: build test annotations
@@ -167,7 +164,6 @@ end
 %   mat. data file;
 % - Press "End" key in order to close the interactive section selection
 %   regime.
-
 
 
 % %% Testing for figure sizing:
@@ -216,7 +212,6 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     
     % Can specify line colors here, default is black ('k'):
     plotting_options.spikeLinesFormat.Color = 'k';
-
 
     [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
         'TrialBackgroundColors', plotting_options.unitBackgroundColors, ...
