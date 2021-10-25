@@ -12,9 +12,17 @@ filter_config.filter_maximum_included_contamination_level = {2};
 
 plotting_options.window_duration = 10; % 10 seconds
 
+if exist('across_experiment_results','var')
+    temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
+    temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
+% elseif exist('spikeStruct','var')
+%     temp.curr_timesteps_array = spikeStruct.t;  
+%     temp.curr_active_processing = active_processing;
 
-temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
-temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
+else
+    temp.curr_timesteps_array = timesteps_array;  
+    temp.curr_active_processing = active_processing;
+end
 
 % define cell type ({'pyramidal', 'contaminated', 'interneurons'}) colors: 
 if ~isfield(temp.curr_active_processing.definitions.speculated_unit_info, 'classColors')
@@ -43,56 +51,22 @@ extantFigH = figure(12);
 curr_i = 1;
 [extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 
+[t, t_rel, x, y, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
+[~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t_rel), ...
+    {linearPos}, ...
+    currPlotHandles.axesHandle, currPlotHandles, ...
+    plot_outputs.other_subplots_rect);
+
 
 %% Build the scrollable interaction bar that sits below the main raster plot:
 scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
 
 %% Add Blurred Spike Overlays:
-numBlurredSpikeOutputs = length(unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.max = cellfun(@max, unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.min = cellfun(@min, unitStatistics.blurredSpikeOutputs);
-unitStatistics.blurredStats.range = unitStatistics.blurredStats.max - unitStatistics.blurredStats.min;
-
-%% Axes:
-
-% temp.currRasterAxisPosition = currPlotHandles.axesHandle.Position;
-temp.currRasterAxisPosition = scrollHandles.ParentAxesHandle.Position;
-% Subdivide its height into equal rectangles
-temp.currNumOfHeightSubdivisions = length(plotting_options.trialSelection.TrialBackgroundRects.pos);
-
-temp.subplotHeight = (temp.currRasterAxisPosition(3)-0.12) ./ temp.currNumOfHeightSubdivisions;
-% Get the subplot's y-offset for each subplot:
-
-
-
-hold on;
-for i = 1:numBlurredSpikeOutputs
-%     ax(i) = subplot(numBlurredSpikeOutputs,1,i);
-    % Need to convert to parent-space:
-    
-    currSubplotPositionRect = temp.currRasterAxisPosition;
-    currSubplotPositionRect(4) = temp.subplotHeight; % Set to the common height
-    currSubplotPositionRect(2) = temp.currRasterAxisPosition(2) + ((i-1) * temp.subplotHeight);
-    
-    %% Reversed Y-axis:
-%     currSubplotPositionRect(2) = temp.currRasterAxisPosition(3) - currSubplotPositionRect(2);
-    
-%     [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
-    ax(i) = axes('Position', currSubplotPositionRect,'Color','none');
-    % Normalize the blurredSpikeOutputs down to unit height for plotting:
-    h(i) = plot(ax(i), seconds(temp.curr_timesteps_array{2}), (unitStatistics.blurredSpikeOutputs{i} ./ unitStatistics.blurredStats.range(i)));
-    ax(i).Color = 'none';
-    xlabel(ax(i), [])
-    xticks(ax(i), [])
-    box off
-    yticks(ax(i), [])
-    ylabel(ax(i),'')
-end
-
-%% Set the current window to the specified range:
-% xlim(ax, xlim(scrollHandles.ParentAxesHandle))
-linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
-
+if exist('unitStatistics','var')
+    phoPlotInteractiveRasterExtras.addBlurredSpikeOverlays(unitSpikeCells, scrollHandles, currPlotHandles, plotting_options);
+else
+    warning('unitStatistics variable does not exist, so cannot overlay the blurred spike outputs. Continuing.')
+end % end if exist('unitStatistics','var')
 
 %% INFO:
 % Can get scroll handles (the blue adjustment handle positions) using
@@ -213,7 +187,10 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     % Can specify line colors here, default is black ('k'):
     plotting_options.spikeLinesFormat.Color = 'k';
 
-    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units),'PlotType','vertline','rasterWindowOffset', curr_rasterWindowOffset,'XLimForCell', curr_window, ...
+    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units), ...
+        'PlotType','vertline', ...
+        'rasterWindowOffset', curr_rasterWindowOffset, ...
+        'XLimForCell', curr_window, ...
         'TrialBackgroundColors', plotting_options.unitBackgroundColors, ...
         'LineFormat', plotting_options.spikeLinesFormat);
 
@@ -233,25 +210,34 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
 %     ax.YMinorGrid = 'on';
     yticks(ax, 1:temp.num_active_units);
     
-    %% Add the state_map:
-    state_statemapPlottingOptions.orientation = 'horizontal';
-    state_statemapPlottingOptions.plot_variable = 'behavioral_state';
-    state_statemapPlottingOptions.vertical_state_mode = 'combined';
-    state_statemapPlottingOptions.x_axis = 'timestamp'; % Timestamp-appropriate relative bins
+    [plot_outputs.subplots_rect] = phoPlotInteractiveRasterExtras.reallocateForAddingSubplots(ax, 0.10);
+
+    plot_outputs.state_subplots_rect = plot_outputs.subplots_rect;
+    plot_outputs.other_subplots_rect = plot_outputs.subplots_rect;
     
-    % Get the position of the main raster plot axes:
-    temp.updated_main_axes_pos = ax.Position;    
+    plot_outputs.state_subplots_rect(4) = plot_outputs.subplots_rect(4) * 0.5;
+    plot_outputs.other_subplots_rect(4) = plot_outputs.subplots_rect(4) * 0.5;
     
-    %% Puts Above the main raster plot box:
-    temp.statemap_pos = temp.updated_main_axes_pos;
-    temp.statemap_pos(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
-    temp.statemap_pos(4) = 0.05;
-    
-    stateMapHandle = [];
-%     subplot('Position', temp.statemap_pos);
-%     [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
-%     
-%     % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
-%     linkaxes([ax stateMapHandle],'x'); 
-    
+    plot_outputs.state_subplots_rect(2) = plot_outputs.state_subplots_rect(2) + plot_outputs.other_subplots_rect(4); % Shift up the state subplot rect above the other one
+
+    %% Add the state_map above the raster plot:
+    [stateMapHandle] = phoPlotInteractiveRasterExtras.addStateMapSubplot(active_processing, ax, plot_outputs.state_subplots_rect);
+%     stateMapHandle = [];
+    % Add extra interface elements
+%     [extraControlsPanel] = phoPlotInteractiveRasterExtras.addExtraControls(plotted_figH, rasterPlotHandles.axesHandle);
+
+%     [linearPos, unitSpikeLaps, unitIsRippleSpike] = phoPlotInteractiveRasterExtras.processSpikeStructExtendedExtras(spikeStruct)
+
+%     [t, ~, ~, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
+%     [~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t), ...
+%         {linearPos}, ...
+%         ax, rasterPlotHandles, ...
+%         plot_outputs.other_subplots_rect);
+
+%     [~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(active_processing.position_table.timestamp), ...
+% %         {active_processing.position_table.x, active_processing.position_table.y}, ...
+%         {active_processing.position_table., active_processing.position_table.y}, ...
+%         ax, rasterPlotHandles, ...
+%         other_subplots_rect);
+
 end

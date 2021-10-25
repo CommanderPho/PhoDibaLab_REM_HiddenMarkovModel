@@ -10,13 +10,16 @@ if ~exist('data_config','var')
     Config;
 end
 
-
-
-
-
 if ~exist('active_processing','var') %TEMP: cache the loaded data to rapidly prototype the script
-    fprintf('loading data from %s...\n', data_config.output.intermediate_file_paths{2});
-    load(data_config.output.intermediate_file_paths{2}, 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');
+    if exist('across_experiment_results','var')
+        % Call the LoadFromMultiExperimentResults to load the single-experiment-style variables (active_processing, results_array, ...)
+        fprintf('loading multi-experiment results data into single-experiment-style variables...\n'); 
+        LoadFromMultiExperimentResults;
+    else
+        % No multi-experiment results loaded either, just load from the intermediate results file:
+        fprintf('loading data from %s...\n', data_config.output.intermediate_file_paths{2}); 
+        load(data_config.output.intermediate_file_paths{2}, 'active_processing', 'processing_config', 'num_of_electrodes', 'source_data', 'timesteps_array');  
+    end
     fprintf('done.\n');
 else
     fprintf('active_processing already exists in workspace. Using extant data.\n');
