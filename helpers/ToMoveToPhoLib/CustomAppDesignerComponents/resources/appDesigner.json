@@ -1,0 +1,23 @@
+{
+  "components": [
+    {
+      "className": "cmpColorSelector",
+      "componentName": "cmpColorSelector",
+      "description": "UI component to select colors",
+      "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsSAAALEgHS3X78AAABGUlEQVRIiWNsaGj4z0ACqK+vZwSp7ujouPPz509lbDrZ2dnvVlRUqIDYLAwQTUTZsHz5cjgbZDgufY2NjXCLWWAMR0cnnAbv378Pq/i3b98IOgpuAS5DcAFQMHR3d+MMIpJ8gM0BsDCmmQ9IimQGMuKA5Egm1QcMpEYyqXFALBgcqQib5TRPRcQCiuKA1bUVazn2e3c1I9V80NWRicIvq5iOwmdRU1NDKcSoDVgiIyMZaWY6AwMDEy0NBwHG9vZ2nGUKCCCXKyCgWMaJNWIrV//Bqp8FX5kCAsjlCgy0Fbeh8Kt6q8B0SOsUFPE11TmQVERMmUIuoHkc0NwCFnyFFgggF1wwAAtzdAAKc3TA+P8/Sa0W0gADAwMAacOCsonAW8UAAAAASUVORK5CYII=",
+      "category": "PhoComponents",
+      "authorName": "Pho Hale",
+      "authorEmail": "PhoHale@umich.edu",
+      "version": "1.0",
+      "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAAB3RJTUUH5QoZFSsPEd6hRgAABCtJREFUeJzt2ctrE2scxvFfZpIYk/Q2KiFxoTspYsEDZpNC7GnFCgVdmMXp1oW6kSL4B+jOXRFBihux4kJ33dhFoB4oEY5Qi0KroFaQWrQ1k0abazPjIr2IJyeZJyeTqnk+m76Z933b4ctkmosjlUoJWaPs9An8SpzlH/+Mju7sedgkPDKyNU6n0y8TiSVdzym1LxGPYYQ0rTsS8fv9WwedW6M/nj1r7InuuJmjR7fG6cXF6cnJvomJSCbjzedr7s14vau7dk0tLkYHB/2hUPngdqw2p/M/Nv7y0un09OTkXzdvyqdPkstJqVRzi1dVvR7P8Pv39x2OaCxWvr5a4p71MpHoe/hQFhZkbc1KKRGRUknW1uTt2+MPHsxPT5ePtUSsJV1vf/euvr2dCwtLul4et0SsnKJ4l5fr2+tdWclu/kOw4T7lcrlHRwuXLv37gleHhpSBAYfTWXr6tHTv3g8Lqs/+XxV/m6LInj1SveP6+vbyRp5QZ6c6POy6fl0CgQonFg4r/f3Fa9cKV6449u9Xz5yxPmuLnh65elVOn5YDByzuaGisfN6Ym1u/e7fyXzp2zHj8WJJJyWZLjx4p4bD1WVucOCHxuKRSMjQkHo+VHQ2Nlc2as7Pm7GzFSUdXl/n588aDZNLR1WV91hbLy+LzyYcP8uaNnDtnZUcTb/CqKoaxMS6VRFWBWTuMj8uhQ7Jvn3z9Kq9fSyxWc0fzYpnForhcGw9cLikWrc/ac0KmjI/L3r0SConTKfm81HruN/HKSiYdmzd+RyCw/aSzMmuTlRWZn5d8XopF8fkkFhOfr8ry5sUynj9Xo1Fxu0VR1IEB48UL67M2SiRE00RRJJ+XsTHp6amytomxnjwxXr1y377tHhsTt7s0MWF91l537sipUzIzI5cvy+HDVRba8ua5cPZshaOmuX7jhrjd4nRKJoPN2so0ZWRE+vvl4EHJ5aosbPonDYWCFAp1ztrHNCUel3hc2tqqrGqJ94Yew8i0t1ta+uXLDwcyHR27N1/TtESskKatBoP17dWDwZCmlcctEas7Epm6cKG+vVPnz3f39pbHv+2no9/z+/3RwcH7Isdv3er8+NG7ulpzS6ajQw8Epi5e7Dt50rf54ms71t9Hjth1sj8BfzAYjcXmgsElXc9a+MJit2GENO3P3l7fdy9THfze0LqWuGc1CmMBGAvAWADGAjAWgLEAjAVgLABjARgLwFgAxgIwFoCxAIwFYCwAYwEYC8BYAMYCMBaAsQCMBWAsAGMBGAvAWADGAjAWgLEAjAVgLABjARgLwFgAxgIwFoCxAIwFYCwAYwEYC8BYAMYCMBaAsQCMBWAsAGMBGAvAWADGAjAWgLEAjAVgLABjARgLwFgAxgIwFoCxAIwFYCwAYwEYC8BYAMYCMBaAsQCMBWAsAGMBGAvwDfMlXFH9vYQCAAAAAElFTkSuQmCC",
+      "defaultPosition": [
+        1,
+        1,
+        100,
+        100
+      ]
+    }
+  ],
+  "schema": 2,
+  "MATLABRelease": "R2021b"
+}
