@@ -1,14 +1,15 @@
 function [spikesTable] = fnAddRippleIdentifiersToSpikesTable(spikesTable, rippleStartTimes, rippleEndTimes)
 % fnAddRippleIdentifiersToSpikesTable: From a table containing the spike data for each unit and two vectors of ripple event start/end times, determines whether each spike occurs during a ripple, and if so, what ripple index it belongs to. It adds these two columns to the existing spikesTable. 
+% TODO: This is a suboptimal/inefficient implementation
 
 %% Usage Example:
-ripples_time_mat = source_data.ripple.RoyMaze1.time;
-ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
-startTimes = ripples_time_mat(:,1);
-endTimes = ripples_time_mat(:,2);
+% ripples_time_mat = source_data.ripple.RoyMaze1.time;
+% ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
+% startTimes = ripples_time_mat(:,1);
+% endTimes = ripples_time_mat(:,2);
 % [active_processing.spikes] = fnAddRippleIdentifiersToSpikesTable(active_processing.spikes, startTimes, endTimes);
-% Save changes back out to the file we loaded from:
-% save('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1.mat','active_processing','-append')
+% % Save changes back out to the file we loaded from:
+% % save('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1.mat','active_processing','-append')
 
 
 %% Inputs:
