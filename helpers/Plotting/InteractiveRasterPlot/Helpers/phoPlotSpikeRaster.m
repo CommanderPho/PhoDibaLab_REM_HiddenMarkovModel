@@ -1,4 +1,4 @@
-function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes,varargin)
+function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, varargin)
 	% phoPlotSpikeRaster Create raster plot from binary spike data or spike times
 	%   Efficiently creates raster plots with formatting support. Faster than
 	%   common implementations. Multiple plot types and parameters available!

@@ -51,6 +51,7 @@ extantFigH = figure(12);
 curr_i = 1;
 [extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 
+%% Add Position Curves if possible:
 if exist('fileinfo','var')
     [t, t_rel, x, y, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
     [~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t_rel), ...
@@ -61,10 +62,26 @@ else
     fprintf('variable "fileinfo" does not exist, skipping plots of position data\n');
 end
 
+
+%% Add Ripple Periods if possible:
+if exist('source_data','var')
+    % t_rel is aligned with the timestamps in the active_processing.position_table's timestamp column
+    ripples_time_mat = source_data.ripple.RoyMaze1.time;
+    warning('RoyMaze1 is hardcoded for ripple periods!')
+%     ripples_time_mat = seconds((ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6); % Convert to relative timestamps since start
+    ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
+
+    [~] = phoPlotInteractiveRasterExtras.addRipplePeriodsSubplot(ripples_time_mat, ...
+        currPlotHandles.axesHandle);
+else
+    fprintf('variable "source_data" does not exist, skipping plots of position data\n');
+end
+
+
 %% Build the scrollable interaction bar that sits below the main raster plot:
 scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
 
-%% Add Blurred Spike Overlays:
+%% Add Blurred Spike Overlays if possible:
 if exist('unitStatistics','var')
     phoPlotInteractiveRasterExtras.addBlurredSpikeOverlays(unitSpikeCells, scrollHandles, currPlotHandles, plotting_options);
 else

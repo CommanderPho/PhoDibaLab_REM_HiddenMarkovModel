@@ -154,7 +154,7 @@ classdef phoPlotInteractiveRasterExtras
             
             stateMapHandle = [];
             subplot('Position', temp.statemap_pos);
-            [stateMapHandle] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
+            [stateMapHandle, rectangle_handles] = fnPlotStateDiagram(active_processing, state_statemapPlottingOptions);
             
             % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
             linkaxes([mainRasterPlotAx stateMapHandle],'x'); 
@@ -258,8 +258,36 @@ classdef phoPlotInteractiveRasterExtras
             linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
         end
 
+        function [ripplePeriodsHandle] = addRipplePeriodsSubplot(ripples_time_mat, mainRasterPlotAx)
+            % ripples_time_mat: ripples_time_mat = evalin("caller", 'source_data.ripple.RoyMaze1.time');
+            % positionRectangle: the frame where the subplot will be rendered.
 
-        function [ax, h] = addPeriodOverlays(startTimes, endTimes, color)
+            % Extract the required variables for addPeriodOverlays(...):
+            start_times = ripples_time_mat(:,1);
+            end_times = ripples_time_mat(:,2);
+            period_identity = ones(size(end_times));
+            color = [0 0 1];
+            name = 'ripples';
+
+            % Get the position of the main raster plot axes:
+           temp.updated_main_axes_pos = mainRasterPlotAx.Position;    
+                
+           %% Puts Overlaying the main raster plot box:
+           temp.ripplesMap_pos = temp.updated_main_axes_pos;
+            
+            ripplePeriodsHandle = [];
+            subplot('Position', temp.ripplesMap_pos);
+            [ripplePeriodsHandle, ~] = phoPlotInteractiveRasterExtras.addPeriodOverlays(start_times, end_times, period_identity, color, name);
+
+            % Link the state map to the main raster plot. Important for when the raster plot is scrolled after the scrollHandles are added. 
+            linkaxes([mainRasterPlotAx ripplePeriodsHandle],'x'); 
+        end
+
+
+
+
+
+        function [periodPlotHandle, rectangle_handles] = addPeriodOverlays(startTimes, endTimes, period_identity, color, name)
             % Plots periods along an axis
             % startTimes: T x 1 list of period start timestamps
             % endTimes: T x 1 list of period end timestamps
@@ -267,8 +295,10 @@ classdef phoPlotInteractiveRasterExtras
 
             %% Example:
             % source_data.ripple.RoyMaze1.time
-
-
+         
+            plottingOptions.state_names = {name};
+            plottingOptions.state_colors = color;
+            [periodPlotHandle, rectangle_handles] = fnPlotPeriodsDiagram(startTimes, endTimes, period_identity, plottingOptions);
         end
 
     end % end static methods block
@@ -280,8 +310,10 @@ classdef phoPlotInteractiveRasterExtras
             ripples_time_mat = evalin("caller", 'source_data.ripple.RoyMaze1.time');
             start_times = ripples_time_mat(:,1);
             end_times = ripples_time_mat(:,2);
-            color = 'b';
-            [outputs.ax, outputs.h] = phoPlotInteractiveRasterExtras.addPeriodOverlays(start_times, end_times, color);
+            period_identity = ones(size(end_times));
+            color = [0 0 1];
+            name = 'ripples';
+            [outputs.ax, outputs.h] = phoPlotInteractiveRasterExtras.addPeriodOverlays(start_times, end_times, period_identity, color, name);
         end
 
 
