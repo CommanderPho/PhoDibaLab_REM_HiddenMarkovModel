@@ -42,8 +42,6 @@ else
 
 end
 
-% first_cell_array = active_processing.spikes.time;
-
 num_cells = length(first_cell_array);
 cell_content_counts = cellfun(@length, first_cell_array);
 cell_indicies = 1:num_cells;
