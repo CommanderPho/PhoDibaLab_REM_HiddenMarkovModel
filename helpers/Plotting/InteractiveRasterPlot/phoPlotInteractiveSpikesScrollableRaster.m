@@ -71,9 +71,10 @@ if exist('source_data','var')
 %     ripples_time_mat = seconds((ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6); % Convert to relative timestamps since start
     ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
 
-    [~] = phoPlotInteractiveRasterExtras.addRipplePeriodsSubplot(ripples_time_mat, ...
+    [currPlotHandles.ripplesHandle] = phoPlotInteractiveRasterExtras.addRipplePeriodsSubplot(ripples_time_mat, ...
         currPlotHandles.axesHandle, ...
-        plot_outputs.other_subplots_rect);
+        plot_outputs.other_subplots_rect); % Overlay the subplots
+%         plot_outputs.mainplot_rect); % Overlay the existing main plot
 else
     fprintf('variable "source_data" does not exist, skipping plots of position data\n');
 end
@@ -81,6 +82,10 @@ end
 
 %% Build the scrollable interaction bar that sits below the main raster plot:
 scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
+% scrollHandles = scrollplot(currStateMapHandle, 'WindowSizeX', plotting_options.window_duration);
+% scrollHandles = scrollplot({currStateMapHandle currPlotHandles.ripplesHandle, currPlotHandles.linesHandle}, 'WindowSizeX', plotting_options.window_duration);
+
+
 
 %% Add Blurred Spike Overlays if possible:
 if exist('unitStatistics','var')
@@ -231,7 +236,8 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
 %     ax.YMinorGrid = 'on';
     yticks(ax, 1:temp.num_active_units);
     
-    [plot_outputs.subplots_rect] = phoPlotInteractiveRasterExtras.reallocateForAddingSubplots(ax, 0.10);
+    % Resize the main plot to prepare for adding various subplots in the margins (such as the sleep_state plot, and the position plot
+    [plot_outputs.mainplot_rect, plot_outputs.subplots_rect] = phoPlotInteractiveRasterExtras.reallocateForAddingSubplots(ax, 0.10);
 
     plot_outputs.state_subplots_rect = plot_outputs.subplots_rect;
     plot_outputs.other_subplots_rect = plot_outputs.subplots_rect;

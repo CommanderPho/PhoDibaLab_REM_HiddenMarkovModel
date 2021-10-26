@@ -110,7 +110,7 @@ classdef phoPlotInteractiveRasterExtras
         end
         
 
-        function [subplots_rect] = reallocateForAddingSubplots(mainRasterPlotAx, subplots_normalized_height)
+        function [mainplot_rect, subplots_rect] = reallocateForAddingSubplots(mainRasterPlotAx, subplots_normalized_height)
             %% Resizes the main raster plot figure to add subplots above or below it
             % Get the position of the main raster plot axes:
             temp.updated_main_axes_pos = mainRasterPlotAx.Position;    
@@ -128,6 +128,8 @@ classdef phoPlotInteractiveRasterExtras
             subplots_rect = temp.updated_main_axes_pos;
             subplots_rect(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
             subplots_rect(4) = subplots_normalized_height; % Manually constrain height, while keeping width the same as the main raster figure
+
+            mainplot_rect = mainRasterPlotAx.Position; 
         end
 
         function [stateMapHandle] = addStateMapSubplot(active_processing, mainRasterPlotAx, positionRectangle)
@@ -266,7 +268,7 @@ classdef phoPlotInteractiveRasterExtras
             start_times = ripples_time_mat(:,1);
             end_times = ripples_time_mat(:,2);
             period_identity = ones(size(end_times));
-            color = [1 0 1];
+            color = [1 0 1 0.5]; % Can be specified as an RGBA value
             name = 'ripples';
                             
            % Get the position of the main raster plot axes:
@@ -281,10 +283,6 @@ classdef phoPlotInteractiveRasterExtras
                 % If provided, installs the state map in the position rectangle
                 temp.ripplesMap_pos = positionRectangle;
             end
-
-
-
-
 
             ripplePeriodsHandle = [];
             subplot('Position', temp.ripplesMap_pos);
