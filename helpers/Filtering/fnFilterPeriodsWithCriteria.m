@@ -13,7 +13,6 @@ function [is_period_included] = fnFilterPeriodsWithCriteria(active_processing, i
 %     is_period_included = logical(ones([num_of_behavioral_state_periods 1]));
     
     %% Check for exclusion by epoch:
-    
     if exist('included_epochs','var') & ~isempty(included_epochs)
 %         is_epoch_included = false([num_of_behavioral_state_periods 1]);
 %         curr_conditions.is_behavioral_epoch_type = (@(compare_type) (active_processing.behavioral_periods_table.behavioral_epoch == compare_type));
