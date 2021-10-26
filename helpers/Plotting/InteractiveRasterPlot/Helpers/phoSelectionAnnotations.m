@@ -188,9 +188,6 @@ function keyPressCallback_phoSelectionAnnotations(src, eventdata)
 %             ysel = ydata(xdata >= lpos(1) & xdata <= lpos(2));
 %             data = [xsel(:), ysel(:)]; %#ok<NASGU>
 
-            
-            
-
         case 'end'
             % end of the selsec function operation
             set(gcf, 'WindowButtonDownFcn', '') % TODO: Do I need to restore the default one, or the one set by scrollplot(...)?
