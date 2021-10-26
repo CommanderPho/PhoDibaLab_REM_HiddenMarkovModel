@@ -241,7 +241,6 @@ classdef phoPlotInteractiveRasterExtras
         
                 %% Reversed Y-axis:
             %     currSubplotPositionRect(2) = temp.currRasterAxisPosition(3) - currSubplotPositionRect(2);
-        
             %     [figureXPoints, figureYPoints] = axescoord2figurecoord(figureXPoints, figureYPoints);
                 ax(i) = axes('Position', currSubplotPositionRect,'Color','none');
                 % Normalize the blurredSpikeOutputs down to unit height for plotting:
@@ -257,12 +256,36 @@ classdef phoPlotInteractiveRasterExtras
             %% Set the current window to the specified range:
             % xlim(ax, xlim(scrollHandles.ParentAxesHandle))
             linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
+        end
+
+
+        function [ax, h] = addPeriodOverlays(startTimes, endTimes, color)
+            % Plots periods along an axis
+            % startTimes: T x 1 list of period start timestamps
+            % endTimes: T x 1 list of period end timestamps
+            % color: the color to display for each period:
+
+            %% Example:
+            % source_data.ripple.RoyMaze1.time
 
 
         end
 
     end % end static methods block
 
+    %% Static Testing Method Block:
+    methods(Static)
+    
+        function [outputs] = test_addPeriodOverlays()
+            ripples_time_mat = evalin("caller", 'source_data.ripple.RoyMaze1.time');
+            start_times = ripples_time_mat(:,1);
+            end_times = ripples_time_mat(:,2);
+            color = 'b';
+            [outputs.ax, outputs.h] = phoPlotInteractiveRasterExtras.addPeriodOverlays(start_times, end_times, color);
+        end
+
+
+    end % end static Testing methods block
 
 end
 
