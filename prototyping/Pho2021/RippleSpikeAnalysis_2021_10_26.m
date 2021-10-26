@@ -76,47 +76,10 @@ curr_cell_table = table(active_processing.spikes.time, ...
 [curr_flattened_table] = fnFlattenCellsToContents(curr_cell_table);
 
 
-% fnReconstructCellsFromFlattenedContents
+%% fnReconstructCellsFromFlattenedContents
+% Test reconstruction of original test table from the flattened table:
+[reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(curr_flattened_table);
 
-if ~isVariable(curr_flattened_table, 'flattened_UnitIDs')
-	error('flattened_table lacks the column/Variable "flattened_UnitIDs", meaning it was not produced by fnReconstructCellsFromFlattenedContents. Aborting.');
-end
-
-% relies on fnFlatSpikesToUnitCells function from diba project:
-% [includedCellIDs, unitSpikeCells, unitFlatIndicies] = fnFlatSpikesToUnitCells(curr_flattened_table{:,2}, curr_flattened_table.flattened_UnitIDs, true);
-% inline fnFlatSpikesToUnitCells alternative:
-flatSpikeUnitIDs = curr_flattened_table.flattened_UnitIDs;
-includedCellIDs = unique(flatSpikeUnitIDs);
-numOutputCellIDs = length(includedCellIDs);
-unitFlatIndicies = cell(numOutputCellIDs, 1);
-for i = 1:numOutputCellIDs
-    unitFlatIndicies{i} = find(includedCellIDs(i) == flatSpikeUnitIDs);
-end
-
-num_reconstructed_cells = length(includedCellIDs);
-num_reconstructed_columns = width(curr_flattened_table) - 1; % minus the flattened_unitID column
-
-% reconstructedCellTable = table;
-reconstructed_column_types = varfun(@class, curr_flattened_table, 'OutputFormat', 'cell');
-reconstructed_column_types = reconstructed_column_types(2:end);
-reconstructed_column_names = curr_flattened_table.Properties.VariableNames(2:end);
-
-reconstructedCellTable = table('Size', [num_reconstructed_cells, num_reconstructed_columns], 'VariableNames', reconstructed_column_names, 'VariableTypes', reconstructed_column_types);
-
-var_idx = 1;
-curr_variable_name = reconstructed_column_names{var_idx};
-reconstructedCellTable.(curr_variable_name) = unitSpikeCells;
-
-for var_idx = 1:num_reconstructed_columns
-    curr_variable_name = reconstructed_column_names{var_idx};
-%     curr_selected_data = cellfun(@(column_data, included_indicies) column_data(included_indicies), curr_flattened_table{:, (var_idx + 1)}, unitFlatIndicies, 'UniformOutput', false); %% Filtered to only show the ripple spikes
-
-    column_data = curr_flattened_table{:, (var_idx + 1)};
-    curr_selected_data = cellfun(@(included_indicies) column_data(included_indicies), unitFlatIndicies, 'UniformOutput', false); %% Filtered to only show the ripple spikes
-    reconstructedCellTable.(curr_variable_name) = curr_selected_data;
-    
-%     reconstructedCellTable.(curr_variable_name) = [curr_flattened_table{,var_idx}{:}]';
-end
 
 
 
