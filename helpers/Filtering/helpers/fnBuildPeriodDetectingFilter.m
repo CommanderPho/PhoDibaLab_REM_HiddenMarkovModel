@@ -13,10 +13,6 @@ is_ripple_spike = cell([height(active_processing.spikes) 1]);
 spike_ripple_index = cell([height(active_processing.spikes) 1]);
 
 for unit_idx = 1:height(active_processing.spikes)
-%     unit_idx = 2;
-    % functionCells{i}(active_processing.spikes.time{unit_idx})
-    % find(functionCells{i}(active_processing.spikes.time{unit_idx})~=0, 1, 'first')
-    % find(functionCells(active_processing.spikes.time{unit_idx})~=0, 1, 'first')
     unit_matches = cellfun(@(period_comparison_fcn) find(period_comparison_fcn(active_processing.spikes.time{unit_idx})~=0, 1, 'first'), functionCells, 'UniformOutput', false);
     unit_matched_periods = find(~cellfun(@isempty, unit_matches)); % These are the indicies of the periods that each spike falls within
     unit_matched_spike_indicies = [unit_matches{unit_matched_periods}]'; % These are the indicies of spikes for this unit that fall within a period
