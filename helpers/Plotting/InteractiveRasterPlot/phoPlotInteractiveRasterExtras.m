@@ -131,6 +131,8 @@ classdef phoPlotInteractiveRasterExtras
         end
 
         function [stateMapHandle] = addStateMapSubplot(active_processing, mainRasterPlotAx, positionRectangle)
+            % positionRectangle: the frame where the subplot will be rendered.
+
             %% Add the state_map:
             state_statemapPlottingOptions.orientation = 'horizontal';
             state_statemapPlottingOptions.plot_variable = 'behavioral_state';
@@ -145,7 +147,6 @@ classdef phoPlotInteractiveRasterExtras
                 temp.statemap_pos = temp.updated_main_axes_pos;
                 temp.statemap_pos(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
                 temp.statemap_pos(4) = 0.05;
-
             else
                 % If provided, installs the state map in the position rectangle
                 temp.statemap_pos = positionRectangle;

@@ -77,6 +77,7 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
                 double(active_processing.behavioral_periods_table.type)];
         end
         color_state = active_processing.definitions.behavioral_state.classColors;
+
     else
         error('invalid plottingOptions.plot_variable');
     end
@@ -99,8 +100,11 @@ function [ax] = fnPlotStateDiagram(active_processing, plottingOptions)
             temp.rect_pos = [states(s_idx,1), curr_s_y, diff(states(s_idx,1:2)), 1];
         end
         
+        % Actual Plot Command:
         rectangle('Position', temp.rect_pos,...
-                    'LineStyle','none','facecolor',color_state(states(s_idx,3),:))
+                    'LineStyle','none','facecolor',color_state(states(s_idx,3),:), ...
+                    'Tag', state_names{states(s_idx,3)});
+
     end
 
     ax=gca;

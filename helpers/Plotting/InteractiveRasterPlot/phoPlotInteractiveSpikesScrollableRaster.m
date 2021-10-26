@@ -5,12 +5,12 @@
 %   Spawns an interactive slider that allows you to specify the current window to look at, acting as a paginated manner.
 
 %% Filtering Options:
-filter_config.filter_included_cell_types = {};
-% filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {};
+filter_config.filter_included_cell_types = {'pyramidal'};
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 
-plotting_options.window_duration = 10; % 10 seconds
+plotting_options.window_duration = 20; % 10 seconds
 
 if exist('across_experiment_results','var')
     temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
@@ -51,12 +51,15 @@ extantFigH = figure(12);
 curr_i = 1;
 [extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 
-[t, t_rel, x, y, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
-[~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t_rel), ...
-    {linearPos}, ...
-    currPlotHandles.axesHandle, currPlotHandles, ...
-    plot_outputs.other_subplots_rect);
-
+if exist('fileinfo','var')
+    [t, t_rel, x, y, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
+    [~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t_rel), ...
+        {linearPos}, ...
+        currPlotHandles.axesHandle, currPlotHandles, ...
+        plot_outputs.other_subplots_rect);
+else
+    fprintf('variable "fileinfo" does not exist, skipping plots of position data\n');
+end
 
 %% Build the scrollable interaction bar that sits below the main raster plot:
 scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_options.window_duration);
