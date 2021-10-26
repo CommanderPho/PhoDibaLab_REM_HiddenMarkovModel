@@ -45,6 +45,8 @@ curr_filtered_table = rmmissing(curr_flattened_table);
 curr_filtered_table = curr_filtered_table(('nrem' == curr_filtered_table.behavioral_states), :);
 % curr_filtered_table = groupfilter(curr_filtered_table, 'groupID', @(x) all(x == 'rem'), 'behavioral_states');
 
+curr_filtered_table = curr_filtered_table((('rem' == curr_filtered_table.behavioral_states) | ('nrem' == curr_filtered_table.behavioral_states)), :);
+
 
 %% Filter again to a specific ripple index
 unique_ripple_indices = unique(curr_filtered_table.RippleIndex);
