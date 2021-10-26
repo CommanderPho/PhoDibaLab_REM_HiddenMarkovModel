@@ -1,5 +1,5 @@
 function [speculated_unit_type, speculated_unit_contamination_level, speculated_unit_info] = fnUnitQualityToCellType(active_processing)
-%FNUNITQUALITYTOCELLTYPE Summary of this function goes here
+%FNUNITQUALITYTOCELLTYPE Gets the unit qualities and turns them into the speculated cell types ({'pyramidal','contaminated','interneurons'})
 % All units with qualities from 1-4 are pyramidal.
 % The higher the number in this range, the higher is the contamination, so 1 and 2 are well-separated pyramidal units and if your analysis is not much sensitive to contaminations you can consider 3 and 4 as well. For my analysis, I considered 1 to 3. 8 and 9 are interneurons.
 % 
