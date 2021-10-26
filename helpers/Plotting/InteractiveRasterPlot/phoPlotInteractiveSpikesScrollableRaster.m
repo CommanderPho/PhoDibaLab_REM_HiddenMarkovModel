@@ -72,7 +72,8 @@ if exist('source_data','var')
     ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
 
     [~] = phoPlotInteractiveRasterExtras.addRipplePeriodsSubplot(ripples_time_mat, ...
-        currPlotHandles.axesHandle);
+        currPlotHandles.axesHandle, ...
+        plot_outputs.other_subplots_rect);
 else
     fprintf('variable "source_data" does not exist, skipping plots of position data\n');
 end

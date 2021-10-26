@@ -258,7 +258,7 @@ classdef phoPlotInteractiveRasterExtras
             linkaxes([currPlotHandles.axesHandle ax],'x'); % Link all blurred axes to the main rasterplot axes
         end
 
-        function [ripplePeriodsHandle] = addRipplePeriodsSubplot(ripples_time_mat, mainRasterPlotAx)
+        function [ripplePeriodsHandle] = addRipplePeriodsSubplot(ripples_time_mat, mainRasterPlotAx, positionRectangle)
             % ripples_time_mat: ripples_time_mat = evalin("caller", 'source_data.ripple.RoyMaze1.time');
             % positionRectangle: the frame where the subplot will be rendered.
 
@@ -266,15 +266,26 @@ classdef phoPlotInteractiveRasterExtras
             start_times = ripples_time_mat(:,1);
             end_times = ripples_time_mat(:,2);
             period_identity = ones(size(end_times));
-            color = [0 0 1];
+            color = [1 0 1];
             name = 'ripples';
-
-            % Get the position of the main raster plot axes:
-           temp.updated_main_axes_pos = mainRasterPlotAx.Position;    
+                            
+           % Get the position of the main raster plot axes:
+            if ~exist('positionRectangle','var')
+                temp.updated_main_axes_pos = mainRasterPlotAx.Position;    
                 
-           %% Puts Overlaying the main raster plot box:
-           temp.ripplesMap_pos = temp.updated_main_axes_pos;
-            
+                %% Puts Above the main raster plot box:
+                temp.ripplesMap_pos = temp.updated_main_axes_pos;
+                temp.ripplesMap_pos(2) = temp.updated_main_axes_pos(2) + temp.updated_main_axes_pos(4);
+                temp.ripplesMap_pos(4) = 0.05;
+            else
+                % If provided, installs the state map in the position rectangle
+                temp.ripplesMap_pos = positionRectangle;
+            end
+
+
+
+
+
             ripplePeriodsHandle = [];
             subplot('Position', temp.ripplesMap_pos);
             [ripplePeriodsHandle, ~] = phoPlotInteractiveRasterExtras.addPeriodOverlays(start_times, end_times, period_identity, color, name);
