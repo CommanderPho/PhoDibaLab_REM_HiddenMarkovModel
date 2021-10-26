@@ -82,10 +82,19 @@ if ~isVariable(curr_flattened_table, 'flattened_UnitIDs')
 	error('flattened_table lacks the column/Variable "flattened_UnitIDs", meaning it was not produced by fnReconstructCellsFromFlattenedContents. Aborting.');
 end
 
-[includedCellIDs, unitSpikeCells, unitFlatIndicies] = fnFlatSpikesToUnitCells(curr_flattened_table{:,2}, curr_flattened_table.flattened_UnitIDs, true);
+% relies on fnFlatSpikesToUnitCells function from diba project:
+% [includedCellIDs, unitSpikeCells, unitFlatIndicies] = fnFlatSpikesToUnitCells(curr_flattened_table{:,2}, curr_flattened_table.flattened_UnitIDs, true);
+% inline fnFlatSpikesToUnitCells alternative:
+flatSpikeUnitIDs = curr_flattened_table.flattened_UnitIDs;
+includedCellIDs = unique(flatSpikeUnitIDs);
+numOutputCellIDs = length(includedCellIDs);
+unitFlatIndicies = cell(numOutputCellIDs, 1);
+for i = 1:numOutputCellIDs
+    unitFlatIndicies{i} = find(includedCellIDs(i) == flatSpikeUnitIDs);
+end
+
 num_reconstructed_cells = length(includedCellIDs);
 num_reconstructed_columns = width(curr_flattened_table) - 1; % minus the flattened_unitID column
-
 
 % reconstructedCellTable = table;
 reconstructed_column_types = varfun(@class, curr_flattened_table, 'OutputFormat', 'cell');
