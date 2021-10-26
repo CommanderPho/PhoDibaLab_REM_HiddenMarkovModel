@@ -45,18 +45,20 @@ flattened_UnitIDs = repelem(cell_indicies, cell_content_counts); % the second ar
 % Closed-form vectorized flattening for non-equal sized cells
    
 flatTableColumns = cell([num_cell_arrays_to_flatten 1]);
-% flatTableCells = cell([flattened_total_item_count, num_cell_arrays_to_flatten]);
-curr_flattened_table = table();
-% curr_flattened_table = table('Size', [flattened_total_item_count, num_cell_arrays_to_flatten],'VariableTypes', varfun(@class, curr_cell_table, 'OutputFormat', 'cell'));
+% curr_flattened_table = table();
+curr_flattened_table = table('Size', [flattened_total_item_count, (1 + num_cell_arrays_to_flatten)], 'VariableNames', ['flattened_UnitIDs', curr_cell_table.Properties.VariableNames], 'VariableTypes', ['double', varfun(@class, curr_cell_table, 'OutputFormat', 'cell')]);
+% Add the flattened unit id's as the first column
+curr_flattened_table.flattened_UnitIDs = flattened_UnitIDs';
 
 for var_idx = 1:num_cell_arrays_to_flatten
-%     flatTableCells{var_idx} = [curr_cell_table{:,var_idx}{:}]; %bad 2D cell array implementation
     flatTableColumns{var_idx} = [curr_cell_table{:,var_idx}{:}];
     curr_variable_name = curr_cell_table.Properties.VariableNames{var_idx};
     curr_flattened_table.(curr_variable_name) = flatTableColumns{var_idx}';
 %     curr_flattened_table.(curr_variable_name) = [curr_cell_table{:,var_idx}{:}]';
 end
 
+% Sort the output table by the time column:
+curr_flattened_table = sortrows(curr_flattened_table,'time','ascend');
 
 % curr_flattened_table = cell2table(flatTableCells);
 % curr_flattened_table = cell2table(flatTableColumns, ...
