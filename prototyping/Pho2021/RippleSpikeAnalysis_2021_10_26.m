@@ -15,6 +15,11 @@ curr_cell_table = table(active_processing.spikes.time, ...
         active_processing.spikes.isRippleSpike, ...
         active_processing.spikes.RippleIndex, ...
         'VariableNames', {'time','isRippleSpike','RippleIndex'});
+% Add the optional variables
+curr_cell_table.behavioral_duration_indicies = fnCellContentsTranpose(active_processing.spikes.behavioral_duration_indicies);
+curr_cell_table.behavioral_states = fnCellContentsTranpose(active_processing.spikes.behavioral_states);
+curr_cell_table.behavioral_epoch = fnCellContentsTranpose(active_processing.spikes.behavioral_epoch);
+
 [curr_flattened_table] = fnFlattenCellsToContents(curr_cell_table);
 
 % curr_flattened_table(curr_flattened_table.isRippleSpike)
