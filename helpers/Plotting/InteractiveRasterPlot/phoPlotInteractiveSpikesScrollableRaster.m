@@ -75,6 +75,9 @@ if exist('source_data','var')
         currPlotHandles.axesHandle, ...
         plot_outputs.other_subplots_rect); % Overlay the subplots
 %         plot_outputs.mainplot_rect); % Overlay the existing main plot
+
+    % [spike_linearPos, spike_unitSpikeLaps, spike_unitIsRippleSpike] = phoPlotInteractiveRasterExtras.processSpikeStructExtendedExtras(spikeStruct);
+
 else
     fprintf('variable "source_data" does not exist, skipping plots of position data\n');
 end
@@ -213,7 +216,13 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     % Can specify line colors here, default is black ('k'):
     plotting_options.spikeLinesFormat.Color = 'k';
 
-    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_processing.spikes.time(plot_outputs.filter_active_units), ...
+    %% Test filtering spikes by ripple criteria
+%     active_processing.spikes.time(plot_outputs.filter_active_units)
+%     active_processing.spikes.isRippleSpike(plot_outputs.filter_active_units)
+    active_spike_times = cellfun(@(spike_times, is_spike_ripple) spike_times(is_spike_ripple), active_processing.spikes.time(plot_outputs.filter_active_units), active_processing.spikes.isRippleSpike(plot_outputs.filter_active_units), 'UniformOutput', false); %% Filtered to only show the ripple spikes
+%     active_spike_times = active_processing.spikes.time(plot_outputs.filter_active_units); %% Original
+
+    [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_spike_times, ...
         'PlotType','vertline', ...
         'rasterWindowOffset', curr_rasterWindowOffset, ...
         'XLimForCell', curr_window, ...
