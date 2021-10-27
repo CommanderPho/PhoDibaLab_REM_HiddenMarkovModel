@@ -1,5 +1,6 @@
 
 
+% load('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\PlaceFields\biDirectional.mat', 'PF_sorted_biDir')
 
 addpath(genpath('helpers'));
 
@@ -16,6 +17,7 @@ spikeTimes = active_processing.spikes.time(plot_outputs.filter_active_units);
 % Actual timesteps if we want those
 % timesteps_array{1, 1}
 tau = 0.1; % bin size (seconds)
+% tau = 1.0; % bin size (seconds)
 
 %% Define the active time range:
 TrialStart = active_processing.behavioral_epochs.start_seconds(1);
@@ -26,6 +28,7 @@ TrialEnd = active_processing.behavioral_epochs.end_seconds(3);
 % Finally set the needed PositionBins value:
 PositionBins = linearPoscenters; 
 
+%% Compute the actual likelihoods:
 if ~exist('likelihood','var') || (exist('override_should_recompute','var') && override_should_recompute)
     disp('recomputing maximum likelihood...')
     [maxL, likelihood, activeTimeBins] = subfn_computeMaximumLikelihood(spikeTimes, PF_sorted_biDir, PositionBins, TrialStart, TrialEnd, tau);
@@ -46,18 +49,36 @@ t_rel = ((fileinfo.xyt2(:, 2)-fileinfo.tbegin) ./ 1e6); % Convert to relative ti
 TimestampPosition = t_rel;
 AnimalPosition = fileinfo.xyt2(:,1);
 
-% compares the animal's actual recorded position to the maximum likelihood predected position at each timepoint
-subfn_plotTrajectoryComparison(activeTimeBins, maxL, t_rel, fileinfo);
-
-% plots samples
-subfn_plotSampleTrajectories(PositionBins, likelihood);
-
 
 % determine the index of the preferred location for each place cell 
 % from its place field
-[maxFiringRate, maxIndex] = max(PlaceFields,[],2);
+[maxFiringRate, maxIndex] = max(PF_sorted_biDir,[],2);
 % convert the indices stored in maxIndex to position on the track
 maxPlace = PositionBins(maxIndex);
+
+%% Firing Rate Plot
+% compute firing rates for all place cells during Trial 1
+firingRates = computeFiringRates(spikeTimes, TrialStart, TrialEnd, tau);
+% display the firing rates of four place cells during one traversal 
+% of the animal along the linear track
+
+%% Winner-take-all maximum place cell detection:
+% determine which place cell has the maximum firing rate at each moment, 
+% and then determine the preferred location for this place cell
+[maxRate, maxIndex] = max(firingRates);
+posTrial = maxPlace(maxIndex);
+
+
+
+% Main Visualization of output: compares the animal's actual recorded position to the maximum likelihood predected position at each timepoint
+subfn_plotTrajectoryComparison(activeTimeBins, maxL, t_rel, fileinfo);
+
+% Vizualization of likelihoods (plots samples)
+subfn_plotSampleTrajectories(PositionBins, likelihood);
+
+
+%% Visualize Firing Rate and Winner-take-all results:
+%
 
 %% Testing: Plot some sample winner-take-all place fields:
 % cell number (row index) for a subset of 12 place cells
@@ -65,7 +86,7 @@ cellNum = [1, 2, 3, 6, 8, 9, 11, 13, 15, 17, 19, 20];
 figure('Position', [100 100 1000 600])
 for i = 1:12
     subplot(3,4,i)
-    bar(PositionBins, PlaceFields(cellNum(i), :));
+    bar(PositionBins, PF_sorted_biDir(cellNum(i), :));
     hold on
     pos = maxPlace(cellNum(i));
     plot([pos pos], [0 maxFiringRate(cellNum(i))], 'r', 'LineWidth', 2);
@@ -75,12 +96,7 @@ for i = 1:12
     title(['Cell #' num2str(cellNum(i))])
 end
 
-
-%% Firing Rate Plot
-% compute firing rates for all place cells during Trial 1
-firingRates = computeFiringRates(spikeTimes, TrialStart, TrialEnd, tau);
-% display the firing rates of four place cells during one traversal 
-% of the animal along the linear track
+%% Firing Rate plot:
 figure('Position', [100 100 1000 600])
 cellNum = [48 44 11 51];
 for i = 1:4
@@ -94,11 +110,6 @@ for i = 1:4
     title(['Cell #' num2str(cellNum(i))])
 end
 
-%% Winner-take-all maximum place cell detection:
-% determine which place cell has the maximum firing rate at each moment, 
-% and then determine the preferred location for this place cell
-[maxRate, maxIndex] = max(firingRates);
-posTrial = maxPlace(maxIndex);
 
 % display the computed trajectory of the animal for Trial 1
 figure
@@ -168,11 +179,13 @@ function subfn_plotTrajectoryComparison(activeTimeBins, maxL, t_rel, fileinfo)
     
     % plot(1:length(maxL), maxL, 'r');
 %     xlim([active_processing.behavioral_epochs.start_seconds(2) 0.1 * active_processing.behavioral_epochs.end_seconds(2)]); % [15141, 15162] are good
+    title('most-likely vs. observed trajectory comparsion');
 end
 
 function subfn_plotSampleTrajectories(PositionBins, likelihood)
-    % 
-    
+    % subfn_plotSampleTrajectories: display the likely trajectory for
+    % several time bins
+  
     % display the likelihoods for all position bins
     % temp.start_idx = 11999;
     temp.start_idx = 12999;
@@ -186,5 +199,5 @@ function subfn_plotSampleTrajectories(PositionBins, likelihood)
         %     xlim([0 3.6])
         xlim([0 PositionBins(end)])
     end
-
+    title('most-likely sample trajectories')
 end % end subfn_plotSampleTrajectories
