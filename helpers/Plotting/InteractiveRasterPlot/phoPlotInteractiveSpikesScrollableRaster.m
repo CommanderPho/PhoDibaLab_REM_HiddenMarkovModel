@@ -10,6 +10,7 @@ filter_config.filter_included_cell_types = {'pyramidal'};
 % filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 
+% plotting_options.window_duration = 2; % 2 seconds
 plotting_options.window_duration = 20; % 10 seconds
 
 if exist('across_experiment_results','var')
@@ -101,12 +102,16 @@ end % end if exist('unitStatistics','var')
 % Can get scroll handles (the blue adjustment handle positions) using
 % [scrollHandles.ScrollMin, scrollHandles.ScrollMax];
 
+% curr_window_length = scrollHandles.ScrollMax - scrollHandles.ScrollMin;
+
 
 % scrollHandles.ScrollPatchHandle: Patch (scrollPatch) object
 % scrollHandles.ScrollPatchHandle.Vertices: [4x2 double] like:
 
 %% Set the current window to the specified range:
-xlim(scrollHandles.ParentAxesHandle, [1800 1860])
+% xlim(scrollHandles.ParentAxesHandle, [1800 1860])
+xlim(scrollHandles.ParentAxesHandle, [1800 (1800 + plotting_options.window_duration)]);
+
 
 
 %% Rectangle Selection:
