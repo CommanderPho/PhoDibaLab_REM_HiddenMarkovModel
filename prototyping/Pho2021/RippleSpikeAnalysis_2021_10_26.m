@@ -72,7 +72,8 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 
 %% fnReconstructCellsFromFlattenedContents
 % Test reconstruction of original test table from the flattened table:
-[reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(curr_filtered_table);
+
+[track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
 
 
 %% Plot the outputs:
@@ -173,7 +174,8 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
 
     end
 
-
+    % Flatten the changes all back so we can get the extra columns (rippleRelativeSequenceIndex and rippleRelativeTimeOffsets) in the flat filtered table
+    curr_filtered_table = vertcat(eachRipple_filtered_flattened_table{:});
     
 end
 
