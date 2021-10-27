@@ -62,13 +62,17 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 
 % [is_target_entry_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'pre_sleep'}, {'active'}, target_options);
 [track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'active'}, target_options);
-
 [track_active_outputs.filtered_table, track_active_outputs.eachRipple_filtered_flattened_table, track_active_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_active_included, num_active_units);
 
 
 
 [track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'quiet'}, target_options);
 [track_quiet_outputs.filtered_table, track_quiet_outputs.eachRipple_filtered_flattened_table, track_quiet_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_quiet_included, num_active_units);
+
+
+%% fnReconstructCellsFromFlattenedContents
+% Test reconstruction of original test table from the flattened table:
+[reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(curr_filtered_table);
 
 
 %% Plot the outputs:
@@ -128,9 +132,6 @@ ylabel('Unit ID')
 % % plottingOptions = struct();
 % % [h, temp.plot_info] = fnPhoMatrixPlotDetailed(eachRipple_activeSet_Matrix(plot_outputs.filter_active_units, :), plottingOptions);
 % 
-% % %% fnReconstructCellsFromFlattenedContents
-% % % Test reconstruction of original test table from the flattened table:
-% % [reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(curr_filtered_table);
 
 
 function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_Matricies] = fnSplitIntoSpecificRipples(target_table, is_target_entry_included, num_active_units)
