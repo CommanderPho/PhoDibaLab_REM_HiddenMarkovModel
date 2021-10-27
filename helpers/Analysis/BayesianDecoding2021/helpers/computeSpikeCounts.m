@@ -1,4 +1,4 @@
-function  spikeCounts = computeSpikeCounts(spikeTimes, tstart, tend, tau)
+function spikeCounts = computeSpikeCounts(spikeTimes, tstart, tend, tau)
 
 nCells = length(spikeTimes);
 
