@@ -130,18 +130,19 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 %% Plot the outputs:
 
 % currMatrixName = 'activeSet_Matrix';
-currMatrixName = 'relativeProportionalTimeOffset_Matrix';
+currMatrixName = 'relativeSequenceIndex_Matrix';
+% currMatrixName = 'relativeProportionalTimeOffset_Matrix';
 
 figure(1);
 clf;
-fnPhoMatrixPlot(track_quiet_outputs.eachRipple_Matricies.(currMatrixName)')
+fnPhoMatrixPlot(track_quiet_outputs.eachRipple_Matricies.(currMatrixName))
 title('quiet wake')
 xlabel('SWR Index')
 ylabel('Unit ID')
 
 figure(2);
 clf;
-fnPhoMatrixPlot(track_active_outputs.eachRipple_Matricies.(currMatrixName)')
+fnPhoMatrixPlot(track_active_outputs.eachRipple_Matricies.(currMatrixName))
 title('active wake')
 xlabel('SWR Index')
 ylabel('Unit ID')
