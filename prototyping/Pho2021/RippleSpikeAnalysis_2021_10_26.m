@@ -31,7 +31,6 @@ filter_config.filter_maximum_included_contamination_level = {2};
 temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
 fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
-
 %% Flatten subset of spikes table for efficient ripple-related processing:
 curr_cell_table = table(active_processing.spikes.time, ...
         active_processing.spikes.isRippleSpike, ...
@@ -129,6 +128,11 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 % 
 % end
 
+% %% Another attempt at processing pairwise relations between units spiking events:
+% % track_quiet_outputs.eachRipple_filtered_flattened_table{111};
+% D = pdist(track_active_outputs.eachRipple_Matricies.activeSet_Matrix,'hamming'); % The percentage of each sequence's coordinates that differ
+% % [ist,ind,dst] = findsignal(corr,sgn,'TimeAlignment','dtw');
+% D_sqr = squareform(D);
 
 
 %% Plot the outputs:

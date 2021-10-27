@@ -1,5 +1,5 @@
 
-
+% 
 % load('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\PlaceFields\biDirectional.mat', 'PF_sorted_biDir')
 
 addpath(genpath('helpers'));
