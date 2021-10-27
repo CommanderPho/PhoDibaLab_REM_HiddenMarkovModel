@@ -107,7 +107,7 @@ ylabel('Unit ID')
 % 
 % % [coeff,score,pcvar,mu] = pca(y,3);
 
-track_active_outputs.eachRipple_Matricies.relativeProportionalTimeOffset_Matrix(
+% track_active_outputs.eachRipple_Matricies.relativeProportionalTimeOffset_Matrix(
 % 
 % 
 % dist = zeros(size(M,2), size(M,2), size(M,1));
@@ -140,8 +140,16 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
     %% Filter again to a specific ripple index
     unique_ripple_indices = unique(curr_filtered_table.RippleIndex);
     eachRipple_filtered_flattened_table = cell([length(unique_ripple_indices), 1]);
-    parfor ripple_idx = 1:length(unique_ripple_indices)
+    for ripple_idx = 1:length(unique_ripple_indices)
         eachRipple_filtered_flattened_table{ripple_idx} = curr_filtered_table(curr_filtered_table.RippleIndex == unique_ripple_indices(ripple_idx), :);
+        curr_ripple_num_spikes = height(eachRipple_filtered_flattened_table{ripple_idx});
+        eachRipple_filtered_flattened_table{ripple_idx}.rippleRelativeSequenceIndex = [1:curr_ripple_num_spikes]';
+
+        curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.time;
+        curr_ripple_time_offsets = (eachRipple_filtered_flattened_table{ripple_idx}.time - curr_ripple_time_offsets(1)); % convert to relative time by subtracting the start timestamp. This means each spike's time corresponds to the time ellapsed since the start of the ripple
+        curr_ripple_normalized_duration_time_offsets = curr_ripple_time_offsets ./ curr_ripple_time_offsets(end); % this should give each relative offset as a value between 0.0 and 1.0
+
+        eachRipple_filtered_flattened_table{ripple_idx}.rippleRelativeTimeOffsets = curr_ripple_time_offsets; 
     end
     
     %% Compute the adirectional active set for each ripple:
@@ -155,7 +163,7 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
         % build an increasing series of indicies that gives the spike's position within each given ripple:
         eachRipple_Matricies.relativeSequenceIndex_Matrix(eachRipple_filtered_flattened_table{ripple_idx}.flattened_UnitIDs, ripple_idx) = [1:curr_ripple_num_spikes];
         
-        curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.time;
+%         curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.time;
         curr_ripple_time_offsets = (eachRipple_filtered_flattened_table{ripple_idx}.time - curr_ripple_time_offsets(1)); % convert to relative time by subtracting the start timestamp. This means each spike's time corresponds to the time ellapsed since the start of the ripple
         curr_ripple_normalized_duration_time_offsets = curr_ripple_time_offsets ./ curr_ripple_time_offsets(end); % this should give each relative offset as a value between 0.0 and 1.0
 
