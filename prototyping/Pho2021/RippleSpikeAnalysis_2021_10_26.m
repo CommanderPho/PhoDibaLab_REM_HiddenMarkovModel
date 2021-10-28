@@ -63,6 +63,7 @@ num_active_units = height(curr_cell_table);
 target_options.behavioral_states_variable_name = 'behavioral_states';
 
 %% "Quiet" - 1
+
 [track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'pre_sleep'}, {'nrem','rem'}, target_options);
 % [track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'quiet'}, target_options);
 [track_quiet_outputs.filtered_table, track_quiet_outputs.eachRipple_filtered_flattened_table, track_quiet_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_quiet_included, num_active_units);
@@ -141,53 +142,87 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 %% Plot the outputs:
 
 plotting_options.ordered_by = 'participation_rate';
+plotting_options.ordering_matrix_variable_name = 'activeSet_Matrix';
 
-
-currMatrixName = 'activeSet_Matrix';
-% currMatrixName = 'relativeSequenceIndex_Matrix';
-% currMatrixName = 'relativeProportionalTimeOffset_Matrix';
+% plotting_options.currMatrixName = 'activeSet_Matrix';
+% plotting_options.currMatrixName = 'relativeSequenceIndex_Matrix';
+plotting_options.currMatrixName = 'relativeProportionalTimeOffset_Matrix';
 
 %% "Quiet" - 1
+plotting_options.figure_title = 'pre sleep';
 figure(1);
 clf;
-temp.active_mat = track_quiet_outputs.eachRipple_Matricies.(currMatrixName);
-
-% calculate particpation_rate for sorting)
-participation_rate = sum(temp.active_mat, 2); % count the participation of each unit for sorting
-[~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
-
-if strcmpi(plotting_options.ordered_by, 'participation_rate')
-    temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
-end
-% Plot:
-fnPhoMatrixPlot(temp.active_mat)
-% title('quiet wake')
-title('pre sleep')
-xlabel('SWR Index')
-ylabel('Unit ID')
-xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
+[~] = fnPlotRippleMatrixComparisonResult(track_quiet_outputs.eachRipple_Matricies, plotting_options);
 
 %% "Active" - 2
+plotting_options.figure_title = 'post sleep';
 figure(2);
 clf;
-temp.active_mat = track_active_outputs.eachRipple_Matricies.(currMatrixName);
-% calculate particpation_rate for sorting)
-% participation_rate = sum(temp.active_mat, 2); % count the participation of each unit for sorting
-% [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+[~] = fnPlotRippleMatrixComparisonResult(track_active_outputs.eachRipple_Matricies, plotting_options);
 
-% Plot:
-if strcmpi(plotting_options.ordered_by, 'participation_rate')
-    temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
-end
-fnPhoMatrixPlot(temp.active_mat)
-% title('active wake')
-title('post sleep')
-xlabel('SWR Index')
-ylabel('Unit ID')
-xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
+
+% 
+% temp.active_mat = track_quiet_outputs.eachRipple_Matricies.(currMatrixName);
+% 
+% temp.active_ordering_mat = track_quiet_outputs.eachRipple_Matricies.(plotting_options.ordering_matrix_variable_name);
+% % calculate particpation_rate for sorting)
+% participation_rate = sum(temp.active_ordering_mat, 2); % count the participation of each unit for sorting
+% [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+% 
+% if strcmpi(plotting_options.ordered_by, 'participation_rate')
+%     temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
+% end
+% % Plot:
+% fnPhoMatrixPlot(temp.active_mat)
+% % title('quiet wake')
+% title('pre sleep')
+% xlabel('SWR Index')
+% ylabel('Unit ID')
+% xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
+% 
+% %% "Active" - 2
+% figure(2);
+% clf;
+% temp.active_mat = track_active_outputs.eachRipple_Matricies.(currMatrixName);
+% % calculate particpation_rate for sorting)
+% % participation_rate = sum(temp.active_mat, 2); % count the participation of each unit for sorting
+% % [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+% 
+% % Plot:
+% if strcmpi(plotting_options.ordered_by, 'participation_rate')
+%     temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
+% end
+% fnPhoMatrixPlot(temp.active_mat)
+% % title('active wake')
+% title('post sleep')
+% xlabel('SWR Index')
+% ylabel('Unit ID')
+% xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
 
 
 % print('-clipboard','-dmeta')
+
+function [fig] = fnPlotRippleMatrixComparisonResult(results_matrix_struct, plotting_options)
+    
+    fig = gcf;
+    temp.active_mat = results_matrix_struct.(plotting_options.currMatrixName);
+    
+    temp.active_ordering_mat = results_matrix_struct.(plotting_options.ordering_matrix_variable_name);
+    % calculate particpation_rate for sorting)
+    participation_rate = sum(temp.active_ordering_mat, 2); % count the participation of each unit for sorting
+    [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+    
+    if strcmpi(plotting_options.ordered_by, 'participation_rate')
+        temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
+    end
+    % Plot:
+    fnPhoMatrixPlot(temp.active_mat)
+
+    title(plotting_options.figure_title)
+    xlabel('SWR Index')
+    ylabel('Unit ID')
+    xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)    
+end
 
 
 
