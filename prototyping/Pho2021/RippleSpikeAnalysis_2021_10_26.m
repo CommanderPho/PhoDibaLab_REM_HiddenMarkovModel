@@ -47,8 +47,6 @@ curr_cell_table = curr_cell_table(plot_outputs.filter_active_units, :);
 % Flatten the cells:
 [curr_flattened_table] = fnFlattenCellsToContents(curr_cell_table);
 
-% curr_flattened_table(curr_flattened_table.isRippleSpike)
-
 %% Removes rows with missing values, meaning the rows with RippleIndex == NaN (meaning they aren't ripple spikes)
 curr_filtered_table = rmmissing(curr_flattened_table);
 
@@ -137,6 +135,7 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 % D = pdist(track_active_outputs.eachRipple_Matricies.activeSet_Matrix,'hamming'); % The percentage of each sequence's coordinates that differ
 % % [ist,ind,dst] = findsignal(corr,sgn,'TimeAlignment','dtw');
 % D_sqr = squareform(D);
+
 
 
 %% Plot the outputs:
@@ -246,11 +245,14 @@ end
 
 
 function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_Matricies] = fnSplitIntoSpecificRipples(target_table, is_target_entry_included, num_active_units)
-    
+    %% fnSplitIntoSpecificRipples: splits the tables of entries describing * to a cell array (eachRipple_filtered_flattened_table) of small tables, each containing information about the spikes that occured within the given ripple.
+    %   These can be used for easily processing in a ripple-by-ripple manner
+    % also returns matricies that can be used to compare unit activity across ripples
     curr_filtered_table = target_table(is_target_entry_included, :);
     
     %% Filter again to a specific ripple index
     unique_ripple_indices = unique(curr_filtered_table.RippleIndex);
+    %% Build a cell array (eachRipple_filtered_flattened_table) of small tables, each containing information about the spikes that occured within the given ripple. This will be returned and also used in the next step to produce the matricies
     eachRipple_filtered_flattened_table = cell([length(unique_ripple_indices), 1]);
     for ripple_idx = 1:length(unique_ripple_indices)
         eachRipple_filtered_flattened_table{ripple_idx} = curr_filtered_table(curr_filtered_table.RippleIndex == unique_ripple_indices(ripple_idx), :);
@@ -259,13 +261,12 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
 
         curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.time;
         curr_ripple_time_offsets = (eachRipple_filtered_flattened_table{ripple_idx}.time - curr_ripple_time_offsets(1)); % convert to relative time by subtracting the start timestamp. This means each spike's time corresponds to the time ellapsed since the start of the ripple
-        curr_ripple_normalized_duration_time_offsets = curr_ripple_time_offsets ./ curr_ripple_time_offsets(end); % this should give each relative offset as a value between 0.0 and 1.0
-
+%         curr_ripple_normalized_duration_time_offsets = curr_ripple_time_offsets ./ curr_ripple_time_offsets(end); % this should give each relative offset as a value between 0.0 and 1.0
         eachRipple_filtered_flattened_table{ripple_idx}.rippleRelativeTimeOffsets = curr_ripple_time_offsets; 
     end
     
-    %% Compute the adirectional active set for each ripple:
-    eachRipple_Matricies.activeSet_Matrix = sparse(zeros([num_active_units, length(unique_ripple_indices)]));
+    %% Build a struct eachRipple_Matricies containing fields with several computed matricies that will be returned for plotting:
+    eachRipple_Matricies.activeSet_Matrix = sparse(zeros([num_active_units, length(unique_ripple_indices)])); %% Compute the adirectional active set for each ripple:
     eachRipple_Matricies.relativeSequenceIndex_Matrix = sparse(zeros([num_active_units, length(unique_ripple_indices)]));
     eachRipple_Matricies.relativeProportionalTimeOffset_Matrix = sparse(zeros([num_active_units, length(unique_ripple_indices)])); % eachRipple_relativeProportionalTimeOffset_Matrix: the time
     for ripple_idx = 1:length(unique_ripple_indices)
@@ -275,14 +276,8 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
         % build an increasing series of indicies that gives the spike's position within each given ripple:
         eachRipple_Matricies.relativeSequenceIndex_Matrix(eachRipple_filtered_flattened_table{ripple_idx}.flattened_UnitIDs, ripple_idx) = [1:curr_ripple_num_spikes];
         
-%         curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.time;
         curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.rippleRelativeTimeOffsets;
-%         curr_ripple_time_offsets = (eachRipple_filtered_flattened_table{ripple_idx}.time - eachRipple_filtered_flattened_table{ripple_idx}.time(1)); % convert to relative time by subtracting the start timestamp. This means each spike's time corresponds to the time ellapsed since the start of the ripple
-        curr_ripple_normalized_duration_time_offsets = curr_ripple_time_offsets ./ curr_ripple_time_offsets(end); % this should give each relative offset as a value between 0.0 and 1.0
-
         eachRipple_Matricies.relativeProportionalTimeOffset_Matrix(eachRipple_filtered_flattened_table{ripple_idx}.flattened_UnitIDs, ripple_idx) = curr_ripple_time_offsets;        
-%         [0, diff(eachRipple_filtered_flattened_table{ripple_idx}.time)]
-
     end
 
     % Flatten the changes all back so we can get the extra columns (rippleRelativeSequenceIndex and rippleRelativeTimeOffsets) in the flat filtered table
