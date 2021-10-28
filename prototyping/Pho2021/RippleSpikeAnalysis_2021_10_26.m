@@ -261,7 +261,8 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
         eachRipple_Matricies.relativeSequenceIndex_Matrix(eachRipple_filtered_flattened_table{ripple_idx}.flattened_UnitIDs, ripple_idx) = [1:curr_ripple_num_spikes];
         
 %         curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.time;
-        curr_ripple_time_offsets = (eachRipple_filtered_flattened_table{ripple_idx}.time - curr_ripple_time_offsets(1)); % convert to relative time by subtracting the start timestamp. This means each spike's time corresponds to the time ellapsed since the start of the ripple
+        curr_ripple_time_offsets = eachRipple_filtered_flattened_table{ripple_idx}.rippleRelativeTimeOffsets;
+%         curr_ripple_time_offsets = (eachRipple_filtered_flattened_table{ripple_idx}.time - eachRipple_filtered_flattened_table{ripple_idx}.time(1)); % convert to relative time by subtracting the start timestamp. This means each spike's time corresponds to the time ellapsed since the start of the ripple
         curr_ripple_normalized_duration_time_offsets = curr_ripple_time_offsets ./ curr_ripple_time_offsets(end); % this should give each relative offset as a value between 0.0 and 1.0
 
         eachRipple_Matricies.relativeProportionalTimeOffset_Matrix(eachRipple_filtered_flattened_table{ripple_idx}.flattened_UnitIDs, ripple_idx) = curr_ripple_time_offsets;        
