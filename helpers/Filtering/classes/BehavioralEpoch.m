@@ -6,7 +6,7 @@ classdef BehavioralEpoch
       classColors = [0.0, 0.5, 0.0
                0.2, 1.0, 0.2
                0.0, 0.2, 0.0];
-      classNames = {'pre_sleep', 'track', 'post_sleep'};
+      classNames = {'pre_sleep', 'track', 'post_sleep'}; % shouldn't this be 'pre', 'track', 'post'?
       classValues = [1:length(BehavioralEpoch.classNames)];
     end % end Constant properties block
 

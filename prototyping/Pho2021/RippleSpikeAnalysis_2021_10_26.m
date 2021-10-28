@@ -61,16 +61,19 @@ curr_filtered_table = rmmissing(curr_flattened_table);
 
 num_active_units = height(curr_cell_table);
 target_options.behavioral_states_variable_name = 'behavioral_states';
-% [is_target_entry_included] = fnFilterSpikesWithCriteria(curr_filtered_table, [], {'rem','nrem'}, target_options);
 
-% [is_target_entry_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'pre_sleep'}, {'active'}, target_options);
-[track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'active'}, target_options);
+%% "Quiet" - 1
+[track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'pre_sleep'}, {'nrem','rem'}, target_options);
+% [track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'quiet'}, target_options);
+[track_quiet_outputs.filtered_table, track_quiet_outputs.eachRipple_filtered_flattened_table, track_quiet_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_quiet_included, num_active_units);
+
+
+%% "Active" - 2
+[track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'post_sleep'}, {'nrem','rem'}, target_options);
+% [track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'active'}, target_options);
 [track_active_outputs.filtered_table, track_active_outputs.eachRipple_filtered_flattened_table, track_active_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_active_included, num_active_units);
 
 
-
-[track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'quiet'}, target_options);
-[track_quiet_outputs.filtered_table, track_quiet_outputs.eachRipple_filtered_flattened_table, track_quiet_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_quiet_included, num_active_units);
 
 
 %% fnReconstructCellsFromFlattenedContents
@@ -86,7 +89,7 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 % 
 % [track_quiet_outputs.reconstructedCellTable] = fnFlattenCellsToContents(track_quiet_outputs.eachRipple_filtered_flattened_table);
 
-[track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
+% [track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
 % [track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
 
 %%% This is going to be very inefficient
@@ -137,23 +140,55 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 
 %% Plot the outputs:
 
-% currMatrixName = 'activeSet_Matrix';
-currMatrixName = 'relativeSequenceIndex_Matrix';
+plotting_options.ordered_by = 'participation_rate';
+
+
+currMatrixName = 'activeSet_Matrix';
+% currMatrixName = 'relativeSequenceIndex_Matrix';
 % currMatrixName = 'relativeProportionalTimeOffset_Matrix';
 
+%% "Quiet" - 1
 figure(1);
 clf;
-fnPhoMatrixPlot(track_quiet_outputs.eachRipple_Matricies.(currMatrixName))
-title('quiet wake')
+temp.active_mat = track_quiet_outputs.eachRipple_Matricies.(currMatrixName);
+
+% calculate particpation_rate for sorting)
+participation_rate = sum(temp.active_mat, 2); % count the participation of each unit for sorting
+[~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+
+if strcmpi(plotting_options.ordered_by, 'participation_rate')
+    temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
+end
+% Plot:
+fnPhoMatrixPlot(temp.active_mat)
+% title('quiet wake')
+title('pre sleep')
 xlabel('SWR Index')
 ylabel('Unit ID')
+xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
 
+%% "Active" - 2
 figure(2);
 clf;
-fnPhoMatrixPlot(track_active_outputs.eachRipple_Matricies.(currMatrixName))
-title('active wake')
+temp.active_mat = track_active_outputs.eachRipple_Matricies.(currMatrixName);
+% calculate particpation_rate for sorting)
+% participation_rate = sum(temp.active_mat, 2); % count the participation of each unit for sorting
+% [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+
+% Plot:
+if strcmpi(plotting_options.ordered_by, 'participation_rate')
+    temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
+end
+fnPhoMatrixPlot(temp.active_mat)
+% title('active wake')
+title('post sleep')
 xlabel('SWR Index')
 ylabel('Unit ID')
+xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
+
+
+% print('-clipboard','-dmeta')
+
 
 
 % %% Clustering exploration
