@@ -48,29 +48,29 @@ curr_cell_table = curr_cell_table(plot_outputs.filter_active_units, :);
 [curr_flattened_table] = fnFlattenCellsToContents(curr_cell_table);
 
 %% Removes rows with missing values, meaning the rows with RippleIndex == NaN (meaning they aren't ripple spikes)
-curr_filtered_table = rmmissing(curr_flattened_table);
+curr_filtered_spikeFlattened_table = rmmissing(curr_flattened_table);
 
 %% Exclude sleep states:
-% curr_filtered_table = curr_filtered_table(('rem' == curr_filtered_table.behavioral_states), :); % Only those occuring during rem
-% curr_filtered_table = curr_filtered_table(('nrem' == curr_filtered_table.behavioral_states), :);
-% curr_filtered_table = groupfilter(curr_filtered_table, 'groupID', @(x) all(x == 'rem'), 'behavioral_states');
+% curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table(('rem' == curr_filtered_spikeFlattened_table.behavioral_states), :); % Only those occuring during rem
+% curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table(('nrem' == curr_filtered_spikeFlattened_table.behavioral_states), :);
+% curr_filtered_spikeFlattened_table = groupfilter(curr_filtered_spikeFlattened_table, 'groupID', @(x) all(x == 'rem'), 'behavioral_states');
 % 
-% curr_filtered_table = curr_filtered_table((('rem' == curr_filtered_table.behavioral_states) | ('nrem' == curr_filtered_table.behavioral_states)), :);
+% curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table((('rem' == curr_filtered_spikeFlattened_table.behavioral_states) | ('nrem' == curr_filtered_spikeFlattened_table.behavioral_states)), :);
 
 num_active_units = height(curr_cell_table);
 target_options.behavioral_states_variable_name = 'behavioral_states';
 
 %% "Quiet" - 1
 
-[track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'pre_sleep'}, {'nrem','rem'}, target_options);
-% [track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'quiet'}, target_options);
-[track_quiet_outputs.filtered_table, track_quiet_outputs.eachRipple_filtered_flattened_table, track_quiet_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_quiet_included, num_active_units);
+[track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_spikeFlattened_table, {'pre_sleep'}, {'nrem','rem'}, target_options);
+% [track_quiet_included] = fnFilterSpikesWithCriteria(curr_filtered_spikeFlattened_table, {'track'}, {'quiet'}, target_options);
+[track_quiet_outputs.filtered_table, track_quiet_outputs.eachRipple_filtered_flattened_table, track_quiet_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_spikeFlattened_table, track_quiet_included, num_active_units);
 
 
 %% "Active" - 2
-[track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'post_sleep'}, {'nrem','rem'}, target_options);
-% [track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_table, {'track'}, {'active'}, target_options);
-[track_active_outputs.filtered_table, track_active_outputs.eachRipple_filtered_flattened_table, track_active_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_table, track_active_included, num_active_units);
+[track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_spikeFlattened_table, {'post_sleep'}, {'nrem','rem'}, target_options);
+% [track_active_included] = fnFilterSpikesWithCriteria(curr_filtered_spikeFlattened_table, {'track'}, {'active'}, target_options);
+[track_active_outputs.filtered_table, track_active_outputs.eachRipple_filtered_flattened_table, track_active_outputs.eachRipple_Matricies] = fnSplitIntoSpecificRipples(curr_filtered_spikeFlattened_table, track_active_included, num_active_units);
 
 
 
@@ -91,6 +91,8 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 % [track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
 % [track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
 
+
+%% Pairwise Spiking Events Implementation Attempt: 
 %%% This is going to be very inefficient
 % 
 % for unit_idx = 1:height(track_quiet_outputs.reconstructedCellTable)
@@ -244,18 +246,18 @@ end
 % 
 
 
-function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_Matricies] = fnSplitIntoSpecificRipples(target_table, is_target_entry_included, num_active_units)
+function [curr_filtered_spikeFlattened_table, eachRipple_filtered_flattened_table, eachRipple_Matricies] = fnSplitIntoSpecificRipples(target_table, is_target_entry_included, num_active_units)
     %% fnSplitIntoSpecificRipples: splits the tables of entries describing * to a cell array (eachRipple_filtered_flattened_table) of small tables, each containing information about the spikes that occured within the given ripple.
     %   These can be used for easily processing in a ripple-by-ripple manner
     % also returns matricies that can be used to compare unit activity across ripples
-    curr_filtered_table = target_table(is_target_entry_included, :);
+    curr_filtered_spikeFlattened_table = target_table(is_target_entry_included, :);
     
     %% Filter again to a specific ripple index
-    unique_ripple_indices = unique(curr_filtered_table.RippleIndex);
+    unique_ripple_indices = unique(curr_filtered_spikeFlattened_table.RippleIndex);
     %% Build a cell array (eachRipple_filtered_flattened_table) of small tables, each containing information about the spikes that occured within the given ripple. This will be returned and also used in the next step to produce the matricies
     eachRipple_filtered_flattened_table = cell([length(unique_ripple_indices), 1]);
     for ripple_idx = 1:length(unique_ripple_indices)
-        eachRipple_filtered_flattened_table{ripple_idx} = curr_filtered_table(curr_filtered_table.RippleIndex == unique_ripple_indices(ripple_idx), :);
+        eachRipple_filtered_flattened_table{ripple_idx} = curr_filtered_spikeFlattened_table(curr_filtered_spikeFlattened_table.RippleIndex == unique_ripple_indices(ripple_idx), :);
         curr_ripple_num_spikes = height(eachRipple_filtered_flattened_table{ripple_idx});
         eachRipple_filtered_flattened_table{ripple_idx}.rippleRelativeSequenceIndex = [1:curr_ripple_num_spikes]';
 
@@ -281,7 +283,7 @@ function [curr_filtered_table, eachRipple_filtered_flattened_table, eachRipple_M
     end
 
     % Flatten the changes all back so we can get the extra columns (rippleRelativeSequenceIndex and rippleRelativeTimeOffsets) in the flat filtered table
-    curr_filtered_table = vertcat(eachRipple_filtered_flattened_table{:});
+    curr_filtered_spikeFlattened_table = vertcat(eachRipple_filtered_flattened_table{:});
     
 end
 
