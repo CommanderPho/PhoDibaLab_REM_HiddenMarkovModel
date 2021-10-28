@@ -27,28 +27,30 @@ filter_config.filter_maximum_included_contamination_level = {2};
 %% Get filter info for active units
 [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, true, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
-
 temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
 fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
-%% Flatten subset of spikes table for efficient ripple-related processing:
-curr_cell_table = table(active_processing.spikes.time, ...
+
+%% We come in with a table where each row is a unit (active_processing.spikes)
+%% From there we build 
+
+%% Temporary copy of spikes table with subset of columns that will be filtered pre-processed to prepare for flattening:
+% all table variables are cell arrays of different sizes
+curr_unit_rows_table = table(active_processing.spikes.time, ...
         active_processing.spikes.isRippleSpike, ...
         active_processing.spikes.RippleIndex, ...
-        'VariableNames', {'time','isRippleSpike','RippleIndex'});
-% Add the optional variables
-curr_cell_table.behavioral_duration_indicies = fnCellContentsTranpose(active_processing.spikes.behavioral_duration_indicies);
-curr_cell_table.behavioral_states = fnCellContentsTranpose(active_processing.spikes.behavioral_states);
-curr_cell_table.behavioral_epoch = fnCellContentsTranpose(active_processing.spikes.behavioral_epoch);
+        fnCellContentsTranpose(active_processing.spikes.behavioral_duration_indicies), fnCellContentsTranpose(active_processing.spikes.behavioral_states), fnCellContentsTranpose(active_processing.spikes.behavioral_epoch), ...
+        'VariableNames', {'time','isRippleSpike','RippleIndex', 'behavioral_duration_indicies', 'behavioral_states', 'behavioral_epoch'});
+% Filter the inactive units from curr_unit_rows_table to save on processing overhead before flattening the cells
+curr_unit_rows_table = curr_unit_rows_table(plot_outputs.filter_active_units, :);
+num_active_units = height(curr_unit_rows_table);
 
-% Filter the inactive units to save on processing overhead before flattening the cells
-curr_cell_table = curr_cell_table(plot_outputs.filter_active_units, :);
-
-% Flatten the cells:
-[curr_flattened_table] = fnFlattenCellsToContents(curr_cell_table);
+%% Flatten over the rows (which are units) subset of spikes table for efficient ripple-related processing:
+[curr_flattenedOverUnits_table] = fnFlattenCellsToContents(curr_unit_rows_table); % Flatten the cells:
 
 %% Removes rows with missing values, meaning the rows with RippleIndex == NaN (meaning they aren't ripple spikes)
-curr_filtered_spikeFlattened_table = rmmissing(curr_flattened_table);
+curr_filtered_spikeFlattened_table = rmmissing(curr_flattenedOverUnits_table);
+
 
 %% Exclude sleep states:
 % curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table(('rem' == curr_filtered_spikeFlattened_table.behavioral_states), :); % Only those occuring during rem
@@ -57,7 +59,6 @@ curr_filtered_spikeFlattened_table = rmmissing(curr_flattened_table);
 % 
 % curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table((('rem' == curr_filtered_spikeFlattened_table.behavioral_states) | ('nrem' == curr_filtered_spikeFlattened_table.behavioral_states)), :);
 
-num_active_units = height(curr_cell_table);
 target_options.behavioral_states_variable_name = 'behavioral_states';
 
 %% "Quiet" - 1
