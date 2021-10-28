@@ -152,71 +152,51 @@ plotting_options.currMatrixName = 'relativeProportionalTimeOffset_Matrix';
 plotting_options.figure_title = 'pre sleep';
 figure(1);
 clf;
-[~] = fnPlotRippleMatrixComparisonResult(track_quiet_outputs.eachRipple_Matricies, plotting_options);
+[~, ordering_matrics, ordering_indicies] = fnPlotRippleMatrixComparisonResult(track_quiet_outputs.eachRipple_Matricies, plotting_options);
 
 %% "Active" - 2
 plotting_options.figure_title = 'post sleep';
+% uses the ordering provided from the previous plot
+plotting_options.ordered_by = 'provided_indicies';
+plotting_options.provided_indicies = ordering_indicies;
 figure(2);
 clf;
 [~] = fnPlotRippleMatrixComparisonResult(track_active_outputs.eachRipple_Matricies, plotting_options);
 
 
-% 
-% temp.active_mat = track_quiet_outputs.eachRipple_Matricies.(currMatrixName);
-% 
-% temp.active_ordering_mat = track_quiet_outputs.eachRipple_Matricies.(plotting_options.ordering_matrix_variable_name);
-% % calculate particpation_rate for sorting)
-% participation_rate = sum(temp.active_ordering_mat, 2); % count the participation of each unit for sorting
-% [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
-% 
-% if strcmpi(plotting_options.ordered_by, 'participation_rate')
-%     temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
-% end
-% % Plot:
-% fnPhoMatrixPlot(temp.active_mat)
-% % title('quiet wake')
-% title('pre sleep')
-% xlabel('SWR Index')
-% ylabel('Unit ID')
-% xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
-% 
-% %% "Active" - 2
-% figure(2);
-% clf;
-% temp.active_mat = track_active_outputs.eachRipple_Matricies.(currMatrixName);
-% % calculate particpation_rate for sorting)
-% % participation_rate = sum(temp.active_mat, 2); % count the participation of each unit for sorting
-% % [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
-% 
-% % Plot:
-% if strcmpi(plotting_options.ordered_by, 'participation_rate')
-%     temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
-% end
-% fnPhoMatrixPlot(temp.active_mat)
-% % title('active wake')
-% title('post sleep')
-% xlabel('SWR Index')
-% ylabel('Unit ID')
-% xticks([]); yticks([]); % The tick marks are wrong due to a bug with imagesc, so just remove them)
-
-
 % print('-clipboard','-dmeta')
 
-function [fig] = fnPlotRippleMatrixComparisonResult(results_matrix_struct, plotting_options)
-    
+function [fig, ordering_matrics, ordering_indicies] = fnPlotRippleMatrixComparisonResult(results_matrix_struct, plotting_options)
+    %% fnPlotRippleMatrixComparisonResult: Plots the spikes during each ripple based on options provided in plotting_options
+    % 2021-10-26 Pho Hale
+    % note: assumes all ordering is done on the first column of the matrix (corresponding to the units)
+
     fig = gcf;
-    temp.active_mat = results_matrix_struct.(plotting_options.currMatrixName);
+    active_mat = results_matrix_struct.(plotting_options.currMatrixName);
     
-    temp.active_ordering_mat = results_matrix_struct.(plotting_options.ordering_matrix_variable_name);
+    % Order the output if specified:
+    active_ordering_mat = results_matrix_struct.(plotting_options.ordering_matrix_variable_name);
     % calculate particpation_rate for sorting)
-    participation_rate = sum(temp.active_ordering_mat, 2); % count the participation of each unit for sorting
-    [~, participation_rate_sorted_idx] = sort(participation_rate, "descend");
+    ordering_matrics.participation_rate = sum(active_ordering_mat, 2); % count the participation of each unit for sorting
     
     if strcmpi(plotting_options.ordered_by, 'participation_rate')
-        temp.active_mat = temp.active_mat(participation_rate_sorted_idx, :);
+        [~, ordering_indicies] = sort(ordering_matrics.participation_rate, "descend");
+        active_mat = active_mat(ordering_indicies, :);
+    elseif strcmpi(plotting_options.ordered_by, 'provided_indicies')
+        % provided_indicies: uses user-specified indicies provided in plotting_options.provided_indicies
+        if ~isfield(plotting_options, 'provided_indicies')
+            error('plotting_options.ordered_by was set to "provided_indicies" but no plotting_options.provided_indicies was provided!');
+        end
+        ordering_indicies = plotting_options.provided_indicies;
+        active_mat = active_mat(ordering_indicies, :);
+
+    else
+        % no change in ordering
+        ordering_indicies = [1:size(active_mat,1)];
     end
+
     % Plot:
-    fnPhoMatrixPlot(temp.active_mat)
+    fnPhoMatrixPlot(active_mat)
 
     title(plotting_options.figure_title)
     xlabel('SWR Index')
