@@ -38,13 +38,10 @@ fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, lengt
 
 %% Temporary copy of spikes table with subset of columns that will be filtered pre-processed to prepare for flattening:
 % all table variables are cell arrays of different sizes
-curr_unit_rows_table = table(active_processing.spikes.time, ...
-        active_processing.spikes.isRippleSpike, ...
-        active_processing.spikes.RippleIndex, ...
-        fnCellContentsTranpose(active_processing.spikes.behavioral_duration_indicies), fnCellContentsTranpose(active_processing.spikes.behavioral_states), fnCellContentsTranpose(active_processing.spikes.behavioral_epoch), ...
-        'VariableNames', {'time','isRippleSpike','RippleIndex', 'behavioral_duration_indicies', 'behavioral_states', 'behavioral_epoch'});
-% Filter the inactive units from curr_unit_rows_table to save on processing overhead before flattening the cells
-curr_unit_rows_table = curr_unit_rows_table(plot_outputs.filter_active_units, :);
+curr_unit_rows_table = active_processing.spikes(plot_outputs.filter_active_units, {'time','isRippleSpike','RippleIndex', 'behavioral_duration_indicies', 'behavioral_states', 'behavioral_epoch'}); % Filter the inactive units from curr_unit_rows_table to save on processing overhead before flattening the cells
+curr_unit_rows_table.behavioral_duration_indicies = fnCellContentsTranpose(curr_unit_rows_table.behavioral_duration_indicies);
+curr_unit_rows_table.behavioral_states = fnCellContentsTranpose(curr_unit_rows_table.behavioral_states);
+curr_unit_rows_table.behavioral_epoch = fnCellContentsTranpose(curr_unit_rows_table.behavioral_epoch);
 num_active_units = height(curr_unit_rows_table);
 
 %% Flatten over the rows (which are units) subset of spikes table for efficient ripple-related processing:
@@ -52,6 +49,9 @@ num_active_units = height(curr_unit_rows_table);
 
 %% Removes rows with missing values, meaning the rows with RippleIndex == NaN (meaning they aren't ripple spikes)
 curr_filtered_spikeFlattened_table = rmmissing(curr_flattenedOverUnits_table);
+
+
+
 
 
 %% Exclude sleep states:
@@ -95,51 +95,6 @@ target_options.behavioral_states_variable_name = 'behavioral_states';
 % [track_quiet_outputs.reconstructedCellTable] = fnReconstructCellsFromFlattenedContents(track_quiet_outputs.filtered_table);
 
 
-%% Pairwise Spiking Events Implementation Attempt: 
-%%% This is going to be very inefficient
-% 
-% for unit_idx = 1:height(track_quiet_outputs.reconstructedCellTable)
-%     
-%     % Get the ripple indexes this belongs in:
-%     currUnitRippleIndicies = track_quiet_outputs.reconstructedCellTable.rippleRelativeSequenceIndex{unit_idx};
-%     
-%     for unit_ripple_idx = 1:length(currUnitRippleIndicies)
-%         % All the unitIDs within this ripple
-%         currUnitRippleUnitIDs = track_quiet_outputs.reconstructedCellTable.eachRipple_filtered_flattened_table{unit_ripple_idx}.flattened_UnitIDs:
-%         currUnitRippleUnitRelativeTimeOffsets = track_quiet_outputs.reconstructedCellTable.eachRipple_filtered_flattened_table{unit_ripple_idx}.rippleRelativeTimeOffsets:
-% 
-%         %%% NOT YET FINISHED 2021-10-26
-%         error('Not yet implemented')
-%         %%% NOT YET FINISHED
-%         
-% 
-%         % Find the location of the current unit
-%         currUnitFoundIndicies = find(currUnitRippleUnitIDs == unit_idx);
-% 
-%   
-%         %% TODO: The computational complexity here is going to take off, I need to find a smarter implementation.
-%         % The concept was to find all the units that preceed our current unit_idx (curr_ripple_leading_units)
-%         
-%         currUnitRippleUnitRelativeTimeOffsets(curr_ripple_leading_units) % get the offsets for the units that lead our unit
-% 
-%         master_weights{unit_idx, curr_ripple_leading_units} = -1 .* currUnitRippleUnitRelativeTimeOffsets(curr_ripple_leading_units);
-% 
-%         %% ?? TODO: Need to set the reciprocal weights too?
-%         master_weights{curr_ripple_leading_units, unit_idx} = currUnitRippleUnitRelativeTimeOffsets(curr_ripple_leading_units);
-%         
-%         currUnitRippleSequenceIndex = track_quiet_outputs.reconstructedCellTable.rippleRelativeSequenceIndex{unit_idx};
-%        
-%     
-% 
-%     end
-% 
-% end
-
-% %% Another attempt at processing pairwise relations between units spiking events:
-% % track_quiet_outputs.eachRipple_filtered_flattened_table{111};
-% D = pdist(track_active_outputs.eachRipple_Matricies.activeSet_Matrix,'hamming'); % The percentage of each sequence's coordinates that differ
-% % [ist,ind,dst] = findsignal(corr,sgn,'TimeAlignment','dtw');
-% D_sqr = squareform(D);
 
 
 
