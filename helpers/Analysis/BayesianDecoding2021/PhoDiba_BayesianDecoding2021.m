@@ -6,8 +6,9 @@
 % email: halechr@umich.edu
 % Created: 28-Oct-2021 ; Last revision: 29-Oct-2021 
 
+override_should_recompute = false;
 
-% smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1.mat');
+% smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1_v7_3.mat');
 % smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/toAddVariables.mat');
 % smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/PlaceFields/biDirectional.mat', 'PF_sorted_biDir', 'spatialTunings_biDir');
 % smartload('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\PlaceFields\biDirectional.mat', 'PF_sorted_biDir')
@@ -42,7 +43,7 @@ placeFieldTuningCurves = spatialTunings_biDir(valid_place_fields, :);
 [peakVal, peakIndex] = max(placeFieldTuningCurves, [], 2);
 % convert the indices stored in maxIndex to position on the track
 peakPlace = PositionBins(peakIndex);
-[sortedPeakPlaces, sortedTuningCurveIndicies] = sort(peakPlace, 2,"ascend");
+[sortedPeakPlaces, sortedTuningCurveIndicies] = sort(peakPlace, 2, "ascend");
 
 [~, ~] = fnPlotPlaceCellSpatialTunings(placeFieldTuningCurves,'linearPoscenters', PositionBins, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
 title('Unsorted Spatial Tunings')
@@ -60,8 +61,9 @@ title('Sorted Spatial Tunings')
 % Actual timesteps if we want those
 % timesteps_array{1, 1}
 % tau = 0.1; % bin size (seconds)
+tau = 0.25; % bin size (seconds)
 % tau = 1.0; % bin size (seconds)
-tau = 10.0;
+% tau = 10.0;
 
 %% Define the active time range:
 
@@ -90,7 +92,7 @@ nTimeBins = ceil((TrialEnd-TrialStart)/tau);
 activeTimeBins = linspace(TrialStart, TrialEnd, (nTimeBins-1)); % 1x353520
 % t_rel is aligned with the timestamps in the active_processing.position_table's timestamp column
 t_rel = ((fileinfo.xyt2(:, 2)-fileinfo.tbegin) ./ 1e6); % Convert to relative timestamps since start
-TimestampPosition = t_rel;
+% TimestampPosition = t_rel;
 AnimalPosition = fileinfo.xyt2(:,1);
 % Main Visualization of output: compares the animal's actual recorded position to the maximum likelihood predected position at each timepoint
 subfn_plotTrajectoryComparison(activeTimeBins, maxL, TimestampPosition, fileinfo);

@@ -143,9 +143,12 @@ plotting_options.trialSelection.RectangleProperties.selected.LineWidth = 2;
 % Set the actual background rectangle properties for access in the phoSelectionAnnotations(...) functions:
 plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.TrialBackgroundRects;
 
-%% Annotations Testing:
-% [test_annotations] = testAnnotations_phoTrialRectangles();
-% plotting_options.annotations = test_annotations;
+%% Add Annotations Testing if possible:
+plotting_options.subplots.annotations_testing = false;
+if plotting_options.subplots.annotations_testing
+    [test_annotations] = testAnnotations_phoTrialRectangles();
+    plotting_options.annotations = test_annotations;
+end
 
 % % Select:
 % paramCell = struct2argsList(plotting_options.trialSelection.RectangleProperties.selected);
@@ -155,8 +158,15 @@ plotting_options.trialSelection.TrialBackgroundRects = plot_outputs.compOutputs.
 % 
 % set(plot_outputs.compOutputs.TrialBackgroundRects.handles(1), paramCell{:});
 
-% enable interactive section selection
-% phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
+
+
+%% Add enable interactive section selection:
+plotting_options.subplots.interactive_section_selection = false;
+if plotting_options.subplots.interactive_section_selection
+    %enable interactive section selection
+    phoSelectionAnnotations(currPlotHandles.linesHandle, plotting_options);
+end
+
 
 function [annotations] = testAnnotations_phoTrialRectangles()
     %% testAnnotations_phoTrialRectangles: build test annotations
@@ -279,7 +289,7 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     yticks(ax, 1:temp.num_active_units);
     yticklabels(ax, num2cellstr(plotting_options.sorting_config.unit_sort_indicies));
     
-    
+
     % Resize the main plot to prepare for adding various subplots in the margins (such as the sleep_state plot, and the position plot
     [plot_outputs.mainplot_rect, plot_outputs.subplots_rect] = phoPlotInteractiveRasterExtras.reallocateForAddingSubplots(ax, 0.10);
 

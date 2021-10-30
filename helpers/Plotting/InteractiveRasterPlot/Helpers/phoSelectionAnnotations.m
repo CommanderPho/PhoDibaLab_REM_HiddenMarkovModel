@@ -116,7 +116,7 @@ function mouseDownCallback_phoSelectionAnnotations(src, eventdata)
 %         temp.rectYOffsetStarts = temp.rectYOffsets - temp.rectHalfHeight;
 %         temp.rectYOffsetEnds = temp.rectYOffsets + temp.rectHalfHeight;
 %         
-        inRectIndex = floor(ppos(1,2) ./ temp.rectHeight);
+        inRectIndex = max(1, floor(ppos(1,2) ./ temp.rectHeight)); % don't 0 index
         fprintf('Click was in rect[%d]\n', inRectIndex);
         
         % Toggle the isSelected property for this rectangle/trial:
@@ -125,8 +125,7 @@ function mouseDownCallback_phoSelectionAnnotations(src, eventdata)
             % Deselect it:
             paramCell = struct2argsList(dataPack.plottingOptions.trialSelection.RectangleProperties.normal);
             dataPack.plottingOptions.trialSelection.TrialBackgroundRects.isSelected(inRectIndex) = false;
-            
-            
+  
         else
              % Select:
             paramCell = struct2argsList(dataPack.plottingOptions.trialSelection.RectangleProperties.selected);
