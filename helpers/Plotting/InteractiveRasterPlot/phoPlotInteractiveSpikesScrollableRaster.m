@@ -55,7 +55,8 @@ extantFigH = figure(12);
 
 %% Scrollplot mode:
 curr_i = 1;
-[extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
+[extantFigH, currRasterPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
+currPlotHandles = currRasterPlotHandles;
 
 %% Add Position Curves if possible:
 plotting_options.subplots.position_curves = true;
