@@ -128,6 +128,7 @@ end
 
 subfolder = fullfile(mainDir, 'TrackLaps');
 mkdir(subfolder)
+xyt = fileinfo.xyt;
 xyt2 = fileinfo.xyt2;
 
 save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'xyt', 'xyt2', 'currMazeShape')
