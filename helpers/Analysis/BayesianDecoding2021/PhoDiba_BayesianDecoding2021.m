@@ -60,20 +60,20 @@ title('Sorted Spatial Tunings')
 
 % Actual timesteps if we want those
 % timesteps_array{1, 1}
-% tau = 0.1; % bin size (seconds)
-tau = 0.25; % bin size (seconds)
+tau = 0.1; % bin size (seconds)
+% tau = 0.25; % bin size (seconds)
 % tau = 1.0; % bin size (seconds)
 % tau = 10.0;
 
 %% Define the active time range:
 
 % Whole period:
-% TrialStart = active_processing.behavioral_epochs.start_seconds(1);
-% TrialEnd = active_processing.behavioral_epochs.end_seconds(3);
+TrialStart = active_processing.behavioral_epochs.start_seconds(1);
+TrialEnd = active_processing.behavioral_epochs.end_seconds(3);
 
 % % Track only:
-TrialStart = active_processing.behavioral_epochs.start_seconds(2);
-TrialEnd = active_processing.behavioral_epochs.end_seconds(2);
+% TrialStart = active_processing.behavioral_epochs.start_seconds(2);
+% TrialEnd = active_processing.behavioral_epochs.end_seconds(2);
 
 
 %% Compute the actual likelihoods:

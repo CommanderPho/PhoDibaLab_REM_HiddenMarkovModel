@@ -4,9 +4,18 @@ smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rota
 active_processing.processed_array{2, 1}.all.binned_spike_firingRates = active_processing.processed_array{2, 1}.all.binned_spike_counts ./ processing_config.step_sizes(1);
 
 
+spikeTimes = active_processing.spikes.time(plot_outputs.filter_active_units);
+
+
+[N, edges, bin] = histcounts(spikeTimes, timesteps)';
+
+[N, edges, bin] = histcounts(output.all.spike_data{electrode_index}.Time, timesteps)';
+
 temp.active_binsize_index = 1;
-processing_config.step_sizes{temp.active_binsize_index}
-active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_firingRates = cellfun((@(x) x ./ processing_config.step_sizes{temp.active_binsize_index}), active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_counts, 'UniformOutput', false);
+tau = processing_config.step_sizes{temp.active_binsize_index}; % bin size (seconds)
+
+
+% active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_firingRates = cellfun((@(x) x ./ processing_config.step_sizes{temp.active_binsize_index}), active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_counts, 'UniformOutput', false);
 % active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_firingRates = fnCellContentsTranpose(active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_firingRates);
 %% Flatten over the rows (which are units) subset of spikes table for efficient ripple-related processing:
 [curr_flattenedOverUnits_binned_spike_firingRates] = fnSameSizedCells2mat(active_processing.processed_array{temp.active_binsize_index, 1}.all.binned_spike_firingRates)'; % Flatten the cells. 
