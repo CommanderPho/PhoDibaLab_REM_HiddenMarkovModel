@@ -11,7 +11,7 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
 
     p = inputParser;
     addParameter(p,'linearPoscenters', 1:size(spatialTunings,2), @isnumeric)
-    addParameter(p,'unitLabels', num2str(1:size(spatialTunings,1)), @iscellstr)
+    addParameter(p,'unitLabels', num2cellstr(1:size(spatialTunings,1)), @iscellstr)
     addParameter(p,'plotting_options', struct(), @isstruct)
     
     % addParameter(p,'minPeakRate',3,@isnumeric)
