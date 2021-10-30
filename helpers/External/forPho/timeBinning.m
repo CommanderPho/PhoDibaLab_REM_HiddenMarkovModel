@@ -27,6 +27,7 @@ static_isSpikeMember = ismember(spike.qclu , qclus);
 
 for evt = 1:noEvents
     
+    %% This line is very inefficient, using 91.7% of the computation time at 652seconds and with 89118 calls
 %     spikeInd   = find(spike.t >= eventBeg(evt) & spike.t < eventEnd(evt) & ismember(spike.qclu , qclus));
     spikeInd   = find(spike.t >= eventBeg(evt) & spike.t < eventEnd(evt) & static_isSpikeMember);
     

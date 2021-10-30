@@ -1,8 +1,8 @@
-clear all
+% clear all
 clc
 
-animalID = 1;
-sessionNumber = 3;
+animalID = 3;
+sessionNumber = 1;
 
 basicProcedure(animalID, sessionNumber)
 

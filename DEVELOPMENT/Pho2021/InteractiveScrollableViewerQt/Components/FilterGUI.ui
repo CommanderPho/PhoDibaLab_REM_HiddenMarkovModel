@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>451</width>
+    <height>555</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="sleepStateLabel">
+       <property name="text">
+        <string>Sleep State</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QListWidget" name="listWidget">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+       <property name="flow">
+        <enum>QListView::TopToBottom</enum>
+       </property>
+       <property name="resizeMode">
+        <enum>QListView::Fixed</enum>
+       </property>
+       <property name="uniformItemSizes">
+        <bool>true</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>Wake - Active</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Wake - Quiet</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Sleep - NREM</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Sleep - REM</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Unit Type</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QListWidget" name="listWidget_2">
+       <item>
+        <property name="text">
+         <string>Interneuron</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Pyramidal</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

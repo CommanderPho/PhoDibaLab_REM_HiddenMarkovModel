@@ -16,7 +16,7 @@ clc;
 % currDir = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
 % currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
-currDir = 'C:\Share\data\ALL_Combined';
+% currDir = 'C:\Share\data\ALL_Combined';
 
 currSrcDir = fullfile(currDir, 'src');
 
@@ -214,8 +214,6 @@ for ii= 1:nPBEs
     secondaryPBEs(ii, 5 + boutBrainState) = 1;
 end
 save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
-
-
 
 baseStruct = struct('data', [], 'p', [], 'ts', [], 'pts', []);
 
