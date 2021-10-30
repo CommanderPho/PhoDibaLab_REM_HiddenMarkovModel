@@ -13,6 +13,11 @@ filter_config.filter_maximum_included_contamination_level = {2};
 % plotting_options.window_duration = 2; % 2 seconds
 plotting_options.window_duration = 20; % 10 seconds
 
+
+%% Sorting/Ordering Units:
+plotting_options.sorting_config.unit_sort_indicies = sortedTuningCurveIndicies;
+
+
 if exist('across_experiment_results','var')
     temp.curr_timesteps_array = across_experiment_results{1, 1}.timesteps_array;  
     temp.curr_active_processing = across_experiment_results{1, 1}.active_processing;
@@ -203,7 +208,6 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     %% Get filter info for active units
     [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, plotting_options.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
         filter_config.filter_maximum_included_contamination_level);
-    
     temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
     fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
 
@@ -244,7 +248,12 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
 
 
     active_spike_times = active_processing.spikes.time(plot_outputs.filter_active_units); %% Original
-
+    
+    %% Re-ordering/sorting
+    % Re-order the units in the spike table
+    active_spike_times = active_spike_times(plotting_options.sorting_config.unit_sort_indicies);
+    plotting_options.unitBackgroundColors(:, plotting_options.sorting_config.unit_sort_indicies);
+    
     [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_spike_times, ...
         'PlotType','vertline', ...
         'rasterWindowOffset', curr_rasterWindowOffset, ...
@@ -268,6 +277,8 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     ax.YGrid = 'on';
 %     ax.YMinorGrid = 'on';
     yticks(ax, 1:temp.num_active_units);
+    yticklabels(ax, num2cellstr(plotting_options.sorting_config.unit_sort_indicies));
+    
     
     % Resize the main plot to prepare for adding various subplots in the margins (such as the sleep_state plot, and the position plot
     [plot_outputs.mainplot_rect, plot_outputs.subplots_rect] = phoPlotInteractiveRasterExtras.reallocateForAddingSubplots(ax, 0.10);

@@ -43,7 +43,10 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
     set(gcf,'units','points','position',[x0,y0,width,height])
     tt = 0;
 
-    dynamic_colors = colormap(hsv(size(PF_sorted_norm, 1))); % should be the RGB triplets
+    dynamic_colors = colormap(jet(size(PF_sorted_norm, 1))); % should be the RGB triplets
+%     dynamic_colors = colormap(hsv(size(PF_sorted_norm, 1))); % should be the RGB triplets
+
+
 
     %% Loop over the units
     for jj = 1 : size(PF_sorted_norm, 1)
@@ -84,7 +87,7 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
         
         
         set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
-        if ~exist('unitLabels','var')
+        if exist('unitLabels','var')
             text(linearPoscenters(1)-5*difpos, curr_y_offset_factor, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center');
         end
 %         text(linearPoscenters(end)+5*difpos, 0.06*jj, sprintf('%.1f Hz', peakRates_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');

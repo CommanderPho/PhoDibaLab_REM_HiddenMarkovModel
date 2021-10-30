@@ -28,8 +28,28 @@ spikeTimes = active_processing.spikes.time(plot_outputs.filter_active_units);
 % [pf_filter.filter_active_units, pf_filter.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, true, filter_config.filter_included_cell_types, filter_config.filter_maximum_included_contamination_level);
 % temp.num_active_units = sum(pf_filter.filter_active_units, 'all');
 % fprintf('PF Filter: Including %d of %d total units\n', temp.num_active_units, length(pf_filter.filter_active_units));
-valid_place_fields =(sum(spatialTunings_biDir, 2) > 0);
+
+%% Position Bins:
+% Build the needed PositionBins value from fileinfo:
+[posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(fileinfo.xyt2);
+% Finally set the needed PositionBins value:
+PositionBins = linearPoscenters; 
+
+%% Place Fields
+valid_place_fields = (sum(spatialTunings_biDir, 2) > 0);
 placeFieldTuningCurves = spatialTunings_biDir(valid_place_fields, :); 
+
+[peakVal, peakIndex] = max(placeFieldTuningCurves, [], 2);
+% convert the indices stored in maxIndex to position on the track
+peakPlace = PositionBins(peakIndex);
+[sortedPeakPlaces, sortedTuningCurveIndicies] = sort(peakPlace, 2,"ascend");
+
+[~, ~] = fnPlotPlaceCellSpatialTunings(placeFieldTuningCurves,'linearPoscenters', PositionBins, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
+title('Unsorted Spatial Tunings')
+
+[~, ~] = fnPlotPlaceCellSpatialTunings(placeFieldTuningCurves(sortedTuningCurveIndicies, :),'linearPoscenters', PositionBins, 'unitLabels', num2cellstr(sortedTuningCurveIndicies));
+title('Sorted Spatial Tunings')
+
 
 
 %% Previously using: 
@@ -53,10 +73,7 @@ tau = 10.0;
 TrialStart = active_processing.behavioral_epochs.start_seconds(2);
 TrialEnd = active_processing.behavioral_epochs.end_seconds(2);
 
-% Build the needed PositionBins value from fileinfo:
-[posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(fileinfo.xyt2);
-% Finally set the needed PositionBins value:
-PositionBins = linearPoscenters; 
+
 %% Compute the actual likelihoods:
 if ~exist('likelihood','var') || (exist('override_should_recompute','var') && override_should_recompute)
     disp('recomputing maximum likelihood...')
