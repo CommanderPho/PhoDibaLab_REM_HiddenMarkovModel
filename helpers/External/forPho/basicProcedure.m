@@ -16,6 +16,8 @@ clc;
 % currDir = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
 % currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
+currDir = 'C:\Share\data\ALL_Combined';
+
 currSrcDir = fullfile(currDir, 'src');
 
 % cd(currDir)
