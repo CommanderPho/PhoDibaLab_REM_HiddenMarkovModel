@@ -7,8 +7,8 @@ function likelihood = computeLikelihood(spikeCounts, placeFields, tau)
     parfor i = 1:nTimeBins
         nSpikes = repmat(spikeCounts(i,:), xyBins, 1);
         maxL = poisspdf(nSpikes,pFields);
-        maxL = prremod(maxL,2);
-        likelihood(:,i)=maxL;
+        maxL = prod(maxL,2);
+        likelihood(:,i) = maxL;
     end 
 
 end
