@@ -4,6 +4,9 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, plotting_optio
 
 %% History: Extracted from Kourosh's spatialTuning_1D_tempModifications.m file by PhoHale on 2021-10-27
 
+%% Example:
+% [~, ~] = fnPlotPlaceCellSpatialTunings(PF_sorted_biDir,'linearPoscenters', linearPoscenters, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
+
     PF_sorted_norm = spatialTunings ./ repmat(max(spatialTunings, [], 2), [1 size(spatialTunings, 2)]); % Normalize the peaks to one for visulaization
 
 
@@ -58,6 +61,7 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, plotting_optio
             % first is 92x2
             % second term is 1x216 for some reason
             h.fill = fill([linearPoscenters fliplr(linearPoscenters)], [curr_y_offset fliplr(curr_y_offset_factor*ones(size(PF_sorted_norm(jj, :))))], cl,'LineStyle','none');
+            alpha(0.5)
             hold on
             % first is 92x1
             % second is 1x108 double
@@ -71,7 +75,7 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, plotting_optio
         
         
         set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
-    %     text(linearPoscenters(1)-5*difpos, 0.06*jj, num2str(activeUnits_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
+        text(linearPoscenters(1)-5*difpos, curr_y_offset_factor, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center');
 %         text(linearPoscenters(end)+5*difpos, 0.06*jj, sprintf('%.1f Hz', peakRates_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
     end
     % tt = tt + 3;

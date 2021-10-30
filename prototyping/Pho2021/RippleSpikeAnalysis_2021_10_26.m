@@ -50,10 +50,6 @@ num_active_units = height(curr_unit_rows_table);
 %% Removes rows with missing values, meaning the rows with RippleIndex == NaN (meaning they aren't ripple spikes)
 curr_filtered_spikeFlattened_table = rmmissing(curr_flattenedOverUnits_table);
 
-
-
-
-
 %% Exclude sleep states:
 % curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table(('rem' == curr_filtered_spikeFlattened_table.behavioral_states), :); % Only those occuring during rem
 % curr_filtered_spikeFlattened_table = curr_filtered_spikeFlattened_table(('nrem' == curr_filtered_spikeFlattened_table.behavioral_states), :);
