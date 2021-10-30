@@ -1,6 +1,6 @@
 function [is_pair_included, original_pair_index] = fnFilterPairsWithCriteria(general_results, included_unit_indicies)
-%fnFilterPairsWithCriteria Filters the pairs of unit indicies
 
+%fnFilterPairsWithCriteria Filters the pairs of unit indicies
 	% included_unit_indicies: an array of units to include.
     
     
@@ -8,15 +8,11 @@ function [is_pair_included, original_pair_index] = fnFilterPairsWithCriteria(gen
 	% is_pair_included: a numPairs x length(included_unit_indicies) matrix where each column specifies whether that pair is included for this index.
     % original_pair_index: a numUnits x length(included_unit_indicies) matrix where each column contains the original linear pair indicies for the corresponding index.
 	num_included_unit_indicies = length(included_unit_indicies);
-
 	num_original_units = size(general_results.indicies.reverse_lookup_unique_electrode_pairs, 2);
     num_original_pairs = general_results.indicies.num_unique_pairs;
-
 	%% Pre-allocate:
     is_pair_included = logical(zeros([num_original_pairs num_included_unit_indicies]));
 	original_pair_index = zeros([num_original_units num_included_unit_indicies]);
-
-
 	for i = 1:length(included_unit_indicies)
 		temp.curr_unit_index = included_unit_indicies(i);
 		
@@ -29,12 +25,9 @@ function [is_pair_included, original_pair_index] = fnFilterPairsWithCriteria(gen
 		
 		is_pair_included(temp.curr_found_lin_indicies, i) = 1; % Uses these indicies to set those pair elements to true;
 		original_pair_index(:, i) = temp.curr_found_lin_indicies;
-
 	end
-
 % 	temp.curr_pairs_indicies = find(filter_config.filter_active_units);
 %     filter_config.filter_active_pairs =  ismember(general_results.indicies.unique_electrode_pairs(:,1), temp.curr_pairs_indicies) & ismember(general_results.indicies.unique_electrode_pairs(:,2), temp.curr_pairs_indicies);
 %     filter_config.filter_active_pair_values = general_results.indicies.unique_electrode_pairs(filter_config.filter_active_pairs, :);
-
 end
 
