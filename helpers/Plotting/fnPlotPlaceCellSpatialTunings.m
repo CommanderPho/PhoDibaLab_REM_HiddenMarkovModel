@@ -1,4 +1,5 @@
-function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, plotting_options)
+function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
+% function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, plotting_options)
 %FNPLOTPLACECELLSPATIALTUNINGS plot the place fields
 %   Detailed explanation goes here
 
@@ -7,12 +8,20 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, plotting_optio
 %% Example:
 % [~, ~] = fnPlotPlaceCellSpatialTunings(PF_sorted_biDir,'linearPoscenters', linearPoscenters, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
 
+
+    p = inputParser;
+    addParameter(p,'linearPoscenters', 1:size(spatialTunings,2), @isnumeric)
+    addParameter(p,'unitLabels', num2str(1:size(spatialTunings,1)), @iscellstr)
+    addParameter(p,'plotting_options', struct(), @isstruct)
+    
+    % addParameter(p,'minPeakRate',3,@isnumeric)
+    parse(p, varargin{:})
+    
+    linearPoscenters = p.Results.linearPoscenters;
+    unitLabels = p.Results.unitLabels;
+    plotting_options = p.Results.plotting_options; 
+    
     PF_sorted_norm = spatialTunings ./ repmat(max(spatialTunings, [], 2), [1 size(spatialTunings, 2)]); % Normalize the peaks to one for visulaization
-
-
-    if ~exist('linearPoscenters','var')
-        linearPoscenters = 1:size(PF_sorted_norm,2);
-    end
 
     % plot the place fields
     % units with peak firing rates below the threshold (2 Hz) will be shown in black

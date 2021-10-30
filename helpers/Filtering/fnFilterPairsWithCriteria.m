@@ -1,4 +1,25 @@
 function [is_pair_included, original_pair_index] = fnFilterPairsWithCriteria(general_results, included_unit_indicies)
+% fnFilterPairsWithCriteria - One line description of what the function performs
+% Detailed explanation goes here
+% 
+% Syntax:  
+%     [is_pair_included, original_pair_index] = fnFilterPairsWithCriteria(general_results, included_unit_indicies)
+% 
+% Input:
+%    general_results - Description
+%    included_unit_indicies - Description
+% 
+% Outputs:
+%    output1 - Description
+%    output2 - Description
+% 
+% Author: Pho Hale
+% PhoHale.com 
+% email: halechr@umich.edu
+% Created: 29-Oct-2021 ; Last revision: 29-Oct-2021 
+
+% ------------- BEGIN CODE --------------
+
 
 %fnFilterPairsWithCriteria Filters the pairs of unit indicies
 	% included_unit_indicies: an array of units to include.
@@ -31,3 +52,5 @@ function [is_pair_included, original_pair_index] = fnFilterPairsWithCriteria(gen
 %     filter_config.filter_active_pair_values = general_results.indicies.unique_electrode_pairs(filter_config.filter_active_pairs, :);
 end
 
+
+% ------------- END OF CODE --------------
