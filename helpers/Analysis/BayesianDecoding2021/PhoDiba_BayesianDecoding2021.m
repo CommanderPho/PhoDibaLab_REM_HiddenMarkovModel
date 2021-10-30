@@ -7,8 +7,12 @@
 % Created: 28-Oct-2021 ; Last revision: 29-Oct-2021 
 
 
-% load('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/PlaceFields/biDirectional.mat', 'PF_sorted_biDir')
+
+
+smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/PlaceFields/biDirectional.mat', 'PF_sorted_biDir')  
 % load('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\PlaceFields\biDirectional.mat', 'PF_sorted_biDir')
+
+
 addpath(genpath('helpers'));
 % [maxL] = 
 % 
@@ -24,12 +28,12 @@ tau = 0.1; % bin size (seconds)
 %% Define the active time range:
 
 % Whole period:
-TrialStart = active_processing.behavioral_epochs.start_seconds(1);
-TrialEnd = active_processing.behavioral_epochs.end_seconds(3);
+% TrialStart = active_processing.behavioral_epochs.start_seconds(1);
+% TrialEnd = active_processing.behavioral_epochs.end_seconds(3);
 
 % % Track only:
-% TrialStart = active_processing.behavioral_epochs.start_seconds(2);
-% TrialEnd = active_processing.behavioral_epochs.end_seconds(2);
+TrialStart = active_processing.behavioral_epochs.start_seconds(2);
+TrialEnd = active_processing.behavioral_epochs.end_seconds(2);
 
 % Build the needed PositionBins value from fileinfo:
 [posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(fileinfo.xyt2);

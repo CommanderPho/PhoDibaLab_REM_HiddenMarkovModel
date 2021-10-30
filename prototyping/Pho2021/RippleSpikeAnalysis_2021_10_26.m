@@ -3,12 +3,12 @@
 addpath(genpath('../../helpers'));
 
 % Load Files:
-% load('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1.mat');
-% load('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/toAddVariables.mat');
+smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1.mat');
+smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/toAddVariables.mat');
 
 %% Windows Loading paths:
-% load('C:\Share\data\RoyMaze1\PhoResults_Expt1_RoyMaze1.mat');
-% load('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\toAddVariables.mat');
+% smartload('C:\Share\data\RoyMaze1\PhoResults_Expt1_RoyMaze1.mat');
+% smartload('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\toAddVariables.mat');
 
 
 % 
