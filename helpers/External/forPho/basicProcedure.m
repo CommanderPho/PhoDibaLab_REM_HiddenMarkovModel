@@ -16,6 +16,8 @@ clc;
 % currDir = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
 % currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
+currDir = 'C:\Share\data\ALL_Combined';
+
 currSrcDir = fullfile(currDir, 'src');
 
 % cd(currDir)
@@ -126,6 +128,7 @@ end
 
 subfolder = fullfile(mainDir, 'TrackLaps');
 mkdir(subfolder)
+xyt = fileinfo.xyt;
 xyt2 = fileinfo.xyt2;
 
 save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'xyt', 'xyt2', 'currMazeShape')
