@@ -53,34 +53,39 @@ curr_i = 1;
 [extantFigH, currPlotHandles, currStateMapHandle, plot_outputs] = pho_plot_spikeRaster(temp.curr_active_processing, filter_config, plotting_options, extantFigH, curr_i);
 
 %% Add Position Curves if possible:
-if exist('fileinfo','var')
-    [t, t_rel, x, y, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
-    [~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t_rel), ...
-        {linearPos}, ...
-        currPlotHandles.axesHandle, currPlotHandles, ...
-        plot_outputs.other_subplots_rect);
-else
-    fprintf('variable "fileinfo" does not exist, skipping plots of position data\n');
+plotting_options.subplots.position_curves = true;
+if plotting_options.subplots.position_curves
+    if exist('fileinfo','var')
+        [t, t_rel, x, y, linearPos] = phoPlotInteractiveRasterExtras.processFileInfoPositionExtendedExtras(fileinfo);
+        [~, ~] = phoPlotInteractiveRasterExtras.addPositionSubplot(seconds(t_rel), ...
+            {linearPos}, ...
+            currPlotHandles.axesHandle, currPlotHandles, ...
+            plot_outputs.other_subplots_rect);
+    else
+        fprintf('variable "fileinfo" does not exist, skipping plots of position data\n');
+    end
 end
 
-
 %% Add Ripple Periods if possible:
-if exist('source_data','var')
-    % t_rel is aligned with the timestamps in the active_processing.position_table's timestamp column
-    ripples_time_mat = source_data.ripple.RoyMaze1.time;
-    warning('RoyMaze1 is hardcoded for ripple periods!')
-%     ripples_time_mat = seconds((ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6); % Convert to relative timestamps since start
-    ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
-
-    [currPlotHandles.ripplesHandle] = phoPlotInteractiveRasterExtras.addRipplePeriodsSubplot(ripples_time_mat, ...
-        currPlotHandles.axesHandle, ...
-        plot_outputs.other_subplots_rect); % Overlay the subplots
-%         plot_outputs.mainplot_rect); % Overlay the existing main plot
-
-    % [spike_linearPos, spike_unitSpikeLaps, spike_unitIsRippleSpike] = phoPlotInteractiveRasterExtras.processSpikeStructExtendedExtras(spikeStruct);
-
-else
-    fprintf('variable "source_data" does not exist, skipping plots of position data\n');
+plotting_options.subplots.ripple_periods = false;
+if plotting_options.subplots.ripple_periods
+    if exist('source_data','var')
+        % t_rel is aligned with the timestamps in the active_processing.position_table's timestamp column
+        ripples_time_mat = source_data.ripple.RoyMaze1.time;
+        warning('RoyMaze1 is hardcoded for ripple periods!')
+    %     ripples_time_mat = seconds((ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6); % Convert to relative timestamps since start
+        ripples_time_mat = (ripples_time_mat - source_data.behavior.RoyMaze1.time(1,1)) ./ 1e6; % Convert to relative timestamps since start
+    
+        [currPlotHandles.ripplesHandle] = phoPlotInteractiveRasterExtras.addRipplePeriodsSubplot(ripples_time_mat, ...
+            currPlotHandles.axesHandle, ...
+            plot_outputs.other_subplots_rect); % Overlay the subplots
+    %         plot_outputs.mainplot_rect); % Overlay the existing main plot
+    
+        % [spike_linearPos, spike_unitSpikeLaps, spike_unitIsRippleSpike] = phoPlotInteractiveRasterExtras.processSpikeStructExtendedExtras(spikeStruct);
+    
+    else
+        fprintf('variable "source_data" does not exist, skipping plots of position data\n');
+    end
 end
 
 
@@ -92,11 +97,14 @@ scrollHandles = scrollplot(currPlotHandles.linesHandle, 'WindowSizeX', plotting_
 
 
 %% Add Blurred Spike Overlays if possible:
-if exist('unitStatistics','var')
-    phoPlotInteractiveRasterExtras.addBlurredSpikeOverlays(unitSpikeCells, scrollHandles, currPlotHandles, plotting_options);
-else
-    warning('unitStatistics variable does not exist, so cannot overlay the blurred spike outputs. Continuing.')
-end % end if exist('unitStatistics','var')
+plotting_options.subplots.blurred_spike_overlays = false;
+if plotting_options.subplots.blurred_spike_overlays
+    if exist('unitStatistics','var')
+        phoPlotInteractiveRasterExtras.addBlurredSpikeOverlays(unitSpikeCells, scrollHandles, currPlotHandles, plotting_options);
+    else
+        warning('unitStatistics variable does not exist, so cannot overlay the blurred spike outputs. Continuing.')
+    end % end if exist('unitStatistics','var')
+end
 
 %% INFO:
 % Can get scroll handles (the blue adjustment handle positions) using
@@ -204,7 +212,10 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     temp.active_units_speculated_type = double(active_processing.spikes.speculated_unit_type(plot_outputs.filter_active_units));
 %     plotting_options.unitBackgroundColors = [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]';
     plotting_options.unitBackgroundColors = active_processing.definitions.speculated_unit_info.classColors(temp.active_units_speculated_type,:)';
-    
+    % Note that we set the unitBackgroundColorOpacity here by adding a row for the alpha value
+    plotting_options.unitBackgroundColorAlpha = 0.0;
+    plotting_options.unitBackgroundColors = [plotting_options.unitBackgroundColors; plotting_options.unitBackgroundColorAlpha .* ones([1 size(plotting_options.unitBackgroundColors, 2)])];
+
     if exist('extantFigH','var')
         plotted_figH = figure(extantFigH); 
     else
@@ -219,13 +230,20 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
 %     hold off
     
     % Can specify line colors here, default is black ('k'):
-    plotting_options.spikeLinesFormat.Color = 'k';
+%     plotting_options.spikeLinesFormat.Color = 'k';
+
+    plotting_options.spikeLinesFormat.Color = [1.0, 0.0, 0.0]';
 
     %% Test filtering spikes by ripple criteria
 %     active_processing.spikes.time(plot_outputs.filter_active_units)
 %     active_processing.spikes.isRippleSpike(plot_outputs.filter_active_units)
-    active_spike_times = cellfun(@(spike_times, is_spike_ripple) spike_times(is_spike_ripple), active_processing.spikes.time(plot_outputs.filter_active_units), active_processing.spikes.isRippleSpike(plot_outputs.filter_active_units), 'UniformOutput', false); %% Filtered to only show the ripple spikes
-%     active_spike_times = active_processing.spikes.time(plot_outputs.filter_active_units); %% Original
+
+
+%     fnFilterSpikesWithCriteria(active_processing.spikes, {}, {});
+%     active_spike_times = cellfun(@(spike_times, is_spike_ripple) spike_times(is_spike_ripple), active_processing.spikes.time(plot_outputs.filter_active_units), active_processing.spikes.isRippleSpike(plot_outputs.filter_active_units), 'UniformOutput', false); %% Filtered to only show the ripple spikes
+
+
+    active_spike_times = active_processing.spikes.time(plot_outputs.filter_active_units); %% Original
 
     [plot_outputs.x_points, plot_outputs.y_points, rasterPlotHandles.linesHandle, plot_outputs.compOutputs] = phoPlotSpikeRaster(active_spike_times, ...
         'PlotType','vertline', ...
@@ -233,6 +251,7 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
         'XLimForCell', curr_window, ...
         'TrialBackgroundColors', plotting_options.unitBackgroundColors, ...
         'LineFormat', plotting_options.spikeLinesFormat);
+%         'SpikeColors', [1.0, 0.0, 0.0]');
 
     if plotting_options.showOnlyAlwaysStableCells
         numAlwaysStableCells = sum(plot_outputs.filter_active_units, 'all');
@@ -262,8 +281,13 @@ function [plotted_figH, rasterPlotHandles, stateMapHandle, plot_outputs] = pho_p
     plot_outputs.state_subplots_rect(2) = plot_outputs.state_subplots_rect(2) + plot_outputs.other_subplots_rect(4); % Shift up the state subplot rect above the other one
 
     %% Add the state_map above the raster plot:
-    [stateMapHandle] = phoPlotInteractiveRasterExtras.addStateMapSubplot(active_processing, ax, plot_outputs.state_subplots_rect);
-%     stateMapHandle = [];
+    plotting_options.subplots.behavioral_state_map = true;
+    if plotting_options.subplots.behavioral_state_map
+        [stateMapHandle] = phoPlotInteractiveRasterExtras.addStateMapSubplot(active_processing, ax, plot_outputs.state_subplots_rect);
+    else
+         stateMapHandle = [];
+    end
+
     % Add extra interface elements
 %     [extraControlsPanel] = phoPlotInteractiveRasterExtras.addExtraControls(plotted_figH, rasterPlotHandles.axesHandle);
 

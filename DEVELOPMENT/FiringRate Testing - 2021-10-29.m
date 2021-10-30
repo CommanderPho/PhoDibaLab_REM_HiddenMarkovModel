@@ -1,3 +1,6 @@
+smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1.mat');
+smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/toAddVariables.mat');
+
 active_processing.processed_array{2, 1}.all.binned_spike_firingRates = active_processing.processed_array{2, 1}.all.binned_spike_counts ./ processing_config.step_sizes(1);
 
 

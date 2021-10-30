@@ -48,6 +48,18 @@ classdef BehavioralState
         end
 
 
+        function [app] = buildListBoxGui(app, position, callbackFunction)
+            % Create SleepStateListBox
+            app.SleepStateListBox = uilistbox(app.UIFigure);
+            app.SleepStateListBox.Items = {'Active Wake', 'Quiet Wake', 'NREM', 'REM'};
+            app.SleepStateListBox.Multiselect = 'on';
+            app.SleepStateListBox.ValueChangedFcn = createCallbackFcn(app, callbackFunction, true);
+            app.SleepStateListBox.Position = position;
+            app.SleepStateListBox.Value = {'Active Wake'};
+
+        end
+
+
     end % end static method block
 
 end

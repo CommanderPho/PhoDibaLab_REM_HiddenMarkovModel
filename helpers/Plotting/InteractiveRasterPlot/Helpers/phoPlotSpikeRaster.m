@@ -142,7 +142,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 	p.addParamValue('VertSpikeHeight',1,@(x) isnumeric(x) && isscalar(x));
 
 	p.addParamValue('TrialBackgroundColors', [1.0, 1.0, 1.0;  0.9, 0.9, 0.9]',@(x) isnumeric(x) && ismatrix(x));
-	% p.addParamValue('TrialSpikeColors', [0.1, 0.1, 0.2;  0.2, 0.1, 0.1]',@(x) isnumeric(x) && ismatrix(x));
+    p.addParameter('SpikeColors', [0.0, 0.0, 0.0]', @(x) isnumeric(x));
 
 	p.parse(spikes,varargin{:});
 
@@ -161,8 +161,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 	vertSpikeHeight = p.Results.VertSpikeHeight;
 
 	trialBackgroundColors = p.Results.TrialBackgroundColors;
-	% trialSpikeColors = p.Results.TrialSpikeColors;
-
+	SpikeColors = p.Results.SpikeColors;
 
 	if ~isnan(rasterWindowOffset) && relSpikeStartTime==0
 		relSpikeStartTime = rasterWindowOffset;
@@ -207,11 +206,11 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 						
 				xPoints = xPoints(:);
 				yPoints = yPoints(:);
-				plotHandle = plot(xPoints,yPoints,'k',lineFormat{:});
+				plotHandle = plot(xPoints,yPoints, lineFormat{:});
 			case 'vertline'
 				%% Vertical Lines
 				% Find the trial (yPoints) and timebin (xPoints) of each spike
-				[trialIndex,timebins] = find(spikes);
+				[trialIndex, timebins] = find(spikes);
 				trialIndex = trialIndex';
 				timebins = timebins';
 				halfSpikeHeight = vertSpikeHeight/2;
@@ -225,7 +224,12 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 
 				xPoints = xPoints(:);
 				yPoints = yPoints(:);
-				plotHandle = plot(xPoints,yPoints,'k',lineFormat{:});
+
+                %% TODO:
+%                 num_colors = size(spikeColors, 1);
+               
+                
+				plotHandle = plot(xPoints, yPoints, 'Color', SpikeColors, lineFormat{:});
 			case 'horzline2'
 				%% Horizontal lines, for many timebins
 				% Plots a horizontal line the width of a time bin for each
@@ -279,7 +283,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 					end
 				end
 				
-				plotHandle = plot(xPoints, yPoints,'k', lineFormat{:});
+				plotHandle = plot(xPoints, yPoints, lineFormat{:});
 				
 			case 'vertline2'
 				%% Vertical lines, for many trials
@@ -316,7 +320,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 					end
 				end
 				
-				plotHandle = plot(xPoints, yPoints, 'k', lineFormat{:});
+				plotHandle = plot(xPoints, yPoints, lineFormat{:});
 				
 			case 'scatter'
 				%% Dots or other markers (scatterplot style)
@@ -324,7 +328,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 				% spike
 				[yPoints,xPoints] = find(spikes==1);
 				xPoints = xPoints + relSpikeStartTime;
-				plotHandle = plot(xPoints,yPoints,'.k',markerFormat{:});
+				plotHandle = plot(xPoints, yPoints,'.',markerFormat{:});
 				
 			case 'imagesc'
 				%% Imagesc
@@ -487,7 +491,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 
 			hold on;
 			% Plot everything at once! We will reverse y-axis direction later.
-			plotHandle = plot(xPoints, yPoints, 'k', lineFormat{:});
+			plotHandle = plot(xPoints, yPoints, lineFormat{:});
 			
 		elseif strcmpi(plotType,'scatter')
 			%% Dots or other markers (scatterplot style)
@@ -505,7 +509,7 @@ function [xPoints, yPoints, plotHandle, outputs] = phoPlotSpikeRaster(spikes, va
 			yPoints = [ trialIndex{:} ];
 			
 			% Now we can plot! We will reverse y-axis direction later.
-			plotHandle = plot(xPoints,yPoints,'.k',markerFormat{:});
+			plotHandle = plot(xPoints,yPoints,'.', markerFormat{:});
 			
 		elseif strcmpi(plotType,'imagesc') || strcmpi(plotType,'vertline2') || strcmpi(plotType,'horzline2')
 			error('Can''t use imagesc/horzline2/vertline2 with cell array. Use with logical array of binary spike train data.');

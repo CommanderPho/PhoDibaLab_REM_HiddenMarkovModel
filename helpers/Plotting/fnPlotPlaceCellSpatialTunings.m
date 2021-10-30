@@ -84,7 +84,9 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
         
         
         set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
-        text(linearPoscenters(1)-5*difpos, curr_y_offset_factor, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center');
+        if ~exist('unitLabels','var')
+            text(linearPoscenters(1)-5*difpos, curr_y_offset_factor, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center');
+        end
 %         text(linearPoscenters(end)+5*difpos, 0.06*jj, sprintf('%.1f Hz', peakRates_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
     end
     % tt = tt + 3;
