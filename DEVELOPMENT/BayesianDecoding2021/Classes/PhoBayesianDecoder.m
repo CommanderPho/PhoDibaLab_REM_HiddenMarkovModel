@@ -44,7 +44,7 @@ classdef PhoBayesianDecoder < handle
             obj.Parameters = struct;
 
             % spikes = {source_data.spikes.RoyMaze1.time};
-            [~, unitSpikeCells, ~] = fnFlatSpikesToUnitCells(spikeStruct.t, spikeStruct.unit, false);
+            [~, unitSpikeCells, ~] = fnFlatSpikesToUnitCells(obj.Loaded.spikeStruct.t, obj.Loaded.spikeStruct.unit, false);
 %             spikes = unitSpikeCells; % the timestamps we need
              obj.Parameters.spikes = fnCellContentsTranpose(unitSpikeCells)'; % the timestamps we need
             % Absolute timestamp version are available here: source_data.position.RoyMaze1.t            
@@ -54,19 +54,45 @@ classdef PhoBayesianDecoder < handle
             obj.Loaded.positionTable.t_rel = ((obj.Loaded.positionTable.t - obj.Loaded.fileinfo.tbegin) ./ 1e6); % Convert to relative timestamps since start
             
             obj.Parameters.X = obj.Loaded.positionTable.linearPos';
-            obj.Parameters.t = obj.Loaded.positionTable.t_rel';
-            % temp.validIndicies = ~isnan(X);
+%             obj.Parameters.t = obj.Loaded.positionTable.t_rel;
+            obj.Parameters.t = obj.Loaded.positionTable.t';
             
             obj.Parameters.sample_rate = obj.Loaded.fileinfo.Fs;
 
             obj.Parameters.t_start = obj.Loaded.behavior.time(2,1);
             obj.Parameters.t_end = obj.Loaded.behavior.time(2,2);
 
+%             obj.buildTuningCurves(obj.Parameters.spikes, obj.Parameters.X, obj.Parameters.t, obj.Parameters.sample_rate, ...
+%                 obj.Parameters.t_start, obj.Parameters.t_end, 
+
         end
 
+        function [] = buildTuningCurves(obj, bin_size, sigma, f_base, min_t_occ, t_start, t_end)
+%             t_start
+            if exist('t_start', 'var')
+                obj.Parameters.t_start = t_start; % use the user's value
+            end
+            if exist('t_end', 'var')
+                obj.Parameters.t_end = t_end; % use the user's value
+            end
+            obj.Parameters.bin_size = bin_size;
+            obj.Parameters.sigma = sigma;
+            obj.Parameters.f_base = f_base;
+            obj.Parameters.min_t_occ = min_t_occ;
 
-        function [] = buildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ)
-            [~, obj.TuningCurves.lambda] = build_tuning_curves(spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma);
+%             sigma = [5];
+%             bin_size = [2]; % spatial bin size (cm)
+%             f_base = 2; % base firing rate (Hz)
+%             min_t_occ = 0.5;
+
+            obj.performBuildTuningCurves(obj.Parameters.spikes, obj.Parameters.X, obj.Parameters.t, obj.Parameters.sample_rate, ...
+                obj.Parameters.t_start, obj.Parameters.t_end, bin_size, sigma, f_base, min_t_occ);
+    
+        end
+
+        function [] = performBuildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ)
+%             [~, obj.TuningCurves.lambda] = build_tuning_curves(spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma);
+
             %{
             lambda: (N+1)-dimensional array of mean firing rate for each bin,
                     where the size of the first dimension is the number of units.
@@ -93,21 +119,37 @@ classdef PhoBayesianDecoder < handle
         function performLoadDataHiroFormat(obj, parentFolder, experimentName)
             %performLoadDataHiroFormat Summary of this method goes here
             %   Detailed explanation goes here
-               
             obj.Loaded = struct; % clear the loaded if it hasn't already been done.
-
             temp.L1 = smartload([parentFolder experimentName '/toAddVariables.mat'], ...
                 'behavior', 'fileinfo', '-f');
             temp.L2 = smartload([parentFolder experimentName '/PlaceFields/biDirectional.mat'], ...
                 'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir', 'positionBinningInfo_biDir');
             temp.L3 = smartload([parentFolder experimentName '/TrackLaps/trackLaps.mat']);
             temp.L4 = smartload([parentFolder experimentName '/spikesVariables.mat']);
-%             obj.Loaded.behavior = temp.L1.behavior;
-%             obj.Loaded.fileinfo = temp.L1.fileinfo;
-%             merged_args_list = [struct2argsList(temp.L1), struct2argsList(temp.L2), struct2argsList(temp.L3), struct2argsList(temp.L4)];
-            
             [obj.Loaded] = fnMergeStructs(obj.Loaded, temp.L1, temp.L2, temp.L3, temp.L4);
         end
+
+
+        function performSaveComputedData(obj, parentFolder, experimentName, experimentIdentifier)
+            %performSaveComputedData Summary of this method goes here
+            %   Detailed explanation goes here
+               
+            input_variables_names = {'spikes', 'X', 't', 'sample_rate', 't_start', 't_end', 'bin_size', 'sigma', 'f_base', 'min_t_occ'};
+            output_variable_names = {'lambda', 'coords', 'alpha', 'beta', 'IC_curves'};
+            
+%             experimentIdentifier = 'KevinMaze1';
+            for i = 1:length(input_variables_names)
+                BayesocampusResults.(experimentIdentifier).Inputs.(input_variables_names{i}) = eval(input_variables_names{i}); 
+            end
+            
+            for i = 1:length(output_variable_names)
+                BayesocampusResults.(experimentIdentifier).Outputs.(output_variable_names{i}) = eval(output_variable_names{i}); 
+            end
+            
+            save('Bayesiocampus_Results_2021_11_01-6.mat', "BayesocampusResults")            
+        end
+
+
 
 
     end % end methods
