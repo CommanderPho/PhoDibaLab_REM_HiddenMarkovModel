@@ -1,11 +1,12 @@
-% PhoDibaConvert_SpikesAnalysis.m
-% PhoDibaConvert_SpikesAnalysis - One line description of what the script performs
+% PhoDibaConvert_SpikesToPython.m
+% PhoDibaConvert_SpikesToPython - One line description of what the script performs
 % Makes use of active_processing.position_table, active_processing.behavioral_epochs.start_seconds
 % 
 % Author: Pho Hale
 % PhoHale.com 
 % email: halechr@umich.edu
 % Created: 29-Oct-2021 ; Last revision: 29-Oct-2021 
+% History: was originally called "PhoDibaConvert_SpikesAnalysis.m"
 
 addpath(genpath('../../helpers'));
 addpath(genpath('../../libraries/buzcode/'));
@@ -31,6 +32,11 @@ end
 fprintf('PhoDibaConvert_SpikesAnalysis ready to process!\n');
 %% Binning Options:
 active_expt_index = 1;
+if exist('active_experiment_names','var')
+    active_experiment_name = active_experiment_names{active_expt_index};
+else
+    active_experiment_name = processing_config.active_expt.name; % get from processing config
+end
 plotting_options.showOnlyAlwaysStableCells = processing_config.showOnlyAlwaysStableCells;
 current_binning_index = 1;
 active_binning_resolution = processing_config.step_sizes{current_binning_index};
@@ -61,34 +67,58 @@ PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_seconds = [1151
 PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins = PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_seconds ./ active_binning_resolution;
 PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins = [floor(PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins(1)), ...
     ceil(PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins(2))];
-if processing_config.showOnlyAlwaysStableCells
-    isAlwaysStable = active_processing.spikes.isAlwaysStable; % 126x1
-    numAlwaysStableCells = sum(isAlwaysStable, 'all');
-    PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, isAlwaysStable);
-    PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time(isAlwaysStable);
-    numActiveCells = numAlwaysStableCells;
-else
-    PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time;
-    numActiveCells = length(active_processing.spikes.isAlwaysStable);
-end
+
+%% Filtering Options:
+filter_config.filter_included_cell_types = {};
+% filter_config.filter_included_cell_types = {'pyramidal'};
+% filter_config.filter_included_cell_types = {'interneurons'};
+filter_config.filter_maximum_included_contamination_level = {2};
+%filter_config.filter_maximum_included_contamination_level = {};
+
+filter_config.showOnlyAlwaysStableCells = true;
+% filter_config.showOnlyAlwaysStableCells = false;
+
+%% Get filter info for active units
+[plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, filter_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
+    filter_config.filter_maximum_included_contamination_level);
+temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
+fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
+
+%% Apply the filters:
+PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, plot_outputs.filter_active_units);
+PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time(plot_outputs.filter_active_units);
+numActiveCells = temp.num_active_units;
+% if processing_config.showOnlyAlwaysStableCells
+%     isAlwaysStable = active_processing.spikes.isAlwaysStable; % 126x1
+%     numAlwaysStableCells = sum(isAlwaysStable, 'all');
+%     PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, isAlwaysStable);
+%     PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time(isAlwaysStable);
+%     numActiveCells = numAlwaysStableCells;
+% else
+%     PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time;
+%     numActiveCells = length(active_processing.spikes.isAlwaysStable);
+% end
 PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix'; % should be units x time
 % Extract only the portion specified as the training portion
 PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins(1):PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins(2));
 % Extract the cells as an array
-PhoDibaTest_PositionalAnalysis_temp.cell_indicies = num2cell([1:numActiveCells]);
+% PhoDibaTest_PositionalAnalysis_temp.cell_indicies = num2cell([1:numActiveCells]);
+
+PhoDibaTest_PositionalAnalysis_temp.cell_indicies = plot_outputs.original_unit_index; % Get the indicies of the remaining cells:
 PhoDibaTest_PositionalAnalysis_temp.spike_cells = cellfun(@(cell_idx) [(cell_idx .* ones(size(PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_idx}'))), PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_idx}'], ...
-    PhoDibaTest_PositionalAnalysis_temp.cell_indicies, ...
+    num2cell([1:numActiveCells]), ...
     'UniformOutput', false);
 % [includedCellIDs, unitSpikeCells, unitFlatIndicies] = fnFlatSpikesToUnitCells(spikeStruct.t, spikeStruct.unit, true);
 % cellfun(@(x) spikeStruct.ripple(find(x)), unitFlatIndicies, 'UniformOutput', false)
 % Save out positionalAnalysis data for Python:
 export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
-active_experiment_export_root_path = fullfile(export_root_path, active_experiment_names{active_expt_index});
+active_experiment_export_root_path = fullfile(export_root_path, active_experiment_name, 'ExportedData');
 mkdir(active_experiment_export_root_path);
 fprintf('Saving spikes analysis data to %s...\n', fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'));
+spike_cells_ids = PhoDibaTest_PositionalAnalysis_temp.cell_indicies;
 spike_cells = PhoDibaTest_PositionalAnalysis_temp.spike_cells;
 spike_matrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix;
-save(fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'), 'spike_matrix', 'spike_cells')
+save(fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'), 'spike_matrix', 'spike_cells', 'spike_cells_ids')
 fprintf('done!\n');
 fprintf('PhoDibaConvert_SpikesAnalysis complete!\n');
 

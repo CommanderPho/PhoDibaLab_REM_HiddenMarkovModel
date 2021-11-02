@@ -29,7 +29,7 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
     x0=0;
     y0=0;
     width=400;
-    height=400* size(PF_sorted_norm, 1)/20;
+    height=400* size(PF_sorted_norm, 1)/20; % why 20?
 
     %% TODO: stuff that would need to be brought in from the original file to work completely:
 %     linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions 
@@ -88,7 +88,10 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
         
         set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
         if exist('unitLabels','var')
-            text(linearPoscenters(1)-5*difpos, curr_y_offset_factor, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center');
+            curr_y_offset_factor_midpoint = (0.06*(tt) + 0.03);
+            text(0.0, curr_y_offset_factor_midpoint, unitLabels{jj}, 'fontsize', 11, 'HorizontalAlignment', 'center', 'Color', 'k'); % black background text for legibility
+            text(0.0, curr_y_offset_factor_midpoint, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center', 'Color', cl);
+%             text(linearPoscenters(1)-5*difpos, curr_y_offset_factor, unitLabels{jj}, 'fontsize', 10, 'HorizontalAlignment', 'center');
         end
 %         text(linearPoscenters(end)+5*difpos, 0.06*jj, sprintf('%.1f Hz', peakRates_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
     end

@@ -1,7 +1,7 @@
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currSrcDir = fullfile(currDir, 'src');
 
-animalID = 2;
+animalID = 1;
 sessionNumber = 1;
 
 % cd(currDir)
