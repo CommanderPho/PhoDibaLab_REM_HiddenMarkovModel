@@ -176,6 +176,9 @@ exclude = bvrTimeList(ismember(bvrState, [2 4]), :); % nrem=1, rem=2, qwake=3, w
 save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 'velocityFilter')
 
 binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) 
+
+
+
 [binnedPBEs, secondaryPBEs] = finalBinningResult(primaryPBEs, spikeStruct, qclus, fileinfo, binDur); % Very slow function
 PBErippleIdx = ifContainRipples(secondaryPBEs, rippleEvents);
 secondaryPBEs(:, 5) = PBErippleIdx;
