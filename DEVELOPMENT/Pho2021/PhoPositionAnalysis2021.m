@@ -1,5 +1,5 @@
 %% Conversion Info:
-% PhoPositionAnalysis2021 - This replaces Kourosh's place cell code
+% PhoPositionAnalysis2021 - This replaces Kourosh's place cell code, specifically "basicProcedure.m"
 % Detailed explanation goes here
 % 
 % Author: Pho Hale
