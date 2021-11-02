@@ -38,11 +38,11 @@ smartload([parentFolder experimentName '/spikesVariables.mat']);
 
 %% Plot tuning curves:
 
-[figH, h] = fnPlotPlaceCellSpatialTunings(spatialTunings_biDir, 'linearPoscenters', positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(okUnits));
-title('Unsorted Position Tuning Curves')
-
-[figH, h] = fnPlotPlaceCellSpatialTunings(spatialTunings_biDir, 'unitLabels', num2cellstr(sortedOriginalUnitIndicies));
-title('Sorted Position Tuning Curves')
+% [figH, h] = fnPlotPlaceCellSpatialTunings(spatialTunings_biDir, 'linearPoscenters', positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(okUnits));
+% title('Unsorted Position Tuning Curves')
+% 
+% [figH, h] = fnPlotPlaceCellSpatialTunings(spatialTunings_biDir, 'unitLabels', num2cellstr(sortedOriginalUnitIndicies));
+% title('Sorted Position Tuning Curves')
 
 %% Plot tuning curves:
 [figH, h] = fnPlotPlaceCellSpatialTunings(PF_sorted_biDir, 'linearPoscenters', positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(runTemplate_biDir));
@@ -52,14 +52,14 @@ savefig(curr_fig_name);
 
 
 
-spatialTunings_biDir
-
-
-
-[figH, h] = fnPlotPlaceCellSpatialTunings(BayesocampusResults.(experimentIdentifier).Outputs.lambda(sortedTuningCurveIndicies, :), 'unitLabels', num2cellstr(sortedOriginalUnitIndicies));
-curr_fig_name = sprintf('Bayesocampus - %s - Sorted Position Tuning Curves', experimentIdentifier);
-title(curr_fig_name)
-savefig(curr_fig_name);
+% spatialTunings_biDir
+% 
+% 
+% 
+% [figH, h] = fnPlotPlaceCellSpatialTunings(BayesocampusResults.(experimentIdentifier).Outputs.lambda(sortedTuningCurveIndicies, :), 'unitLabels', num2cellstr(sortedOriginalUnitIndicies));
+% curr_fig_name = sprintf('Bayesocampus - %s - Sorted Position Tuning Curves', experimentIdentifier);
+% title(curr_fig_name)
+% savefig(curr_fig_name);
 
 
 % coords{1} % actual x-positions
