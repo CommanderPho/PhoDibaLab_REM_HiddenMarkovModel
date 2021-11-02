@@ -177,8 +177,11 @@ save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 
 
 binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) 
 
+%% Just Testing:
 
 
+
+%% Implementation
 [binnedPBEs, secondaryPBEs] = finalBinningResult(primaryPBEs, spikeStruct, qclus, fileinfo, binDur); % Very slow function
 PBErippleIdx = ifContainRipples(secondaryPBEs, rippleEvents);
 secondaryPBEs(:, 5) = PBErippleIdx;
