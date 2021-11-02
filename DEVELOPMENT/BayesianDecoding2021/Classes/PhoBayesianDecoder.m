@@ -74,6 +74,12 @@ classdef PhoBayesianDecoder < handle
 
         function [] = buildTuningCurves(obj, bin_size, sigma, f_base, min_t_occ, t_start, t_end)
 %             t_start
+
+%             sigma = [5];
+%             bin_size = [2]; % spatial bin size (cm)
+%             f_base = 2; % base firing rate (Hz)
+%             min_t_occ = 0.5;
+
             if exist('t_start', 'var')
                 obj.Parameters.t_start = t_start; % use the user's value
             end
@@ -84,11 +90,6 @@ classdef PhoBayesianDecoder < handle
             obj.Parameters.sigma = sigma;
             obj.Parameters.f_base = f_base;
             obj.Parameters.min_t_occ = min_t_occ;
-
-%             sigma = [5];
-%             bin_size = [2]; % spatial bin size (cm)
-%             f_base = 2; % base firing rate (Hz)
-%             min_t_occ = 0.5;
 
             obj.performBuildTuningCurves(obj.Parameters.spikes, obj.Parameters.X, obj.Parameters.t, obj.Parameters.sample_rate, ...
                 obj.Parameters.t_start, obj.Parameters.t_end, bin_size, sigma, f_base, min_t_occ);
