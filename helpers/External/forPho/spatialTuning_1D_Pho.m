@@ -1,4 +1,4 @@
-function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffWithAvg] = spatialTuning_1D_Pho(spikeStruct, qclus, fileinfo, behavior, thetaPeriods, turningPeriods, speed, direction, posBinSize, runSpeedThresh, combinedUnits, timeUnit, FileBase)
+function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffWithAvg] = spatialTuning_1D_Pho(spikeStruct, qclus, positionTable, maze_start_time, maze_end_time, thetaPeriods, turningPeriods, speed, direction, posBinSize, runSpeedThresh, combinedUnits, timeUnit, FileBase, FileName)
 % spatialTuning_1D_Pho - One line description of what the function or script performs
 % Detailed explanation goes here
 % 
@@ -33,9 +33,8 @@ function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffW
 
 % ------------- BEGIN CODE --------------
 
-
 % EXPLAIN THE FUNCTION
-totoalNumofUnits = max(spikeStruct.unit);
+totalNumofUnits = max(spikeStruct.unit);
 % including only the spikes meeting certain criteria
 if strcmp(direction, 'LR')
     desiredMod = 0; % even laps
@@ -50,7 +49,7 @@ elseif strcmp(direction, 'uni')
     directionNum = 1;
     unitSortingMode = 'ascend';
 end
-spikeInd = find(spikeStruct.t >= behavior.time(2,1) & spikeStruct.t < behavior.time(2,2) ... % within the RUN period
+spikeInd = find(spikeStruct.t >= maze_start_time & spikeStruct.t < maze_end_time ... % within the RUN period
                 & ismember(spikeStruct.qclu, qclus) ... % only stable pyramidal units are included
                 & spikeStruct.speed > runSpeedThresh ... % only the spikes happening when the velocity of the animal is higher than the threshold (usually 10 cm/sec)
                 & spikeStruct.lap > 0 & ismember(mod(spikeStruct.lap, 2), desiredMod));  % only spike during high theta power
@@ -66,40 +65,54 @@ spikeUnit      = spikeStruct.unit(spikeInd);
 spikeLap       = spikeStruct.lap(spikeInd); %% to investigate lap-by-lap consistence of unit firings with the average tuning across the laps
 activeUnits    = unique(spikeUnit); 
 % finding position samples pertaining to the maze period and certain direction of travel 
-speedatPos = interp1(speed.t, speed.v, fileinfo.xyt(:, 3));
-positionIdx    = find(fileinfo.xyt(:, 3) > behavior.time(2,1) & fileinfo.xyt(:, 3) < behavior.time(2,2) ... % within the run period
+speedatPos = interp1(speed.t, speed.v, positionTable.t);
+positionIdx    = find(positionTable.t > maze_start_time & positionTable.t < maze_end_time ... % within the run period
                     & speedatPos > runSpeedThresh ... % position bins when animal's velocity is higher than threshold
-                    & fileinfo.xyt2(:, 3) > 0 & ismember(mod(fileinfo.xyt2(:, 3), 2), desiredMod)); % limiting to the travels in specific direction
+                    & positionTable.lap_index > 0 & ismember(mod(positionTable.lap_index, 2), desiredMod)); % limiting to the travels in specific direction
                 
                 
 % % include only the position bins within the theta peridos
 if ~isempty(thetaPeriods)
     thetaPositionInd = []; 
-    for ii = 1: size(thetaPeriods, 1); thetaPositionInd = [thetaPositionInd; find(fileinfo.xyt(:, 3) >= thetaPeriods(ii, 1) & fileinfo.xyt(:, 3) <= thetaPeriods(ii, 2))]; end     
+    for ii = 1: size(thetaPeriods, 1); thetaPositionInd = [thetaPositionInd; find(positionTable.t >= thetaPeriods(ii, 1) & positionTable.t <= thetaPeriods(ii, 2))]; end     
     positionIdx = intersect(positionIdx, thetaPositionInd);
 end
 if ~isempty(turningPeriods)
     turningPositionInd = []; % should be excluded
-    for ii = 1: size(turningPeriods, 1); turningPositionInd = [turningPositionInd; find(fileinfo.xyt(:, 3) >= turningPeriods(ii, 1) & fileinfo.xyt(:, 3) <= turningPeriods(ii, 2))]; end     
+    for ii = 1: size(turningPeriods, 1); turningPositionInd = [turningPositionInd; find(positionTable.t >= turningPeriods(ii, 1) & positionTable.t <= turningPeriods(ii, 2))]; end     
     positionIdx = setdiff(positionIdx, turningPositionInd);
 end
-linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions                   
+
+
+% linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions           
+
+% linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions 
+linearPos = [positionTable.linearPos, positionTable.lap_index];
+
+
 directionLinearPos = nan(size(linearPos));          
 directionLinearPos(positionIdx, :) = linearPos(positionIdx, :);
 % defining the position bins
 nPosBins = floor((max(linearPos(:, 1)) - min(linearPos(:, 1)))/posBinSize);
 posBinEdges = min(linearPos(:, 1)): posBinSize: max(linearPos(:, 1)); % center of the position bins
 linearPoscenters = posBinEdges(1:end-1) + posBinSize/2;
-posSamplingPeriod = median(diff(fileinfo.xyt(:, 3)))/timeUnit; % 1/sampling frequency - Hiro's dataset: timeunit is microsecond
-spatialTunings = zeros(totoalNumofUnits, nPosBins);
-peakPosBin     = zeros(totoalNumofUnits, 1);
+posSamplingPeriod = median(diff(positionTable.t))/timeUnit; % 1/sampling frequency - Hiro's dataset: timeunit is microsecond
+
+
+
+
+
+spatialTunings = zeros(totalNumofUnits, nPosBins);
+peakPosBin     = zeros(totalNumofUnits, 1);
 currDirLaps   = unique(spikeLap);
-combinedflag  = zeros(totoalNumofUnits, 1);
-diffWithAvg   = zeros(numel(currDirLaps), totoalNumofUnits);
-conslapsRatio = zeros(totoalNumofUnits, 1); % number of laps with consistent peak position for each unit
-spatialInfo   = zeros(totoalNumofUnits, 1); % spatial information of each unit
-for ii = 1: length(activeUnits)
-    
+combinedflag  = zeros(totalNumofUnits, 1);
+diffWithAvg   = zeros(numel(currDirLaps), totalNumofUnits);
+conslapsRatio = zeros(totalNumofUnits, 1); % number of laps with consistent peak position for each unit
+spatialInfo   = zeros(totalNumofUnits, 1); % spatial information of each unit
+
+
+
+for ii = 1: length(activeUnits)    
     unit = activeUnits(ii);
      
     posBinnSpikeCnts_laps = zeros(nPosBins, numel(currDirLaps));
@@ -246,9 +259,9 @@ if ~strcmp(direction, 'uni')
 end
 if ~isempty(FileBase)
     if ~strcmp(direction, 'uni')
-        filename = [fileinfo.name '_placeFields1D_' direction];
+        filename = [FileName '_placeFields1D_' direction];
     else
-        filename = [fileinfo.name '_placeFields1D_uni'];
+        filename = [FileName '_placeFields1D_uni'];
     end
     savefig(gcf, fullfile(FileBase, filename))
 %     savepdf(gcf, fullfile(FileBase, filename), '-dpng')
@@ -271,11 +284,11 @@ end
 cluorder = cluorder(ind)-1;
 numclu = [shank cluster];
 numclu = numclu';
-% Saveres([FileBase '/' fileinfo.name direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum)],sortedRest);
-% SaveClu([FileBase '/' fileinfo.name direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum)],cluorder);
-% dlmwrite([FileBase '/' fileinfo.name direction 'Active.10' num2str(directionNum) '.numclu.' num2str(directionNum)],numclu);
-writematrix(sortedRest, [FileBase '/' fileinfo.name direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum) '.txt'])
-writematrix(cluorder, [FileBase '/' fileinfo.name direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum) '.txt'])
+% Saveres([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum)],sortedRest);
+% SaveClu([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum)],cluorder);
+% dlmwrite([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.numclu.' num2str(directionNum)],numclu);
+writematrix(sortedRest, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum) '.txt'])
+writematrix(cluorder, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum) '.txt'])
 end
 
 
