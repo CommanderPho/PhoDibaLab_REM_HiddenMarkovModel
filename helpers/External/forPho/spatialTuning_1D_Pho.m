@@ -88,20 +88,22 @@ end
 
 % linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions 
 linearPos = [positionTable.linearPos, positionTable.lap_index];
-
-
 directionLinearPos = nan(size(linearPos));          
 directionLinearPos(positionIdx, :) = linearPos(positionIdx, :);
+
 % defining the position bins
-nPosBins = floor((max(linearPos(:, 1)) - min(linearPos(:, 1)))/posBinSize);
-posBinEdges = min(linearPos(:, 1)): posBinSize: max(linearPos(:, 1)); % center of the position bins
-linearPoscenters = posBinEdges(1:end-1) + posBinSize/2;
+[posBinEdges, linearPoscenters, nPosBins] = PhoFallAnalysis2021.subfn_buildPositionBinInformation(positionTable.linearPos, posBinSize);
+
+% nPosBins = floor((max(linearPos(:, 1)) - min(linearPos(:, 1)))/posBinSize);
+% posBinEdges = min(linearPos(:, 1)): posBinSize: max(linearPos(:, 1)); % center of the position bins
+% linearPoscenters = posBinEdges(1:end-1) + posBinSize/2;
+
 posSamplingPeriod = median(diff(positionTable.t))/timeUnit; % 1/sampling frequency - Hiro's dataset: timeunit is microsecond
 
 
 
 
-
+%% Preinitialize:
 spatialTunings = zeros(totalNumofUnits, nPosBins);
 peakPosBin     = zeros(totalNumofUnits, 1);
 currDirLaps   = unique(spikeLap);
@@ -109,8 +111,7 @@ combinedflag  = zeros(totalNumofUnits, 1);
 diffWithAvg   = zeros(numel(currDirLaps), totalNumofUnits);
 conslapsRatio = zeros(totalNumofUnits, 1); % number of laps with consistent peak position for each unit
 spatialInfo   = zeros(totalNumofUnits, 1); % spatial information of each unit
-
-
+spatial_smoothing_window = gausswindow(3,5); % smoothing with a standard deviation of 6 cm (assuming that each positon bins is 2cm long)
 
 for ii = 1: length(activeUnits)    
     unit = activeUnits(ii);
@@ -132,8 +133,7 @@ for ii = 1: length(activeUnits)
         unsmoothed_tunings = posBinnSpikeCnts_laps(:, jj) ./ posBinDwelltime_laps(:, jj);
         unsmoothed_tunings(isnan(unsmoothed_tunings)) = 0;
         unsmoothed_tunings(isinf(unsmoothed_tunings)) = 0;
-        win = gausswindow(3,5); % smoothing with a standard deviation of 6 cm (assuming that each positon bins is 2cm long)
-        placeFields_laps(:, jj) = conv(unsmoothed_tunings, win, 'same');
+        placeFields_laps(:, jj) = conv(unsmoothed_tunings, spatial_smoothing_window, 'same');
         
         if sum(placeFields_laps(:, jj)) > 0
             [~, peakPosBin_laps(jj)] = max(placeFields_laps(:, jj));
@@ -153,15 +153,12 @@ for ii = 1: length(activeUnits)
     unsmoothed_tunings(isnan(unsmoothed_tunings)) = 0;
     unsmoothed_tunings(isinf(unsmoothed_tunings)) = 0;
     
-    
-    win = gausswindow(3,5);
-    
-    spatialTunings(unit , :) = conv(unsmoothed_tunings, win, 'same');
+	% Smooth the tunings:
+    spatialTunings(unit , :) = conv(unsmoothed_tunings, spatial_smoothing_window, 'same');
     [~, peakPosBin(unit)] = max(spatialTunings(unit , :));
     
     
     % investigate consistence of firings across the laps
-    
     tolerationLimit = 30; % in cm
     tolerationLimit = floor(tolerationLimit/posBinSize/2);
     
@@ -170,7 +167,6 @@ for ii = 1: length(activeUnits)
     conslapsRatio(unit) = numel(consLaps)/numel(currDirLaps);
     
     % spatial inforamtion
-    
     pi = posBinDwelltime/sum(posBinDwelltime);
     tempPlaceMap = spatialTunings(unit , :) + 1e-4; % add a small value to remove zero firing rates
     
@@ -178,7 +174,7 @@ for ii = 1: length(activeUnits)
     spatialInfo(unit) = (tempPlaceMap/FR .* log2(tempPlaceMap/FR)) * pi;
     
     if ismember(unit, combinedUnits)
-            combinedflag(unit) = 1; 
+        combinedflag(unit) = 1; 
     end  
 end
 placeCells = find(spatialInfo > 0 & conslapsRatio > 0); % here we are not using the consistence and spatial info to filter cells
@@ -187,7 +183,7 @@ PF_sorted    = spatialTunings(placeCells(sortIdx), :); % sort the place fields b
 combinedflag = combinedflag(placeCells(sortIdx), :);
  
 %  activeUnits_sorted = activeUnits(sortIdx); % keep track of the unit labels
-template     = placeCells(sortIdx);
+template = placeCells(sortIdx);
 % peakRates_sorted = max(PF_sorted, [], 2); % maximum firing rate
 PF_sorted_norm = PF_sorted ./ repmat(max(PF_sorted, [], 2), [1 size(PF_sorted, 2)]); % Normalize the peaks to one for visulaization
 % sum_PF = mean(PF_sorted_norm, 1);
@@ -202,27 +198,20 @@ difpos = linearPoscenters(2)- linearPoscenters(1);
 set(gcf,'units','points','position',[x0,y0,width,height])
 tt = 0;
 for jj = 1 : size(PF_sorted_norm, 1)
-    
 %     if peakRates_sorted(jj) > 1
-        
         tt = tt + 1;
-        
         if combinedflag(jj) == 0
         cl = 'r';
         elseif combinedflag(jj) == 1
             cl = [238,130,238]/255; % violet
         end
-        
         fill([linearPoscenters fliplr(linearPoscenters)], [0.06*tt+PF_sorted_norm(jj, :)/20 fliplr(0.06*tt*ones(size(PF_sorted_norm(jj, :))))], cl,'LineStyle','none')
         hold on
         plot(linearPoscenters, 0.06*tt+PF_sorted_norm(jj, :)/20,'color', 'k','linewidth', 0.5);
         alpha(0.5)
-        
 %         sparsity(tt) = mean(PF_sorted_norm(jj, :))^2 / mean(PF_sorted_norm(jj, :).^2);
 %         peakBins(tt) = peakPosBin_sorted(jj) * posBinSize;
-        
 %     end
-    
     
     set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
 %     text(linearPoscenters(1)-5*difpos, 0.06*jj, num2str(activeUnits_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
@@ -265,8 +254,9 @@ if ~isempty(FileBase)
     end
     savefig(gcf, fullfile(FileBase, filename))
 %     savepdf(gcf, fullfile(FileBase, filename), '-dpng')
-    exportgraphics(gcf,[fullfile(FileBase, filename) '.pdf'],'BackgroundColor','none','ContentType','vector')
+%     exportgraphics(gcf,[fullfile(FileBase, filename) '.pdf'],'BackgroundColor','none','ContentType','vector')
 end
+
 %%% making clu and res files 
 rest = [];
 cluorder = [];
@@ -289,6 +279,7 @@ numclu = numclu';
 % dlmwrite([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.numclu.' num2str(directionNum)],numclu);
 writematrix(sortedRest, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum) '.txt'])
 writematrix(cluorder, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum) '.txt'])
+
 end
 
 

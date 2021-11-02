@@ -82,13 +82,27 @@ classdef PhoFallAnalysis2021
             maxL = PositionBins(index);
         end % end subfn_computeMaximumLikelihood
 
-        function [posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(xyt2)
+        function [posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(xyt2, posBinSize)
+            % old format: [posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(xyt2);
+
             % xyt2: a cell array of the format that's present in fileinfo.xyt2
-            posBinSize = 2; % in cm
+            if ~exist('posBinSize','var')
+                posBinSize = 2; % in cm
+            end
             linearPos = xyt2(:, [1 3]); % the third row indicates lap indices of the positions        
             % defining the position bins
             nPosBins = floor((max(linearPos(:, 1)) - min(linearPos(:, 1)))/posBinSize); % x ranges from 5.3492 to 222.22
             posBinEdges = min(linearPos(:, 1)): posBinSize: max(linearPos(:, 1)); % edges of the position bins - 1x109 double
+            linearPoscenters = posBinEdges(1:end-1) + posBinSize/2; % 1 x 108 double - center of the position bins
+        end
+
+        function [posBinEdges, linearPoscenters, nPosBins] = subfn_buildPositionBinInformation(linearPos, posBinSize)
+            if ~exist('posBinSize','var')
+                posBinSize = 2; % in cm
+            end    
+            % defining the position bins
+            nPosBins = floor((max(linearPos) - min(linearPos))/posBinSize); % x ranges from 5.3492 to 222.22
+            posBinEdges = min(linearPos): posBinSize: max(linearPos); % edges of the position bins - 1x109 double
             linearPoscenters = posBinEdges(1:end-1) + posBinSize/2; % 1 x 108 double - center of the position bins
         end
 
