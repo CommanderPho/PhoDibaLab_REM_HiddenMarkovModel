@@ -96,16 +96,22 @@ fileinfo.xyt = [position.x*fileinfo.pix2cm; position.y*fileinfo.pix2cm; position
 
 % linearized positions (we need this specially for analyzing the L-shape, U-shape, and circular mazes)
 % the information will be loaded into the xyt2 field of fileinfo structure
-
-
 animalMazeShapes = eval(sprintf('mazeShape.%s', currRat));
 currMazeShape    = animalMazeShapes{sessionNumber};
+specified_maze_platform_centers = [43.4908, 36.2828; 223.7903, 32.3178];
 
-linearPos = linearizePosition2(fileinfo, behavior, currMazeShape); % click on the middle of the platforms
-
+% linearPos = linearizePosition2(fileinfo, behavior, currMazeShape); % click on the middle of the platforms
+[linearPos, userSelectedCenters] = linearizePosition2(fileinfo.xyt, behavior.time(2,1), behavior.time(2,2), currMazeShape, specified_maze_platform_centers);
+% linearPos: 970086x1 double
 fileinfo.xyt2(:, 1) = linearPos; 
 fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
 
+%% Build a smarter output structure here:
+% positionTable = timetable(fileinfo.xyt(:, 3), fileinfo.xyt(:, 1), fileinfo.xyt(:, 2), linearPos, ...
+%    {'x','y','linearPos'});
+  
+positionTable = table(fileinfo.xyt(:, 3), fileinfo.xyt(:, 1), fileinfo.xyt(:, 2), linearPos, ...
+   'VariableNames', {'t', 'x', 'y', 'linearPos'});
 
 % % updated
 

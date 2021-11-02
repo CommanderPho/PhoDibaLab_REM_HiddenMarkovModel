@@ -95,7 +95,8 @@ fileinfo.xyt = [position.x*fileinfo.pix2cm; position.y*fileinfo.pix2cm; position
 animalMazeShapes = eval(sprintf('mazeShape.%s', rat));
 currMazeShape    = animalMazeShapes{sessionNumber};
 
-linearPos = linearizePosition2(fileinfo, behavior, currMazeShape); % click on the middle of the platforms
+% linearPos = linearizePosition2(fileinfo, behavior, currMazeShape); % click on the middle of the platforms
+[linearPos, userSelectedCenters] = linearizePosition2(fileinfo.xyt, behavior.time(2,1), behavior.time(2,2), mazeShape);
 
 fileinfo.xyt2(:, 1) = linearPos; 
 fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
@@ -114,7 +115,6 @@ totNumLaps = size(lapsStruct.RL, 1) + size(lapsStruct.LR, 1);
 laps = zeros(totNumLaps, 2);
 laps(1:2:totNumLaps, :)  = lapsStruct.LR;
 laps(2:2:totNumLaps, :)  = lapsStruct.RL;
-
 laps(:, 3) = 1:size(laps, 1); 
 
  % labeling the postion samples with the calculated laps (if not part of any lap the label is zero)
