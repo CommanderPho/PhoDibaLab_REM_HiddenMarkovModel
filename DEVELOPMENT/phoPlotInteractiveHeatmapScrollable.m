@@ -84,6 +84,11 @@ function [plotted_figH, heatmapPlotHandle, stateMapHandle, plot_outputs] = pho_p
     
     heatmapPlotHandle.mainHeatmap = imagesc([0 plotting_options.active_timesteps(end)], [1 size(target_data, 1)], target_data);
 
+    heatmapPlotHandle.mainHeatmap = pcolor(X,Y,C); % returns a surface object
+    axis ij
+    axis square
+
+    % colormap(mymap)
 
 
 %     hold off;

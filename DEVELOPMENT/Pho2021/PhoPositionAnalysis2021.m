@@ -177,6 +177,18 @@ save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 
 
 binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) 
 [binnedPBEs, secondaryPBEs] = finalBinningResult(primaryPBEs, spikeStruct, qclus, fileinfo, binDur); % Very slow function
+PBErippleIdx = ifContainRipples(secondaryPBEs, rippleEvents);
+secondaryPBEs(:, 5) = PBErippleIdx;
+nPBEs = size(binnedPBEs, 1);
+secondaryPBEs = [secondaryPBEs zeros(nPBEs, 4)];
+for ii= 1:nPBEs
+    pbeCenter = secondaryPBEs(ii, 3);
+    boutInd        = find(bvrTimeList(:,1) < pbeCenter & bvrTimeList(:,2) > pbeCenter, 1, 'first');
+    boutBrainState = bvrState(boutInd);
+    secondaryPBEs(ii, 5 + boutBrainState) = 1;
+end
+save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
+
 
 
 function [lapsStruct, turningPeriods] = subfn_calculateLaps()
