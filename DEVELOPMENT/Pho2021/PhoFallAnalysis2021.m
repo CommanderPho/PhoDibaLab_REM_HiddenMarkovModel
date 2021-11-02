@@ -34,7 +34,7 @@ classdef PhoFallAnalysis2021
        function [filter_active_units, original_unit_index] = showPlaceCellSpatialTuningsPlot(PlaceFields, PositionBins)
            % Like spatialTunings_biDir
           
-            [~, ~] = fnPlotPlaceCellSpatialTunings(PlaceFields, 'linearPoscenters', linearPoscenters, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
+            [~, ~] = fnPlotPlaceCellSpatialTunings(PlaceFields, 'linearPoscenters', PositionBins, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
        end
     end % end static method block
     %% Refactored from PhoDiba_BayesianDecoding2021.m

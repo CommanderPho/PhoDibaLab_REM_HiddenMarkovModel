@@ -34,8 +34,20 @@ smartload([parentFolder experimentName '/toAddVariables.mat'], ...
 smartload([parentFolder experimentName '/PlaceFields/biDirectional.mat'], ...
     'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir', 'positionBinningInfo_biDir');
 smartload([parentFolder experimentName '/TrackLaps/trackLaps.mat']);
-
 smartload([parentFolder experimentName '/spikesVariables.mat']);
+
+%% Plot tuning curves:
+[figH, h] = fnPlotPlaceCellSpatialTunings(spatialTunings_biDir, 'linearPoscenters', positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
+% [figH, h] = fnPlotPlaceCellSpatialTunings(BayesocampusResults.(experimentName).Outputs.alpha(plot_outputs.filter_active_units, :), 'unitLabels', num2cellstr(plot_outputs.original_unit_index));
+title('Unsorted Position Tuning Curves')
+
+[figH, h] = fnPlotPlaceCellSpatialTunings(spatialTunings_biDir, 'unitLabels', num2cellstr(sortedOriginalUnitIndicies));
+title('Sorted Position Tuning Curves')
+
+% coords{1} % actual x-positions
+% BayesocampusResults.(experimentName).Outputs.beta(plot_outputs.filter_active_units, :)
+
+
 
 
 
