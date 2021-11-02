@@ -107,8 +107,6 @@ positionBinningInfo.nPosBins = nPosBins;
 positionBinningInfo.timeUnit = timeUnit;
 positionBinningInfo.posSamplingPeriod = posSamplingPeriod;
 
-
-
 %% Preinitialize:
 spatialTunings = zeros(totalNumofUnits, nPosBins);
 peakPosBin     = zeros(totalNumofUnits, 1);
@@ -135,7 +133,6 @@ for ii = 1: length(activeUnits)
         temp    = histc(positions, posBinEdges) * posSamplingPeriod;
         posBinDwelltime_laps(:, jj)  = temp(1:end-1);
         
-        
         unsmoothed_tunings = posBinnSpikeCnts_laps(:, jj) ./ posBinDwelltime_laps(:, jj);
         unsmoothed_tunings(isnan(unsmoothed_tunings)) = 0;
         unsmoothed_tunings(isinf(unsmoothed_tunings)) = 0;
@@ -150,8 +147,7 @@ for ii = 1: length(activeUnits)
     end
     
     
-    % average across the laps 
-    
+    % average across the laps:
     posBinnSpikeCnts = sum(posBinnSpikeCnts_laps, 2);
     posBinDwelltime  = sum(posBinDwelltime_laps, 2);
     
@@ -163,8 +159,7 @@ for ii = 1: length(activeUnits)
     spatialTunings(unit , :) = conv(unsmoothed_tunings, spatial_smoothing_window, 'same');
     [~, peakPosBin(unit)] = max(spatialTunings(unit , :));
     
-    
-    % investigate consistence of firings across the laps
+    % investigate consistence of firings across the laps:
     tolerationLimit = 30; % in cm
     tolerationLimit = floor(tolerationLimit/posBinSize/2);
     

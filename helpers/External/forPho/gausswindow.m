@@ -20,8 +20,6 @@ function y = gausswindow(sigma, halfwidth)
 
 %     incr = 2*sds/(frames-1);
 %     y = exp(-(-sds:incr:sds).^2);
-
-
      gauss_window = (halfwidth*2); % 1 second window
      gauss_SD = sigma; % 0.02 seconds (20ms) SD
 
