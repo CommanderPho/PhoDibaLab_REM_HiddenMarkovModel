@@ -96,7 +96,7 @@ animalMazeShapes = eval(sprintf('mazeShape.%s', rat));
 currMazeShape    = animalMazeShapes{sessionNumber};
 
 % linearPos = linearizePosition2(fileinfo, behavior, currMazeShape); % click on the middle of the platforms
-[linearPos, userSelectedCenters] = linearizePosition2(fileinfo.xyt, behavior.time(2,1), behavior.time(2,2), mazeShape);
+[linearPos, userSelectedCenters] = linearizePosition2(fileinfo.xyt, behavior.time(2,1), behavior.time(2,2), currMazeShape);
 
 fileinfo.xyt2(:, 1) = linearPos; 
 fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
@@ -105,7 +105,9 @@ fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
 
 direction = 'bi';
 % [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir);
-[lapsStruct, turningPeriods] = calculateLapTimings(fileinfo.xyt2(:, 2), fileinfo.xyt2(:, 1), fileinfo.Fs, speed, direction, FileBase)
+
+
+[lapsStruct, turningPeriods, occupancyInfo, trackInfo] = calculateLapTimings(fileinfo.xyt2(:, 2), fileinfo.xyt2(:, 1), fileinfo.Fs, speed, direction, mainDir, 'render_plot', true);
 
 if length(lapsStruct.RL) > length(lapsStruct.LR)
    lapsStruct.RL(1,:) = [];
@@ -114,9 +116,10 @@ end
 
 totNumLaps = size(lapsStruct.RL, 1) + size(lapsStruct.LR, 1);
 laps = zeros(totNumLaps, 2);
-laps(1:2:totNumLaps, :)  = lapsStruct.LR;
-laps(2:2:totNumLaps, :)  = lapsStruct.RL;
-laps(:, 3) = 1:size(laps, 1); 
+laps(1:2:totNumLaps, :)  = lapsStruct.LR; % odd lap number entries are set from the LR values
+laps(2:2:totNumLaps, :)  = lapsStruct.RL; % even lap number entries are set from the RL values
+laps(:, 3) = 1:size(laps, 1); % the "lapnumber" itself is not monotonically increasing when sorted by startTime or endTime
+
 
  % labeling the postion samples with the calculated laps (if not part of any lap the label is zero)
 fileinfo.xyt2(:, 3) = zeros(size(fileinfo.xyt2(:, 1)));
@@ -132,7 +135,7 @@ mkdir(subfolder)
 xyt = fileinfo.xyt;
 xyt2 = fileinfo.xyt2;
 
-save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'xyt', 'xyt2', 'currMazeShape')
+save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'xyt', 'xyt2', 'currMazeShape', 'occupancyInfo', 'trackInfo')
 clear xyt2
 
 
@@ -147,17 +150,11 @@ runSpeedThresh = 10; % cm/s
 
 %% formating the spike info
 % The final format is similar to what Kamran had for his 2006 datasets
-
-
 unitTypes = 'all';
-
 [spikeStruct, okUnits] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
-
 temp = [spikes.id];
 shanks = temp(2*okUnits - 1);
-
 save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
-
 
 %% Place Fields
 

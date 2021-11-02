@@ -63,6 +63,7 @@ classdef PhoFallAnalysis2021
             [~, ~] = fnPlotPlaceCellSpatialTunings(placeFieldTuningCurves(sortedTuningCurveIndicies, :),'linearPoscenters', PositionBins, 'unitLabels', num2cellstr(sortedTuningCurveIndicies));
             title('Sorted Spatial Tunings')
         end
+        
         function [maxL, likelihood, activeTimeBins] = subfn_computeMaximumLikelihood(spikeTimes, PlaceFields, PositionBins, TrialStart, TrialEnd, tau)
             import PhoFallAnalysis2021.*
             nTimeBins = ceil((TrialEnd-TrialStart)/tau);
@@ -80,6 +81,7 @@ classdef PhoFallAnalysis2021
             [~, index] = max(likelihood, [], 1);
             maxL = PositionBins(index);
         end % end subfn_computeMaximumLikelihood
+
         function [posBinEdges, linearPoscenters, linearPos] = subfn_buildMissingPositionBinInformation(xyt2)
             % xyt2: a cell array of the format that's present in fileinfo.xyt2
             posBinSize = 2; % in cm
@@ -89,6 +91,7 @@ classdef PhoFallAnalysis2021
             posBinEdges = min(linearPos(:, 1)): posBinSize: max(linearPos(:, 1)); % edges of the position bins - 1x109 double
             linearPoscenters = posBinEdges(1:end-1) + posBinSize/2; % 1 x 108 double - center of the position bins
         end
+
         function subfn_plotTrajectoryComparison(activeTimeBins, maxL, animalPositionTimestamps, animalPosition)
             % subfn_plotTrajectoryComparison(activeTimeBins, maxL, t_rel, fileinfo);
             figure(1)

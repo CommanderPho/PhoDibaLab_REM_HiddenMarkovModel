@@ -1,5 +1,21 @@
-function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed, direction, FileBase)
+function [lapsInfo, turningPeriods, occupancyInfo, trackInfo] = calculateLapTimings(tpos, linearPos, Fs, speed, direction, FileBase, varargin)
 % function [laps, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, FileBase)
+
+    p = inputParser;
+%     addOptional(p,'render_plots', false, @islogical);
+    addParameter(p, 'render_plots', false, @islogical);
+
+%     parse(p, tpos, linearPos, Fs, speed, direction, FileBase, varargin{:});
+    parse(p, varargin{:});
+
+    plotting_options.should_render_plots = false;
+    if ~isempty(p.Results.render_plots)
+%         disp('Rendering plots: ')
+%         disp(p.Results.render_plots)
+        if p.Results.render_plots
+            plotting_options.should_render_plots = true;
+        end
+    end
 
     % speed: struct
         %% t: 3243057x1
@@ -23,8 +39,16 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
     tvelocity = speed.t;
     velocity = speed.v;
 
-    % if the pos includes nans interpolate to replace them
-    linearPos2 = subfn_fixPositionNaNs(linearPos, tpos);
+%     % if the pos includes nans interpolate to replace them
+%     linearPos2 = fnFixPositionNaNs(linearPos, tpos);
+    [linearPos2, ~] = fnFixPositionNaNs(linearPos, tpos);
+%     unresolved_nanIdx = find(isnan(linearPos2));       
+    tpos2 = tpos;
+    %% Replace:
+%     tpos2 = tpos(~isnan(linearPos2));
+%     linearPos2 = linearPos2(~isnan(linearPos2));
+
+
 
     %% find the dimensions of the track
 
@@ -34,32 +58,28 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
 
     low_speed_cutoff = 10; % minimum speed cm/s
     % [occupancy, posbin] = subfn_computeOccupancyWithSpeedCutoff(speed, tpos, linearPos2, low_speed_cutoff);
-    [occupancy, posbin, localMaxima] = subfn_computeOccupancyWithSpeedCutoff(tpos, linearPos2, tvelocity, velocity, low_speed_cutoff);
+    [occupancy, posbin, localMaxima] = subfn_computeOccupancyWithSpeedCutoff(tpos2, linearPos2, tvelocity, velocity, low_speed_cutoff);
 
     %% Plot occupancy figure:
-    figure
-    hold on
-
-    plot(posbin, occupancy, 'k', 'linewidth', 2)
-    plot(posbin(localMaxima), occupancy(localMaxima), '.r', 'markersize', 15)
-
-    hold off
-    xlabel('x', 'fontsize', 20)
-    ylabel('occupancy(%)', 'fontsize', 20)
-    set(gca, 'fontsize', 16)
-
-    % saveas(gcf, [FileBase '/restOccupancyHist.fig'])
-
-
-    %%% define the boundaries of the track
-    hiOccPositions = posbin(localMaxima); %% high occupancy positions; the first 
-                                        %%% and last could correspond to either ends of the track
-                                        %%% should be confirmed visually
-
-    trackBounds = zeros(1,2);
-    trackBounds(1) = hiOccPositions(1) + 0.1*(hiOccPositions(end) - hiOccPositions(1)); %% positions behind this point would be considered within the left platform
-    trackBounds(2) = hiOccPositions(end) - 0.1*(hiOccPositions(end) - hiOccPositions(1)); %% positions beyond this point would be considered within the right platform
-
+    if plotting_options.should_render_plots
+        figure(3)
+        clf;
+        hold on
+        plot(posbin, occupancy, 'k', 'linewidth', 2)
+        plot(posbin(localMaxima), occupancy(localMaxima), '.r', 'markersize', 15)
+        hold off
+        xlabel('x', 'fontsize', 20)
+        ylabel('occupancy(%)', 'fontsize', 20)
+        set(gca, 'fontsize', 16)
+        % saveas(gcf, [FileBase '/restOccupancyHist.fig'])
+    end
+    
+    occupancyInfo.posbin = posbin;
+    occupancyInfo.occupancy = occupancy;
+    occupancyInfo.localMaxima = localMaxima;
+    occupancyInfo.occupancy = occupancy;
+    
+    trackBounds = subfn_DetermineTrackBounds(posbin, localMaxima);
 
     %% calculate the laps timings
 
@@ -67,8 +87,7 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
     % little quiescence bouts as well) in whcih animal travels from one end to 
     % the other (travels with return don't count)
 
-
-    trackPart = zeros(length(tpos), 1); %% assigning an index based on the location of the position points relative to the track ends
+    trackPart = zeros(length(tpos2), 1); %% assigning an index based on the location of the position points relative to the track ends
 
     trackPart(find(linearPos2 < trackBounds(1))) = 1; %% if within track_end 1 then the index is 1 
     trackPart(find(linearPos2 > trackBounds(2))) = 2; 
@@ -86,6 +105,11 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
     passPnts = find(boundPass); %% points with non-zero boundPass
     passTypes = boundPass(passPnts); %% the type of pass at the corresponding points
 
+
+    %% Build the trackInfo outupt structure:
+    trackInfo.trackBounds = trackBounds;
+    trackInfo.trackPart = trackPart;
+    trackInfo.boundPass = boundPass;
 
     %%% extracting the primary beginning and end points of the laps
 
@@ -129,12 +153,9 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
 
     rmIdx = zeros(size(LRlaps_prim, 1), 1);
     for lap = 1 : size(LRlaps_prim, 1)
-        
-        
         startpoint = LRlaps_prim(lap, 1);
         endpoint = LRlaps_prim(lap, 2);
-        
-        
+     
         precedpoints = max(startpoint - maxExtension, 1) : startpoint;
         posdiff = [0; diff(linearPos2(precedpoints))];
         
@@ -148,7 +169,6 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
         else
             LRlaps_sec(lap, 1) = precedpoints(1);
         end
-        
         
         postpoints = endpoint : min(endpoint + maxExtension, length(linearPos2));
         posdiff = [0; diff(linearPos2(postpoints))];
@@ -164,20 +184,17 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
             LRlaps_sec(lap, 2) = postpoints(end);
         end
         
-        
         if LRlaps_sec(lap,:) == LRlaps_prim(lap, :)
             rmIdx(lap) = 1;
         end
         
         % detect the periods the animal turns or explore the around
-        
         posdiff = [0; diff(linearPos2(LRlaps_sec(lap, 1): LRlaps_sec(lap, 2)))];
         
         turnpoints = find(posdiff .* [posdiff(2:end); 0] < 0);
         
         turnPnt1 = turnpoints(1:2:end);
         turnPnt2 = turnpoints(2:2:end);
-        
         
         try
             if numel(turnPnt1) > 1
@@ -199,8 +216,6 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
         end
     end
     LRlaps_sec(find(rmIdx), :) = [];
-
-
 
     rmIdx = zeros(size(RLlaps_prim, 1), 1);
     for lap = 1 : size(RLlaps_prim, 1)
@@ -238,18 +253,13 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
         
         
         % detect the periods the animal turns or explore the around
-        
         posdiff = [0; diff(linearPos2(RLlaps_sec(lap, 1): RLlaps_sec(lap, 2)))];
-        
         turnpoints = find(posdiff .* [posdiff(2:end); 0] < 0);
-        
         turnPnt1 = turnpoints(1:2:end);
-        
         turnPnt2 = turnpoints(2:2:end);
         
         try
             if numel(turnPnt1) > 1
-
                 posatTurnPnt1 = linearPos2(RLlaps_sec(lap, 1)+turnPnt1);
                 posatTurnPnt2 = linearPos2(RLlaps_sec(lap, 1)+turnPnt2);
 
@@ -260,7 +270,6 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
                 turnPnt2(tempInices-1) = [];
             end
 
-        
             if ~isempty(turnPnt1) && ~isempty(turnPnt2) 
                 turningPnts = [turningPnts; [turnPnt1 turnPnt2]+RLlaps_sec(lap, 1)];
             end
@@ -275,74 +284,51 @@ function [laps, turningPeriods] = calculateLapTimings(tpos, linearPos, Fs, speed
     end
     RLlaps_sec(find(rmIdx), :) = [];
 
-
-
     if strcmp(direction, 'bi')
-    laps.RL = tpos(RLlaps_sec); lapDur = diff(laps.RL')'; laps.RL(lapDur < 1, :) = []; RLlaps_sec(lapDur < 1, :) = [];
-    laps.LR = tpos(LRlaps_sec); lapDur = diff(laps.LR')'; laps.LR(lapDur < 1, :) = []; LRlaps_sec(lapDur < 1, :) = [];
+        lapsInfo.RL = tpos2(RLlaps_sec); lapDur = diff(lapsInfo.RL')'; lapsInfo.RL(lapDur < 1, :) = []; RLlaps_sec(lapDur < 1, :) = [];
+        lapsInfo.LR = tpos2(LRlaps_sec); lapDur = diff(lapsInfo.LR')'; lapsInfo.LR(lapDur < 1, :) = []; LRlaps_sec(lapDur < 1, :) = [];
 
     elseif strcmp(direction, 'uni')
-    
-    if length(RLlaps_sec) > length(LRlaps_sec)
-        laps     = tpos(RLlaps_sec); 
-        lapsPnts = RLlaps_sec;
-    else
-        laps     = tpos(LRlaps_sec);
-        lapsPnts = LRlaps_sec;
-    end   
-    lapDur = diff(laps')'; laps(lapDur < 1, :) = []; lapsPnts(lapDur < 1, :) = []; 
+        if length(RLlaps_sec) > length(LRlaps_sec)
+            lapsInfo     = tpos2(RLlaps_sec); 
+            lapsPnts = RLlaps_sec;
+        else
+            lapsInfo     = tpos2(LRlaps_sec);
+            lapsPnts = LRlaps_sec;
+        end   
+        lapDur = diff(lapsInfo')'; lapsInfo(lapDur < 1, :) = []; lapsPnts(lapDur < 1, :) = []; 
+    end
+    turningPeriods = tpos2(turningPnts);
+
+    if plotting_options.should_render_plots
+        figure(4);
+        hold on
+        plot(tpos2/Fs, linearPos, '.k', 'markersize', 2)
+        if strcmp(direction, 'bi')
+            for ii = 1:size(RLlaps_sec, 1); plot(tpos2(RLlaps_sec(ii, 1):RLlaps_sec(ii, 2))/Fs, linearPos2(RLlaps_sec(ii, 1):RLlaps_sec(ii, 2)), 'r', 'linewidth', 3); end
+            for ii = 1:size(LRlaps_sec, 1); plot(tpos2(LRlaps_sec(ii, 1):LRlaps_sec(ii, 2))/Fs, linearPos2(LRlaps_sec(ii, 1):LRlaps_sec(ii, 2)), 'b', 'linewidth', 3); end
+        elseif strcmp(direction, 'uni')
+            for ii = 1:size(lapsPnts, 1); plot(tpos2(lapsPnts(ii, 1):lapsPnts(ii, 2))/Fs, linearPos2(lapsPnts(ii, 1):lapsPnts(ii, 2)), 'b', 'linewidth', 3); end
+        end 
+        for ii = 1:size(turningPeriods, 1); plot(tpos2(turningPnts(ii, 1):turningPnts(ii, 2))/Fs, linearPos2(turningPnts(ii, 1):turningPnts(ii, 2)), 'color', [0.7 0.7 0.7], 'linewidth', 3, 'linestyle', '-'); end
+        % plot(tpos/Fs, linearPos2+1, 'color', 'g', 'linewidth', 2, 'linestyle', '-')
+        hold off
+        set(gca, 'fontsize', 12)
+        xlabel('time(sec)', 'fontsize', 14)
+        ylabel('position', 'fontsize', 14)
+        % Extracted out into separate file:
+        mkdir([FileBase '/lapInfo'])
+        saveas(gcf, [FileBase '/lapInfo/laps.fig'])
     end
 
-    turningPeriods = tpos(turningPnts);
 
 
-    figure;
-    hold on
-    plot(tpos/Fs, linearPos, '.k', 'markersize', 2)
-
-    if strcmp(direction, 'bi')
-        for ii = 1:size(RLlaps_sec, 1); plot(tpos(RLlaps_sec(ii, 1):RLlaps_sec(ii, 2))/Fs, linearPos2(RLlaps_sec(ii, 1):RLlaps_sec(ii, 2)), 'r', 'linewidth', 3); end
-        for ii = 1:size(LRlaps_sec, 1); plot(tpos(LRlaps_sec(ii, 1):LRlaps_sec(ii, 2))/Fs, linearPos2(LRlaps_sec(ii, 1):LRlaps_sec(ii, 2)), 'b', 'linewidth', 3); end
-        
-    elseif strcmp(direction, 'uni')
-        for ii = 1:size(lapsPnts, 1); plot(tpos(lapsPnts(ii, 1):lapsPnts(ii, 2))/Fs, linearPos2(lapsPnts(ii, 1):lapsPnts(ii, 2)), 'b', 'linewidth', 3); end
-
-    end 
-
-
-    for ii = 1:size(turningPeriods, 1); plot(tpos(turningPnts(ii, 1):turningPnts(ii, 2))/Fs, linearPos2(turningPnts(ii, 1):turningPnts(ii, 2)), 'color', [0.7 0.7 0.7], 'linewidth', 3, 'linestyle', '-'); end
-
-    % plot(tpos/Fs, linearPos2+1, 'color', 'g', 'linewidth', 2, 'linestyle', '-')
-
-    hold off
-    set(gca, 'fontsize', 12)
-    xlabel('time(sec)', 'fontsize', 14)
-    ylabel('position', 'fontsize', 14)
-
-    % Extracted out into separate file:
-    mkdir([FileBase '/lapInfo'])
-    saveas(gcf, [FileBase '/lapInfo/laps.fig'])
-
+    
+    
 
 
 end
 
-function linearPos2 = subfn_fixPositionNaNs(linearPos, tpos)
-    % if the pos includes nans interpolate to replace them
-%     linearPos2 = subfn_fixPositionNaNs(linearPos, tpos);
-
-    nanIdx = find(isnan(linearPos));
-    
-    linearPos_woNans = linearPos;
-    linearPos_woNans(isnan(linearPos)) = [];
-    tpos_woNans = tpos;
-    tpos_woNans(isnan(linearPos)) = [];
-    
-    temp = interp1(tpos_woNans, linearPos_woNans, tpos(nanIdx));
-    
-    linearPos2 = linearPos;
-    linearPos2(nanIdx) = temp;
-end
 
 function [occupancy, posbin, localMaxima] = subfn_computeOccupancyWithSpeedCutoff(tpos, linearPos2, tvelocity, velocity, low_speed_cutoff)
     speed_at_pos = interp1(tvelocity, velocity, tpos)';
@@ -351,7 +337,6 @@ function [occupancy, posbin, localMaxima] = subfn_computeOccupancyWithSpeedCutof
     %%% finding the positions with highest occupancy 
     [occupancy, posbin] = hist(loSpeedPositions, 100);
     occupancy = occupancy/sum(occupancy) * 100;
-    
     
     sigma = 5; %% do a little smoothing
     halfwidth = 15;
@@ -366,4 +351,14 @@ function [occupancy, posbin, localMaxima] = subfn_computeOccupancyWithSpeedCutof
         localMaxima = [localMaxima length(diffOcc)];
     end
 
+end
+
+function [trackBounds] = subfn_DetermineTrackBounds(posbin, localMaxima)
+    %%% subfn_DetermineTrackBounds: define the boundaries of the track
+    hiOccPositions = posbin(localMaxima); %% high occupancy positions; the first 
+    %%% and last could correspond to either ends of the track
+    %%% should be confirmed visually
+    trackBounds = zeros(1,2);
+    trackBounds(1) = hiOccPositions(1) + 0.1*(hiOccPositions(end) - hiOccPositions(1)); %% positions behind this point would be considered within the left platform
+    trackBounds(2) = hiOccPositions(end) - 0.1*(hiOccPositions(end) - hiOccPositions(1)); %% positions beyond this point would be considered within the right platform
 end
