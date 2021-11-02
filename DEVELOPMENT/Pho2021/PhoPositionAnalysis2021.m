@@ -1,11 +1,8 @@
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currSrcDir = fullfile(currDir, 'src');
 
-animalID = 1;
+animalID = 3;
 sessionNumber = 1;
-
-% cd(currDir)
-
 
 %% loading session data
 
@@ -27,12 +24,9 @@ sessionName = [currRat 'Maze' num2str(sessionNumber)];
 sessionName2 = [currRat '-maze' num2str(sessionNumber)];
 
 VarList = {'spikes','behavior','position','speed','basics','ripple'};
-
-
 for var = 1 : length(VarList)
     load([currSrcDir '/wake-' VarList{var} '.mat'])
 end
-
 
 spikes   = eval(['spikes.' sessionName]);
 behavior = eval(['behavior.' sessionName]);
@@ -50,8 +44,8 @@ rippleEvents = ripple.time;
 fileinfo = struct('name', sessionName2, 'animal', currRat, 'xyt', [], 'xyt2', [], ...
     'tbegin', [], 'tend', [], 'Fs', [], 'nCh', [], 'lfpSampleRate', [], 'pix2cm', 0.3861); 
 
-mainDir = fullfile(currDir, ['analysesResults_' datestr(now, 'dd-mmm-yyyy')], fileinfo.name);
 
+mainDir = fullfile(currDir, ['analysesResults_' datestr(now, 'dd-mmm-yyyy')], fileinfo.name);
 if ~exist(mainDir,'dir')
    mkdir(mainDir) % Make the output dir 
 end
@@ -84,13 +78,11 @@ fileinfo.Fs = 1e6; % Since in Hiro's data the spike timestamps are already in mi
 % lfpSampleRate = basics.lfpSampleRate;
 
 fileinfo.lfpSampleRate = 1e6; % agian we use the time unit after conversion
-
 fileinfo.nCh = basics.nChannels;
 
 
 
 %%% position info and preprocessings
-
 fileinfo.xyt = [position.x*fileinfo.pix2cm; position.y*fileinfo.pix2cm; position.t]'; 
 
 
@@ -113,33 +105,88 @@ fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
 positionTable = table(fileinfo.xyt(:, 3), fileinfo.xyt(:, 1), fileinfo.xyt(:, 2), linearPos, ...
    'VariableNames', {'t', 'x', 'y', 'linearPos'});
 
-% % updated
+% positionTable = table(fileinfo.xyt(:, 3)', fileinfo.xyt(:, 1)', fileinfo.xyt(:, 2)', linearPos', ...
+%    {'t', 'x', 'y', 'linearPos'});
 
-direction = 'bi';
-[lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir); 
 
-if length(lapsStruct.RL) > length(lapsStruct.LR)
-   lapsStruct.RL(1,:) = [];
-   behavior.MazeEpoch(1,:) = lapsStruct.LR(1,:);
+
+% % % updated
+
+% direction = 'bi';
+% [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir); 
+
+% if length(lapsStruct.RL) > length(lapsStruct.LR)
+%    lapsStruct.RL(1,:) = [];
+%    behavior.MazeEpoch(1,:) = lapsStruct.LR(1,:);
+% end
+
+% totNumLaps = size(lapsStruct.RL, 1) + size(lapsStruct.LR, 1);
+% laps = zeros(totNumLaps, 2);
+% laps(1:2:totNumLaps, :)  = lapsStruct.LR;
+% laps(2:2:totNumLaps, :)  = lapsStruct.RL;
+
+% laps(:, 3) = 1:size(laps, 1); 
+
+% fileinfo.xyt2(:, 3) = zeros(size(fileinfo.xyt2(:, 1))); % labeling the postion samples with the calculated laps (if not part of any lap the label is zero)
+
+% for ii = 1: length(laps)
+%    idx =  find(fileinfo.xyt2(:, 2) > laps(ii, 1) & fileinfo.xyt2(:, 2) < laps(ii, 2));
+%    fileinfo.xyt2(idx, 3) = laps(ii, 3);         
+% end
+
+% %% formating the spike info
+% % The final format is similar to what Kamran had for his 2006 datasets
+
+% unitTypes = 'all';
+% [spikeStruct, okUnits] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
+% save(fullfile(mainDir, 'spikeBehaviorAnalysis.mat'), 'okUnits', 'spikeStruct', '-append')
+
+
+function [lapsStruct, turningPeriods] = subfn_calculateLaps()
+   direction = 'bi';
+   % [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir); 
+   [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo.xyt2(:, 2), fileinfo.xyt2(:, 1), fileinfo.Fs, speed, direction, mainDir);
+
+   if length(lapsStruct.RL) > length(lapsStruct.LR)
+      lapsStruct.RL(1,:) = [];
+      behavior.MazeEpoch(1,:) = lapsStruct.LR(1,:);
+   end
+
+   totNumLaps = size(lapsStruct.RL, 1) + size(lapsStruct.LR, 1);
+   laps = zeros(totNumLaps, 2);
+   laps(1:2:totNumLaps, :)  = lapsStruct.LR;
+   laps(2:2:totNumLaps, :)  = lapsStruct.RL;
+   laps(:, 3) = 1:size(laps, 1); 
+
+   % labeling the postion samples with the calculated laps (if not part of any lap the label is zero)
+   fileinfo.xyt2(:, 3) = zeros(size(fileinfo.xyt2(:, 1)));
+   for ii = 1: length(laps)
+      idx = find(fileinfo.xyt2(:, 2) > laps(ii, 1) & fileinfo.xyt2(:, 2) < laps(ii, 2));
+      fileinfo.xyt2(idx, 3) = laps(ii, 3);         
+   end
+
 end
 
-totNumLaps = size(lapsStruct.RL, 1) + size(lapsStruct.LR, 1);
-laps = zeros(totNumLaps, 2);
-laps(1:2:totNumLaps, :)  = lapsStruct.LR;
-laps(2:2:totNumLaps, :)  = lapsStruct.RL;
 
-laps(:, 3) = 1:size(laps, 1); 
+function [occupancy, posbin] = subfn_computeOccupancyWithSpeedCutoff(positionTable, velocityTable, low_speed_cutoff)
+   %  low_speed_cutoff = 10; % minimum speed cm/s
+   tpos = positionTable.t;
+   linearPos = positionTable.linearPos;
 
-fileinfo.xyt2(:, 3) = zeros(size(fileinfo.xyt2(:, 1))); % labeling the postion samples with the calculated laps (if not part of any lap the label is zero)
+   tvelocity = velocityTable.t;
+   velocity = velocityTable.v;
 
-for ii = 1: length(laps)
-   idx =  find(fileinfo.xyt2(:, 2) > laps(ii, 1) & fileinfo.xyt2(:, 2) < laps(ii, 2));
-   fileinfo.xyt2(idx, 3) = laps(ii, 3);         
+    speed_at_pos = interp1(tvelocity, velocity, tpos)';
+    loSpeedPositions = linearPos2(find(speed_at_pos < low_speed_cutoff)); % positions with speed less than 10 cm/s
+
+    %%% finding the positions with highest occupancy 
+    [occupancy, posbin] = hist(loSpeedPositions, 100);
+    occupancy = occupancy/sum(occupancy) * 100;
+
+    sigma = 5; %% do a little smoothing
+    halfwidth = 15;
+    win = gausswindow(sigma, halfwidth);
+    occupancy = conv(occupancy, win, 'same'); % smoothed occupancy
+
 end
 
-%% formating the spike info
-% The final format is similar to what Kamran had for his 2006 datasets
-
-unitTypes = 'all';
-[spikeStruct, okUnits] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
-save(fullfile(mainDir, 'spikeBehaviorAnalysis.mat'), 'okUnits', 'spikeStruct', '-append')

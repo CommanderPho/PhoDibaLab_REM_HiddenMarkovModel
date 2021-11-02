@@ -104,7 +104,8 @@ fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
 % % updated
 
 direction = 'bi';
-[lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir); 
+% [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir);
+[lapsStruct, turningPeriods] = calculateLapTimings(fileinfo.xyt2(:, 2), fileinfo.xyt2(:, 1), fileinfo.Fs, speed, direction, FileBase)
 
 if length(lapsStruct.RL) > length(lapsStruct.LR)
    lapsStruct.RL(1,:) = [];
