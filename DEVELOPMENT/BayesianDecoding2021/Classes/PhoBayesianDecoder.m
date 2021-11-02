@@ -46,7 +46,12 @@ classdef PhoBayesianDecoder < handle
             % spikes = {source_data.spikes.RoyMaze1.time};
             [~, unitSpikeCells, ~] = fnFlatSpikesToUnitCells(obj.Loaded.spikeStruct.t, obj.Loaded.spikeStruct.unit, false);
 %             spikes = unitSpikeCells; % the timestamps we need
-             obj.Parameters.spikes = fnCellContentsTranpose(unitSpikeCells)'; % the timestamps we need
+             obj.Parameters.spikes = unitSpikeCells'; % for rebuilt flat spike arrays, we need just the transpose of the whole cell array, not the elements
+%              obj.Parameters.spikes = fnCellContentsTranpose(unitSpikeCells)'; % for active_processing.spikes.time type objects, we need the tranpose of the contents and the whole cell array
+             % obj.Parameters.spikes should be a 1x76 cell with contents:
+                % obj.Parameters.spikes{1}: 80828x1 double
+                % obj.Parameters.spikes{2}: 17874x1 double
+                ...
             % Absolute timestamp version are available here: source_data.position.RoyMaze1.t            
             
             % t_rel is aligned with the timestamps in the active_processing.position_table's timestamp column
