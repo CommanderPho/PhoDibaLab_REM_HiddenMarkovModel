@@ -96,8 +96,8 @@ classdef PhoBayesianDecoder < handle
         end
 
         function [] = performBuildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ)
-%             [~, obj.TuningCurves.lambda] = build_tuning_curves(spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma);
-
+            % performBuildTuningCurves(obj, ...):
+            [~, obj.TuningCurves.lambda] = build_tuning_curves(spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma);
             %{
             lambda: (N+1)-dimensional array of mean firing rate for each bin,
                     where the size of the first dimension is the number of units.
@@ -135,23 +135,21 @@ classdef PhoBayesianDecoder < handle
         end
 
 
-        function performSaveComputedData(obj, parentFolder, experimentName, experimentIdentifier)
+        function [outFilePath] = performSaveComputedData(obj, parentFolder, experimentName, experimentIdentifier)
             %performSaveComputedData Summary of this method goes here
             %   Detailed explanation goes here
                
-            input_variables_names = {'spikes', 'X', 't', 'sample_rate', 't_start', 't_end', 'bin_size', 'sigma', 'f_base', 'min_t_occ'};
-            output_variable_names = {'lambda', 'coords', 'alpha', 'beta', 'IC_curves'};
-            
-%             experimentIdentifier = 'KevinMaze1';
-            for i = 1:length(input_variables_names)
-                BayesocampusResults.(experimentIdentifier).Inputs.(input_variables_names{i}) = eval(input_variables_names{i}); 
-            end
+%             input_variables_names = {'spikes', 'X', 't', 'sample_rate', 't_start', 't_end', 'bin_size', 'sigma', 'f_base', 'min_t_occ'};
+            output_variable_names = {'lambda', 'coords', 'alpha', 'beta'};
+%             for i = 1:length(input_variables_names)
+%                 BayesocampusResults.(experimentIdentifier).Inputs.(input_variables_names{i}) = eval(input_variables_names{i}); 
+%             end
             
             for i = 1:length(output_variable_names)
-                BayesocampusResults.(experimentIdentifier).Outputs.(output_variable_names{i}) = eval(output_variable_names{i}); 
+                BayesocampusResults.(experimentIdentifier).Outputs.(output_variable_names{i}) = obj.TuningCurves.(output_variable_names{i}); 
             end
-            
-            save('Bayesiocampus_Results_2021_11_01-6.mat', "BayesocampusResults")            
+            outFilePath = fullfile(parentFolder, sprintf('Bayesiocampus_Results_%s_2021_11_01-6.mat', experimentName));
+            save(outFilePath, "BayesocampusResults")            
         end
 
 
