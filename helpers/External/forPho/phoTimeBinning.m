@@ -19,13 +19,11 @@ noFiringUnits = zeros(noEvents, 1);
 
 static_isSpikeMember = ismember(spike.qclu , qclus); % 2875634 x 1
 
-
-% [spikesTable] = fnAddRippleIdentifiersToSpikesTable(spikesTable, rippleStartTimes, rippleEndTimes);
-% [outputFilterFunction] = fnBuildPeriodDetectingFilter(eventBeg, eventEnd);
-[outputFilterFunction, functionCells] = fnBuildPeriodDetectingFilter(eventBeg, eventEnd);
-event_matches = outputFilterFunction(spike.t(static_isSpikeMember));
-event_matched_periods = find(~cellfun(@isempty, event_matches)); % These are the indicies of the periods that each spike falls within
-event_matched_spike_indicies = [event_matches{event_matched_periods}]'; % These are the indicies of spikes for this unit that fall within a period
+% %% Sadly this function filter version doesn't work:
+% [outputFilterFunction, functionCells] = fnBuildPeriodDetectingFilter(eventBeg, eventEnd);
+% event_matches = outputFilterFunction(spike.t(static_isSpikeMember));
+% event_matched_periods = find(~cellfun(@isempty, event_matches)); % These are the indicies of the periods that each spike falls within
+% event_matched_spike_indicies = [event_matches{event_matched_periods}]'; % These are the indicies of spikes for this unit that fall within a period
 
 
 % 
@@ -40,12 +38,12 @@ event_matched_spike_indicies = [event_matches{event_matched_periods}]'; % These 
 spikeTimes = spike.t(static_isSpikeMember);
 spikeUnit  = spike.unit(static_isSpikeMember);
 
-spikeTimes = spikeTimes(event_matched_spike_indicies);
-spikeUnit  = spikeUnit(event_matched_spike_indicies);
+% spikeTimes = spikeTimes(event_matched_spike_indicies);
+% spikeUnit  = spikeUnit(event_matched_spike_indicies);
 
-isbetween(t,tlower,tupper)
-
-isbetween(t,tlower,tupper)
+spikeTimeDurations = seconds(spikeTimes ./ 1e6);
+eventBegDurations = seconds(eventBeg ./ 1e6);
+eventEndDurations = seconds(eventEnd ./ 1e6);
 
 % filtered_spike_times = spike.t(static_isSpikeMember);
 % filtered_spike_times = seconds((spike.t(static_isSpikeMember) ./ 1e6)); 
@@ -61,6 +59,15 @@ curr_timetable = timetable(seconds((spike.t(static_isSpikeMember) ./ 1e6)), spik
 			'VariableNames',{'t', 'unit'});
 % eventTimeRanges = timerange(seconds(eventBeg ./ 1e6), seconds(eventEnd ./ 1e6), 'closed');
 
+% event_timeranges = arrayfun(@(currEvtBegin, currEvtEnd) timerange(seconds(currEvtBegin ./ 1e6), seconds(currEvtEnd ./ 1e6), 'closed'), eventBeg, eventEnd, 'UniformOutput', false);
+
+event_timeranges = arrayfun(@(currEvtBegin, currEvtEnd) timerange(seconds(currEvtBegin ./ 1e6), seconds(currEvtEnd ./ 1e6), 'closed'), eventBeg, eventEnd, 'UniformOutput', false);
+event_filteredTTs = arrayfun(@(currEvtBegin, currEvtEnd) curr_timetable(timerange(seconds(currEvtBegin ./ 1e6), seconds(currEvtEnd ./ 1e6), 'closed'), :), eventBeg, eventEnd, 'UniformOutput', false);
+
+event_filteredIsBetween = arrayfun(@(currEvtBegin, currEvtEnd) isbetween(spikeTimeDurations, currEvtBegin, currEvtEnd), eventBegDurations, eventEndDurations, 'UniformOutput', false);
+
+
+% event_timeranges
 
 % noEvents = 89118
 for evt = 1:noEvents
@@ -71,7 +78,8 @@ for evt = 1:noEvents
 %     spikeTimes = spike.t(spikeInd);
 %     spikeUnit  = spike.unit(spikeInd);
 %     eventTimeRanges = timerange(seconds(eventBeg ./ 1e6), seconds(eventEnd ./ 1e6), 'closed');
-    curr_filtered_TT = curr_timetable(timerange(seconds(eventBeg(evt) ./ 1e6), seconds(eventEnd(evt) ./ 1e6), 'closed'), :);
+%     curr_filtered_TT = curr_timetable(timerange(seconds(eventBeg(evt) ./ 1e6), seconds(eventEnd(evt) ./ 1e6), 'closed'), :);
+    curr_filtered_TT = curr_timetable(event_timeranges{evt}, :);
 %     spikeTimes = seconds(curr_filtered_TT.t) .* 1e6; % convert back to double seconds
     spikeTimes = curr_filtered_TT.t;
     spikeUnit  = curr_filtered_TT.unit;
