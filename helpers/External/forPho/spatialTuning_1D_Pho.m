@@ -1,4 +1,4 @@
-function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffWithAvg] = spatialTuning_1D_Pho(spikeStruct, qclus, positionTable, maze_start_time, maze_end_time, thetaPeriods, turningPeriods, speed, direction, posBinSize, runSpeedThresh, combinedUnits, timeUnit, FileBase, FileName)
+function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffWithAvg, positionBinningInfo] = spatialTuning_1D_Pho(spikeStruct, qclus, positionTable, maze_start_time, maze_end_time, thetaPeriods, turningPeriods, speed, direction, posBinSize, runSpeedThresh, combinedUnits, timeUnit, FileBase, FileName)
 % spatialTuning_1D_Pho - One line description of what the function or script performs
 % Detailed explanation goes here
 % 
@@ -93,13 +93,19 @@ directionLinearPos(positionIdx, :) = linearPos(positionIdx, :);
 
 % defining the position bins
 [posBinEdges, linearPoscenters, nPosBins] = PhoFallAnalysis2021.subfn_buildPositionBinInformation(positionTable.linearPos, posBinSize);
-
 % nPosBins = floor((max(linearPos(:, 1)) - min(linearPos(:, 1)))/posBinSize);
 % posBinEdges = min(linearPos(:, 1)): posBinSize: max(linearPos(:, 1)); % center of the position bins
 % linearPoscenters = posBinEdges(1:end-1) + posBinSize/2;
-
 posSamplingPeriod = median(diff(positionTable.t))/timeUnit; % 1/sampling frequency - Hiro's dataset: timeunit is microsecond
 
+%% Build positionBinningInfo output struct
+positionBinningInfo.directionLinearPos = directionLinearPos;
+positionBinningInfo.posBinSize = posBinSize;
+positionBinningInfo.posBinEdges = posBinEdges;
+positionBinningInfo.linearPoscenters = linearPoscenters;
+positionBinningInfo.nPosBins = nPosBins;
+positionBinningInfo.timeUnit = timeUnit;
+positionBinningInfo.posSamplingPeriod = posSamplingPeriod;
 
 
 
