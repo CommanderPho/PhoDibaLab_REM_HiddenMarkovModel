@@ -13,13 +13,11 @@ tpos = fileinfo.xyt(:, 3);
 
 linearPos = fileinfo.xyt2(:, 1);
 
-
 velocity  = speed.v;
 tvelocity = speed.t;
 
 
 %% spike data
-
 
 % initializing the new structure for spike data
 newSpikes = struct('t', [], 'unit', [], 'cluster', [], 'shank', [], 'qclu', [], 'lap', [], 'x', [], 'y', [], 'linearPos', [], 'speed', [], 'theta', []);
@@ -57,7 +55,6 @@ numUnits = length(units); %% number of pyramidal units
 
 
 for ii = 1 : numUnits
-    
     unit = units(ii); %% ii-th unit
     
     fprintf(1,'currently procceing the unit# %d (%d / %d)\n',  unit, ii, numUnits)
@@ -77,14 +74,11 @@ for ii = 1 : numUnits
     newSpikes.y = [newSpikes.y; interp1(tpos, ypos, spikes(unit).time)']; 
     newSpikes.speed = [newSpikes.speed; interp1(tvelocity, velocity, spikes(unit).time)'];
     newSpikes.linearPos = [newSpikes.linearPos; interp1(tpos, linearPos, spikes(unit).time)'];
-    
-    
+
     currSpikes_lap = zeros(nSpikes, 1);
 
-    for jj = 1: nSpikes
-           
+    for jj = 1: nSpikes           
         temp = find(spikes(unit).time(jj) > laps(:, 1) & spikes(unit).time(jj) <= laps(:, 2));
-        
         if ~isempty(temp)
             currSpikes_lap(jj) = laps(temp, 3);
         end 
@@ -118,7 +112,6 @@ newSpikes.lap = newSpikes.lap(timeSortInd);
 
 runSpikeTimes = newSpikes.t(newSpikes.lap > 0);
 ripples = ripples(ripples(:, 1) > runSpikeTimes(1) & ripples(:, 1) < runSpikeTimes(end), :);
-
 
 nSpikes = length(newSpikes.t);
 newSpikes.ripple = zeros(nSpikes, 1);

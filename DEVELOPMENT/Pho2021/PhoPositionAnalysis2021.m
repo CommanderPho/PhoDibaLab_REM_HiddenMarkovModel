@@ -127,7 +127,11 @@ runSpeedThresh = 10; % 10cm/sec
 [spatialTunings_LR, PF_sorted_LR, runTemplate_LR,  spatialInfo_LR, conslapsRatio_LR, diffWithAvg_LR, positionBinningInfo_LR] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'LR', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
 [spatialTunings_RL, PF_sorted_RL, runTemplate_RL,  spatialInfo_RL, conslapsRatio_RL, diffWithAvg_RL, positionBinningInfo_RL] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'RL', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
 [spatialTunings_biDir, PF_sorted_biDir, runTemplate_biDir,  spatialInfo_biDir, conslapsRatio_biDir, diffWithAvg_biDir, positionBinningInfo_biDir] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'uni', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
-save(fullfile(subfolder, 'biDirectional.mat'), 'spatialTunings_biDir', 'PF_sorted_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'positionBinningInfo_biDir')
+%% These "runTemplate"s are really important, they're the cellIDs for the active spatial maps!
+% spatialTunings_biDir: 60 x 105 %% The spatialTunings_* has the same number of units as 'okUnits' from the struct, but 10 of the rows are nothing but zeros, explaining why we only see 50 x 105 for the PF_sorted_biDir and the runTemplate_*
+% runTemplate_biDir: 50 x 1
+% PF_sorted_biDir: 50 x 105
+save(fullfile(subfolder, 'biDirectional.mat'), 'okUnits', 'spatialTunings_biDir', 'PF_sorted_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'positionBinningInfo_biDir')
 %% TODO: make a good output format:
 % save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
 %% PBEs during different behavioral periods
@@ -184,48 +188,6 @@ secondaryPBEs_POST   = secondaryPBEs(POSTidx, :);
 % POSTbinnedPBEs       = genSurrogates(POSTbinnedPBEs);
 save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior', 'secondaryPBEs')
 
-
-
-
-
-
-
-function [lapsStruct, turningPeriods] = subfn_calculateLaps()
-   direction = 'bi';
-   % [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir); 
-   [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo.xyt2(:, 2), fileinfo.xyt2(:, 1), fileinfo.Fs, speed, direction, mainDir);
-   if length(lapsStruct.RL) > length(lapsStruct.LR)
-      lapsStruct.RL(1,:) = [];
-      behavior.MazeEpoch(1,:) = lapsStruct.LR(1,:);
-   end
-   totNumLaps = size(lapsStruct.RL, 1) + size(lapsStruct.LR, 1);
-   laps = zeros(totNumLaps, 2);
-   laps(1:2:totNumLaps, :)  = lapsStruct.LR;
-   laps(2:2:totNumLaps, :)  = lapsStruct.RL;
-   laps(:, 3) = 1:size(laps, 1); 
-   % labeling the postion samples with the calculated laps (if not part of any lap the label is zero)
-   fileinfo.xyt2(:, 3) = zeros(size(fileinfo.xyt2(:, 1)));
-   for ii = 1: length(laps)
-      idx = find(fileinfo.xyt2(:, 2) > laps(ii, 1) & fileinfo.xyt2(:, 2) < laps(ii, 2));
-      fileinfo.xyt2(idx, 3) = laps(ii, 3);         
-   end
-end
-function [occupancy, posbin] = subfn_computeOccupancyWithSpeedCutoff(positionTable, velocityTable, low_speed_cutoff)
-   %  low_speed_cutoff = 10; % minimum speed cm/s
-   tpos = positionTable.t;
-   linearPos = positionTable.linearPos;
-   tvelocity = velocityTable.t;
-   velocity = velocityTable.v;
-    speed_at_pos = interp1(tvelocity, velocity, tpos)';
-    loSpeedPositions = linearPos2(find(speed_at_pos < low_speed_cutoff)); % positions with speed less than 10 cm/s
-    %%% finding the positions with highest occupancy 
-    [occupancy, posbin] = hist(loSpeedPositions, 100);
-    occupancy = occupancy/sum(occupancy) * 100;
-    sigma = 5; %% do a little smoothing
-    halfwidth = 15;
-    win = gausswindow(sigma, halfwidth);
-    occupancy = conv(occupancy, win, 'same'); % smoothed occupancy
-end
 
 
 % ------------- END OF CODE --------------

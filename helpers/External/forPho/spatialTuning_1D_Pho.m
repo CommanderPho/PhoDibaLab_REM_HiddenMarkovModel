@@ -22,7 +22,7 @@ function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffW
 %
 % 
 % Outputs:
-%    output1 - Description
+%    template - for each spatial tuning, the set of cells active in the tuning form what's referred to in these files as the 'template'. These are the IDs of the original units provided in spikeStruct that are active given the filter critera.
 %    output2 - Description
 % 
 
@@ -54,8 +54,7 @@ spikeInd = find(spikeStruct.t >= maze_start_time & spikeStruct.t < maze_end_time
                 & spikeStruct.speed > runSpeedThresh ... % only the spikes happening when the velocity of the animal is higher than the threshold (usually 10 cm/sec)
                 & spikeStruct.lap > 0 & ismember(mod(spikeStruct.lap, 2), desiredMod));  % only spike during high theta power
 %                 & spikeStruct.theta == 1); % limiting to the travels in specific direction
-% % excluding the spikes that occurr when the animal stopped or turned
-% around in the middle of the track
+% % excluding the spikes that occurr when the animal stopped or turned around in the middle of the track
 turningSpikes = [];
 for ii = 1: size(turningPeriods, 1); turningSpikes = [turningSpikes; find(spikeStruct.t >= turningPeriods(ii, 1) & spikeStruct.t <= turningPeriods(ii, 2))]; end     
 spikeInd = setdiff(spikeInd, turningSpikes);
