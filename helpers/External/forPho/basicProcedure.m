@@ -214,6 +214,7 @@ for ii= 1:nPBEs
 end
 save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
 
+%% Final form of output:
 baseStruct = struct('data', [], 'p', [], 'ts', [], 'pts', []);
 
 PREbinnedPBEs       = baseStruct;

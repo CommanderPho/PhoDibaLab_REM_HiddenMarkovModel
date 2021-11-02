@@ -15,10 +15,28 @@ override_should_recompute = false;
 % smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_13-Oct-2021/Roy-maze1/PlaceFields/biDirectional.mat', 'PF_sorted_biDir', 'spatialTunings_biDir');
 % smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1_v7_3.mat', ...
 %     'active_processing', 'general_results', 'num_of_electrodes', 'processing_config', 'results_array', 'source_data', 'timesteps_array');
-smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_30-Oct-2021/Roy-maze1/toAddVariables.mat', ...
-    'behavior', 'fileinfo', 'secondaryPBEs');
-smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_30-Oct-2021/Roy-maze1/PlaceFields/biDirectional.mat', ...
-    'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir');
+% smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_30-Oct-2021/Roy-maze1/toAddVariables.mat', ...
+%     'behavior', 'fileinfo', 'secondaryPBEs');
+% smartload('/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_30-Oct-2021/Roy-maze1/PlaceFields/biDirectional.mat', ...
+%     'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir');
+
+% experimentName = 'RoyMaze1';
+% experimentName = 'Roy-maze1';
+% experimentName = 'KevinMaze1';
+experimentName = 'Kevin-maze1';
+% '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/Kevin-maze1'
+% smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1_v7_3.mat', ...
+%     'active_processing', 'general_results', 'num_of_electrodes', 'processing_config', 'results_array', 'source_data', 'timesteps_array');
+
+parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
+smartload([parentFolder experimentName '/toAddVariables.mat'], ...
+    'behavior', 'fileinfo', '-f');
+smartload([parentFolder experimentName '/PlaceFields/biDirectional.mat'], ...
+    'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir', 'positionBinningInfo_biDir');
+smartload([parentFolder experimentName '/TrackLaps/trackLaps.mat']);
+
+smartload([parentFolder experimentName '/spikesVariables.mat']);
+
 
 
 % smartload('C:\Share\data\RoyMaze1\analysesResults_13-Oct-2021\PlaceFields\biDirectional.mat', 'PF_sorted_biDir')
@@ -44,7 +62,7 @@ spikeTimes = active_processing.spikes.time(plot_outputs.filter_active_units);
 % PhoFallAnalysis2021.showPlaceCellSpatialTuningsPlot();
 
 
-[PositionBins, placeFieldTuningCurves, sortedTuningCurveIndicies] = showPlaceCellSpatialTuningPlots(spatialTunings_biDir, fileinfo, plot_outputs.original_unit_index);
+[PositionBins, placeFieldTuningCurves, sortedTuningCurveIndicies] = PhoFallAnalysis2021.showPlaceCellSpatialTuningPlots(spatialTunings_biDir, fileinfo, plot_outputs.original_unit_index);
 
 
 

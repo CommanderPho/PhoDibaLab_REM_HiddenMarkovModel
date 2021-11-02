@@ -160,6 +160,36 @@ for ii= 1:nPBEs
     secondaryPBEs(ii, 5 + boutBrainState) = 1;
 end
 save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
+
+
+%% Final form of output:
+baseStruct = struct('data', [], 'p', [], 'ts', [], 'pts', []);
+
+PREbinnedPBEs       = baseStruct;
+PREidx              = find(secondaryPBEs(:, 1) > behavior.time(1,1) & secondaryPBEs(:, 2) < behavior.time(1,2));
+PREbinnedPBEs.data  = binnedPBEs(PREidx, :);
+secondaryPBEs_PRE   = secondaryPBEs(PREidx, :);
+% PREbinnedPBEs       = genSurrogates(PREbinnedPBEs);
+
+RUNbinnedPBEs       = baseStruct;
+RUNidx              = find(secondaryPBEs(:, 1) > behavior.time(2,1) & secondaryPBEs(:, 2) < behavior.time(2,2));
+RUNbinnedPBEs.data  = binnedPBEs(RUNidx, :);
+secondaryPBEs_RUN   = secondaryPBEs(RUNidx, :);
+% RUNbinnedPBEs       = genSurrogates(RUNbinnedPBEs);
+
+POSTbinnedPBEs       = baseStruct;
+POSTidx              = find(secondaryPBEs(:, 1) > behavior.time(3,1) & secondaryPBEs(:, 2) < behavior.time(3,2));
+POSTbinnedPBEs.data  = binnedPBEs(POSTidx, :);
+secondaryPBEs_POST   = secondaryPBEs(POSTidx, :);
+% POSTbinnedPBEs       = genSurrogates(POSTbinnedPBEs);
+save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior', 'secondaryPBEs')
+
+
+
+
+
+
+
 function [lapsStruct, turningPeriods] = subfn_calculateLaps()
    direction = 'bi';
    % [lapsStruct, turningPeriods] = calculateLapTimings(fileinfo, speed, direction, mainDir); 
