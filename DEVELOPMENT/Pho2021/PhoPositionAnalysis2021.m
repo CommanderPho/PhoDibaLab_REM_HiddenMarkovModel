@@ -1,3 +1,9 @@
+%% Conversion Info:
+% fileinfo.xyt2(:, 3) -> positionTable.lap_index
+% fileinfo.xyt(:, 3) -> positionTable.t
+% fileinfo.xyt2(:, 1) -> positionTable.linearPos
+
+
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currSrcDir = fullfile(currDir, 'src');
 
@@ -12,8 +18,8 @@ allsessionNumbers = {[1 2 3],[1 2 3], [1]};
 mazeShape.Roy = {'linear';'linear';'linear'};
 mazeShape.Ted = {'linear'; 'L-shape'; 'U-shape'};
 mazeShape.Kevin = {'linear'};
-currRat = rats{animalID}
-sessionNumber
+currRat = rats{animalID};
+% sessionNumber
 
 %% session info
 
@@ -59,14 +65,11 @@ if strcmp(currRat, 'Kevin') % there are two wake periods, we need to concatenate
    behavior.time(4,:) = [];
 end
 
-
 behavior.time(2,1) = behavior.time(2,1) + 1e6; % slight modification to make sure this time period is only limited to the maze (1e6 = 1 sec)
 behavior.time(2,2) = behavior.time(2,2) - 1e6;
 
-
 bvrTimeList = behavior.list(:,[1 2]); % start and end of each behavioral state
 bvrState    = behavior.list(:,3); % the label of corresponding states
-
 
 %%% recording configurations 
 
@@ -79,8 +82,6 @@ fileinfo.Fs = 1e6; % Since in Hiro's data the spike timestamps are already in mi
 fileinfo.lfpSampleRate = 1e6; % agian we use the time unit after conversion
 fileinfo.nCh = basics.nChannels;
 
-
-
 %%% position info and preprocessings
 fileinfo.xyt = [position.x*fileinfo.pix2cm; position.y*fileinfo.pix2cm; position.t]'; 
 
@@ -90,34 +91,19 @@ animalMazeShapes = eval(sprintf('mazeShape.%s', currRat));
 currMazeShape    = animalMazeShapes{sessionNumber};
 specified_maze_platform_centers = [43.4908, 36.2828; 223.7903, 32.3178];
 
-% linearPos = linearizePosition2(fileinfo, behavior, currMazeShape); % click on the middle of the platforms
+%% Linearize Position for the current maze shape:
 [linearPos, userSelectedCenters] = linearizePosition2(fileinfo.xyt, behavior.time(2,1), behavior.time(2,2), currMazeShape, specified_maze_platform_centers);
 % linearPos: 970086x1 double
 fileinfo.xyt2(:, 1) = linearPos; 
 fileinfo.xyt2(:, 2) = fileinfo.xyt(:, 3);
 
-
-
 %% Build a smarter output structure here:
-% positionTable = timetable(fileinfo.xyt(:, 3), fileinfo.xyt(:, 1), fileinfo.xyt(:, 2), linearPos, ...
-%    {'x','y','linearPos'});
-
-
 positionTable = table(fileinfo.xyt(:, 3), fileinfo.xyt(:, 1), fileinfo.xyt(:, 2), linearPos, ...
    'VariableNames', {'t', 'x', 'y', 'linearPos'});
 
-% positionTable = table(fileinfo.xyt(:, 3)', fileinfo.xyt(:, 1)', fileinfo.xyt(:, 2)', linearPos', ...
-%    {'t', 'x', 'y', 'linearPos'});
-
-% if the pos includes nans interpolate to replace them
-% linearPos2 = subfn_fixPositionNaNs(positionTable.linearPos, positionTable.t);
-% [positionTable.linearPos2, nanIdx] = fnFixPositionNaNs(positionTable.linearPos, positionTable.t);
-
-% % % updated
-
+%% Lap Timings:
 direction = 'bi';
 [lapsStruct, turningPeriods, occupancyInfo, trackInfo] = calculateLapTimings(positionTable.t, positionTable.linearPos, fileinfo.Fs, speed, direction, mainDir);
-% [lapsStruct, turningPeriods, occupancyInfo, trackInfo] = calculateLapTimings(fileinfo.xyt2(:, 2), fileinfo.xyt2(:, 1), fileinfo.Fs, speed, direction, mainDir);
 
 if length(lapsStruct.RL) > length(lapsStruct.LR)
    lapsStruct.RL(1,:) = [];
@@ -150,51 +136,47 @@ positionTable.lap_index = fileinfo.xyt2(:, 3);
 % Save out the laps info:
 subfolder = fullfile(mainDir, 'TrackLaps');
 mkdir(subfolder)
-% xyt = fileinfo.xyt;
-% xyt2 = fileinfo.xyt2;
-
 % save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'xyt', 'xyt2', 'currMazeShape', 'occupancyInfo', 'trackInfo')
 save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'positionTable', 'currMazeShape', 'occupancyInfo', 'trackInfo')
 % clear xyt2
 
-
-
 %% formating the spike info
-% % The final format is similar to what Kamran had for his 2006 datasets
-
-% unitTypes = 'all';
-% [spikeStruct, okUnits] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
-% save(fullfile(mainDir, 'spikeBehaviorAnalysis.mat'), 'okUnits', 'spikeStruct', '-append')
-%% formating the spike info
-% The final format is similar to what Kamran had for his 2006 datasets
 unitTypes = 'all';
 [spikeStruct, okUnits] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
 temp = [spikes.id];
 shanks = temp(2*okUnits - 1);
 save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
 
-% fileinfo.xyt2(:, 3) -> positionTable.lap_index
-% fileinfo.xyt(:, 3) -> positionTable.t
-% fileinfo.xyt2(:, 1) -> positionTable.linearPos
-
+%% Tuning Curves:
 runSpeedThresh = 10; % 10cm/sec
-
-%%% 1D spatial tuning: using linearized position
-% the place fields are calculated separately for the left and right direction
-% [spatialTunings_LR, PF_sorted_LR, runTemplate_LR,  spatialInfo_LR, conslapsRatio_LR, diffWithAvg_LR] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], fileinfo, behavior, [], [], speed, 'LR', 2, runSpeedThresh, [], fileinfo.Fs, subfolder);
-% [spatialTunings_RL, PF_sorted_RL, runTemplate_RL,  spatialInfo_RL, conslapsRatio_RL, diffWithAvg_RL] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], fileinfo, behavior, [], [], speed, 'RL', 2, runSpeedThresh, [], fileinfo.Fs, subfolder);
-% [spatialTunings_biDir, PF_sorted_biDir, runTemplate_biDir,  spatialInfo_biDir, conslapsRatio_biDir, diffWithAvg_biDir] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], fileinfo, behavior, [], [], speed, 'uni', 2, runSpeedThresh, [], fileinfo.Fs, subfolder);
-
+%%% 1D spatial tuning: using linearized position:
 [spatialTunings_LR, PF_sorted_LR, runTemplate_LR,  spatialInfo_LR, conslapsRatio_LR, diffWithAvg_LR, positionBinningInfo_LR] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'LR', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
 [spatialTunings_RL, PF_sorted_RL, runTemplate_RL,  spatialInfo_RL, conslapsRatio_RL, diffWithAvg_RL, positionBinningInfo_RL] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'RL', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
 [spatialTunings_biDir, PF_sorted_biDir, runTemplate_biDir,  spatialInfo_biDir, conslapsRatio_biDir, diffWithAvg_biDir, positionBinningInfo_biDir] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'uni', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
 save(fullfile(subfolder, 'biDirectional.mat'), 'spatialTunings_biDir', 'PF_sorted_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'positionBinningInfo_biDir')
 
+%% TODO: make a good output format:
+% save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
 
 
+%% PBEs during different behavioral periods
+time_resolution = 0.001; % in second
+threshZ         = 3; % sdf with 3 std deviation above the mean
+qclus = [1 2 3];
+velocityFilter = 1;
+%% all time
+fileinfo.tbegin = behavior.time(1,1); 
+fileinfo.tend   = behavior.time(3,2);
 
+subfolder = fullfile(mainDir, 'PBEs', 'wholeSession');
+mkdir(subfolder)
+exclude = bvrTimeList(ismember(bvrState, [2 4]), :); % nrem=1, rem=2, qwake=3, wake=4
 
+[primaryPBEs, sdat] = PBPeriods(spikeStruct, fileinfo, [], time_resolution, threshZ, exclude, velocityFilter);
+save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 'velocityFilter')
 
+binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) 
+[binnedPBEs, secondaryPBEs] = finalBinningResult(primaryPBEs, spikeStruct, qclus, fileinfo, binDur); % Very slow function
 
 
 function [lapsStruct, turningPeriods] = subfn_calculateLaps()

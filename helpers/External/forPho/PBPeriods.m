@@ -16,13 +16,14 @@ function [PBEs, sdat] = PBPeriods(spike, fileinfo, whichPart, binDur, threshZ, e
 % nCh = fileinfo.nCh;
 tbegin = fileinfo.tbegin;
 tend   = fileinfo.tend;
+Fs   = fileinfo.Fs;
 
 % Let's change the zero time and convert anything to second to make the next calculations easier
 
 spike.t = spike.t(ismember(spike.qclu, [1 2 3]));
 spike.t = spike.t(spike.t > tbegin & spike.t < tend);
 
-spikeTimes = (spike.t - tbegin)/fileinfo.Fs ; %% (find(ismember(spike.qclu , qclus))) %% in case we want to see the population burst (synchrony) among just pyramidal units
+spikeTimes = (spike.t - tbegin)/Fs ; %% (find(ismember(spike.qclu , qclus))) %% in case we want to see the population burst (synchrony) among just pyramidal units
 
 
 %% Position Data processing
@@ -32,20 +33,17 @@ spikeTimes = (spike.t - tbegin)/fileinfo.Fs ; %% (find(ismember(spike.qclu , qcl
 
 
 % Loading POSITION data 
-
 xyt = fileinfo.xyt;
-
 if ~isfield(fileinfo, 'pix2cm')
     pix2cm = 1/3;
 else
     pix2cm = fileinfo.pix2cm;
 end
 
-
 withinRange = find(xyt(:,3) >= tbegin & xyt(:,3) <= tend); % selecting only the position samples occured during neural recording
 xyt = xyt(withinRange, :);
 
-timepnts = (xyt(:,3) - tbegin)/fileinfo.Fs; % u seconds to seconds
+timepnts = (xyt(:,3) - tbegin)/Fs; % u seconds to seconds
 
 xpos = xyt(:,1) * pix2cm; % Converting the position data (from pixel number to centimeter)
 ypos = xyt(:,2) * pix2cm;
@@ -107,17 +105,13 @@ ii_ok = ones(length(spikeDensity),1);
 % for analyzing post sleep
 
 if ~isempty(exclude)
-
-exclude = exclude((exclude(:, 2) > fileinfo.tbegin & exclude(:, 1) < fileinfo.tend), :);
-
+    exclude = exclude((exclude(:, 2) > tbegin & exclude(:, 1) < fileinfo.tend), :);
 end
 
 
-
-if ~isempty(exclude)
-    
+if ~isempty(exclude)    
 % if exclude(1,1) <= tbegin
-%     exclude(1,1) = tbegin + 0.001 * fileinfo.Fs; % 1 ms after the zero time (fileinfo.tbegin)
+%     exclude(1,1) = tbegin + 0.001 * Fs; % 1 ms after the zero time (tbegin)
 % end
 % 
 % if exclude(end, 2) > tend
@@ -125,7 +119,7 @@ if ~isempty(exclude)
 % end
 
 
-exclude(find(exclude(:,1) <= tbegin), 1) = tbegin + 0.001 * fileinfo.Fs;
+exclude(find(exclude(:,1) <= tbegin), 1) = tbegin + 0.001 * Fs;
 exclude(find(exclude(:, 2) > tend), 2) = tend;
 
 
@@ -279,8 +273,8 @@ end
 
 % converting from milisecond resolution back to resolution of sampling frequency
 
-% PBEs = (secondaryPeriods(:, 1:3) - 1) * binDur * fileinfo.Fs + fileinfo.tbegin + 1; %%% the fourth column is just the peak rate
-PBEs = (secondaryPeriods(:, 1:3) - 1) * binDur * fileinfo.Fs + fileinfo.tbegin; %%% the fourth column is just the peak rate
+% PBEs = (secondaryPeriods(:, 1:3) - 1) * binDur * Fs + tbegin + 1; %%% the fourth column is just the peak rate
+PBEs = (secondaryPeriods(:, 1:3) - 1) * binDur * Fs + tbegin; %%% the fourth column is just the peak rate
 
 
 PBEs(:,4) = secondaryPeriods(:, 4); % the peak population firing
@@ -307,7 +301,7 @@ PBEs(:,4) = secondaryPeriods(:, 4); % the peak population firing
 % % Filename = [currDir '/' fileinfo.name '-' fileinfo.animal '-' los{whichPart} '.sdf.evt'];
 % Filename = [currDir '/' fileinfo.name '.sdf.evt'];
 % 
-% MakeEvtFile(PBEs(:, 1:3), Filename, {'beg', 'end', 'peak'}, fileinfo.Fs, 1)
+% MakeEvtFile(PBEs(:, 1:3), Filename, {'beg', 'end', 'peak'}, Fs, 1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

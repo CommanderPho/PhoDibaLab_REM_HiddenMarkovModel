@@ -183,6 +183,7 @@ save(fullfile(subfolder, 'biDirectional.mat'), 'spatialTunings_biDir', 'PF_sorte
 time_resolution = 0.001; % in second
 threshZ         = 3; % sdf with 3 std deviation above the mean
 
+%% all time
 fileinfo.tbegin = behavior.time(1,1); 
 fileinfo.tend   = behavior.time(3,2);
 
