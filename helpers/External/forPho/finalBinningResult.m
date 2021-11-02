@@ -11,7 +11,8 @@ function [eventsBinnedfiring, secondaryPBEs, noFiringUnits, eventLen] = finalBin
     end
 
 
-    [eventsBinnedfiring2, noFiringUnits] = phoTimeBinning(PBEs, spikeStruct, qclus, binDur, fileinfo);
+    [eventsBinnedfiring2, noFiringUnits] = timeBinning(PBEs, spikeStruct, qclus, binDur, fileinfo);
+%     [eventsBinnedfiring2, noFiringUnits] = phoTimeBinning(PBEs, spikeStruct, qclus, binDur, fileinfo);
     
     % 
     % binOverlapRatio = 0.5;
