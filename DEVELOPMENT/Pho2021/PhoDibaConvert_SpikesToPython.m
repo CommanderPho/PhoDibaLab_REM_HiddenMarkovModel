@@ -49,7 +49,6 @@ fprintf('Plotting results with bin resolution set to %d.\n', active_binning_reso
 % cellfun(@(cell_arr) [ones(size(cell_arr')), cell_arr'], PhoDibaTest_PositionalAnalysis_temp.active_spikes,'UniformOutput',false)
 % num2cell([1:numAlwaysStableCells]')
 % {1:numAlwaysStableCells}
-% arrayfun(
 % active_processing.spikes % Table
 % Only get the spike data during the track period:
 % active_processing.processed_array{2, 1}.by_epoch.track.spike_data  
