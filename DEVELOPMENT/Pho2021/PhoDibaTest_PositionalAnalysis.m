@@ -171,8 +171,6 @@ if (enable_plotting)
 end
 
 
-
-
 % %% Main Procedure:
 % PhoDibaTest_PositionalAnalysis_config.K = 5; % K: Number of factors
 
@@ -186,7 +184,11 @@ end
 
 % Save out positionalAnalysis data for Python:
 export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
-active_experiment_export_root_path = fullfile(export_root_path, active_experiment_names{active_expt_index});
+
+if ~exist('active_experiment_name','var')
+    active_experiment_name = active_experiment_names{active_expt_index};
+end
+active_experiment_export_root_path = fullfile(export_root_path, active_experiment_name);
 mkdir(active_experiment_export_root_path);
 
 if (enable_plotting)
