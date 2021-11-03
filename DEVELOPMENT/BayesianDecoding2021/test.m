@@ -1,3 +1,5 @@
+%% This script tests PhoBayesianDecoder.m's ability to load data saved to file by PhoPositionAnalaysis2021.m and use it to independent compute place curves
+
 % function [] = test()
 %TEST Summary of this function goes here
 %   Detailed explanation goes here
@@ -29,6 +31,8 @@
     %% Should update obj.TuningCurves when done!
     [outFilePath] = obj.performSaveComputedData(parentFolder, experimentName, experimentIdentifier);
 
+    obj.plotKouroshLoadedPlaceFieldSpatialTunings(experimentName)
 
+    obj.plotPlaceFieldSpatialTunings();
 % end
 

@@ -70,8 +70,8 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
 
             curr_y_offset = curr_y_offset_factor + PF_sorted_norm(jj, :)/20;
 
-            % first is 92x2
-            % second term is 1x216 for some reason
+            % first is numUnits x 2
+            % second term is 1 x (2.0 * numUnits)
             h.fill = fill([linearPoscenters fliplr(linearPoscenters)], [curr_y_offset fliplr(curr_y_offset_factor*ones(size(PF_sorted_norm(jj, :))))], cl,'LineStyle','none');
             alpha(0.5)
             hold on

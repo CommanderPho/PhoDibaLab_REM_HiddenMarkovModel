@@ -94,6 +94,10 @@ classdef PhoBayesianDecoder < handle
             obj.performBuildTuningCurves(obj.Parameters.spikes, obj.Parameters.X, obj.Parameters.t, obj.Parameters.sample_rate, ...
                 obj.Parameters.t_start, obj.Parameters.t_end, bin_size, sigma, f_base, min_t_occ);
     
+            % Compute the obj.TuningCurves.sortedOriginalUnitIndicies that would be required to order the tuning curves by their location on the track:
+            [obj.TuningCurves.sortedPeakPlaces, obj.TuningCurves.sortIndicies, obj.TuningCurves.sortedOriginalUnitIDs] = fnSortPlaceCellSpatialTuningCurves(obj.TuningCurves.lambda, ...
+                obj.TuningCurves.coords{1}, obj.Loaded.okUnits);            
+            fprintf('Successfully built tuning curves.\n');
         end
 
         function [] = performBuildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ)
@@ -126,20 +130,37 @@ classdef PhoBayesianDecoder < handle
             %performLoadDataHiroFormat Summary of this method goes here
             %   Detailed explanation goes here
             obj.Loaded = struct; % clear the loaded if it hasn't already been done.
+            obj.Loaded.parentFolder = parentFolder;
+            obj.Loaded.experimentName = experimentName;
+            
             temp.L1 = smartload(fullfile(parentFolder, experimentName, 'toAddVariables.mat'), ...
                 'behavior', 'fileinfo', '-f');
             temp.L2 = smartload(fullfile(parentFolder, experimentName, '/PlaceFields/biDirectional.mat'), ...
                 'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir', 'positionBinningInfo_biDir');
-            temp.L3 = smartload(fullfile(parentFolder, experimentName, '/TrackLaps/trackLaps.mat'));
-            temp.L4 = smartload(fullfile(parentFolder, experimentName, '/spikesVariables.mat'));
+            temp.L3 = smartload(fullfile(parentFolder, experimentName, '/TrackLaps/trackLaps.mat'), ...
+                'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'positionTable', 'currMazeShape', 'occupancyInfo', 'trackInfo');
+            temp.L4 = smartload(fullfile(parentFolder, experimentName, '/spikesVariables.mat'), ...
+                'spikeStruct', 'okUnits', 'shanks');
             [obj.Loaded] = fnMergeStructs(obj.Loaded, temp.L1, temp.L2, temp.L3, temp.L4);
+            
+            fprintf('Successfully loaded data.\n');
         end
 
 
         function [outFilePath] = performSaveComputedData(obj, parentFolder, experimentName, experimentIdentifier)
             %performSaveComputedData Summary of this method goes here
-            %   Detailed explanation goes here
+            %   [outFilePath] = obj.performSaveComputedData(parentFolder, experimentName, experimentIdentifier);
                
+            if ~exist('experimentName', 'var')
+                experimentName = obj.Loaded.experimentName;
+            end
+            if ~exist('experimentIdentifier', 'var')
+                experimentIdentifier = obj.Loaded.experimentIdentifier;
+            end
+           if ~exist('parentFolder', 'var')
+                parentFolder = obj.Loaded.parentFolder;
+           end
+
 %             input_variables_names = {'spikes', 'X', 't', 'sample_rate', 't_start', 't_end', 'bin_size', 'sigma', 'f_base', 'min_t_occ'};
             output_variable_names = {'lambda', 'coords', 'alpha', 'beta'};
 %             for i = 1:length(input_variables_names)
@@ -150,8 +171,53 @@ classdef PhoBayesianDecoder < handle
                 BayesocampusResults.(experimentIdentifier).Outputs.(output_variable_names{i}) = obj.TuningCurves.(output_variable_names{i}); 
             end
             outFilePath = fullfile(parentFolder, sprintf('Bayesiocampus_Results_%s_2021_11_01-6.mat', experimentName));
-            save(outFilePath, "BayesocampusResults")            
+            fprintf('Saving data data to %s...\n', outFilePath);
+            save(outFilePath, "BayesocampusResults");
+            fprintf('\t done.\n');
         end
+
+
+
+        function [figH, h] = plotKouroshLoadedPlaceFieldSpatialTunings(obj, experimentName, figureSaveParentPath)
+            % Plots the tuning curves loaded from the biDirectional.mat
+            % file's PF_sorted_biDir variable, which were computed using
+            % Kourosh's old code.
+            if ~exist('experimentName', 'var')
+                experimentName = obj.Loaded.experimentName;
+            end
+
+            %% Plot tuning curves:
+            [figH, h] = fnPlotPlaceCellSpatialTunings(obj.Loaded.PF_sorted_biDir, 'linearPoscenters', obj.Loaded.positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(obj.Loaded.runTemplate_biDir));
+            curr_fig_name = sprintf('Kourosh Style - %s - Sorted Position Tuning Curves', experimentName);
+            title(curr_fig_name)
+            if exist('figureSaveParentPath', 'var')
+               figureSavePath = fullfile(figureSaveParentPath, curr_fig_name);
+               savefig(figureSavePath); 
+               fprintf('Figure saved to %s\n', figureSavePath);
+            end
+        end
+
+        function [figH, h] = plotPlaceFieldSpatialTunings(obj, figureSaveParentPath)
+            % plotPlaceFieldSpatialTunings: Plots the tuning curves internally computed from within this class
+            %% Plot tuning curves:
+%             activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortedOriginalUnitIndicies, :);
+%             activeSpatialLinearPositions = obj.TuningCurves.alpha;
+
+            activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortIndicies, :);
+%             activeSpatialLinearPositions = obj.TuningCurves.coords{1};
+            activeSpatialLinearPositions = 1:size(activeSpatialTunings,2);
+
+            activeOriginalUnitIDs = obj.TuningCurves.sortedOriginalUnitIDs;
+            [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', activeSpatialLinearPositions, 'unitLabels', num2cellstr(activeOriginalUnitIDs));
+            curr_fig_name = sprintf('PhoBayesianDecoder/PhoPositionAnalaysis2021 Style - %s - Sorted Position Tuning Curves', obj.Loaded.experimentName);
+            title(curr_fig_name)
+            if exist('figureSaveParentPath', 'var')
+               figureSavePath = fullfile(figureSaveParentPath, curr_fig_name);
+               savefig(figureSavePath); 
+               fprintf('Figure saved to %s\n', figureSavePath);
+            end
+        end
+
 
     end % end methods
 
