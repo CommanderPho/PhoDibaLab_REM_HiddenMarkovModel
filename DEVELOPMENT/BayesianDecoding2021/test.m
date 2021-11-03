@@ -7,12 +7,15 @@
     % experimentName = 'KevinMaze1';
     experimentName = 'Kevin-maze1';
     experimentIdentifier = 'KevinMaze1';
+    experimentName = experimentIdentifier; %override on windows to get by naming problems
+
     % '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/Kevin-maze1'
     % smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1_v7_3.mat', ...
     %     'active_processing', 'general_results', 'num_of_electrodes', 'processing_config', 'results_array', 'source_data', 'timesteps_array');
     
-    parentFolder = 'C:\Share\data\analysesResults\KevinMaze1';
-    parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
+    %parentFolder = 'C:\Share\data\analysesResults\KevinMaze1';
+    parentFolder = 'C:\Share\data\analysesResults';
+%     parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
     obj = PhoBayesianDecoder();
     obj.performLoadDataHiroFormat(parentFolder, experimentName);
     obj.build(); % build the parameters from the loaded data

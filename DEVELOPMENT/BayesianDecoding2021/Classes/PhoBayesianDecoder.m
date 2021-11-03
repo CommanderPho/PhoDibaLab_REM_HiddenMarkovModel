@@ -126,12 +126,12 @@ classdef PhoBayesianDecoder < handle
             %performLoadDataHiroFormat Summary of this method goes here
             %   Detailed explanation goes here
             obj.Loaded = struct; % clear the loaded if it hasn't already been done.
-            temp.L1 = smartload([parentFolder experimentName '/toAddVariables.mat'], ...
+            temp.L1 = smartload(fullfile(parentFolder, experimentName, 'toAddVariables.mat'), ...
                 'behavior', 'fileinfo', '-f');
-            temp.L2 = smartload([parentFolder experimentName '/PlaceFields/biDirectional.mat'], ...
+            temp.L2 = smartload(fullfile(parentFolder, experimentName, '/PlaceFields/biDirectional.mat'), ...
                 'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir', 'positionBinningInfo_biDir');
-            temp.L3 = smartload([parentFolder experimentName '/TrackLaps/trackLaps.mat']);
-            temp.L4 = smartload([parentFolder experimentName '/spikesVariables.mat']);
+            temp.L3 = smartload(fullfile(parentFolder, experimentName, '/TrackLaps/trackLaps.mat'));
+            temp.L4 = smartload(fullfile(parentFolder, experimentName, '/spikesVariables.mat'));
             [obj.Loaded] = fnMergeStructs(obj.Loaded, temp.L1, temp.L2, temp.L3, temp.L4);
         end
 
@@ -153,12 +153,9 @@ classdef PhoBayesianDecoder < handle
             save(outFilePath, "BayesocampusResults")            
         end
 
-
-
-
     end % end methods
 
-     %% StaticFunction Prototypes BLock
+    %% StaticFunction Prototypes BLock
     % function signature required to match the one in the function's .m file
     methods (Static)
         function [] = test()
