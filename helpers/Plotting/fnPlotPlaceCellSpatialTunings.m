@@ -17,9 +17,9 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
     addParameter(p,'sortOrder', 1:numSpatialTuningCurves, @isnumeric) % should be [numUnits 1] set of indicies to sort the spatialTunings with
     addParameter(p,'colorSortOrder', 1:numSpatialTuningCurves, @isnumeric) % should be [numUnits 1] set of indicies to sort the colors with with
     addParameter(p,'peaks', [], @isnumeric)
+    addParameter(p, 'unitFilter', struct(), @isstruct)
     addParameter(p,'plotting_options', struct(), @isstruct)
-    
-    
+        
     % addParameter(p,'minPeakRate',3,@isnumeric)
     parse(p, varargin{:})
     
@@ -29,6 +29,7 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
     sortOrder = p.Results.sortOrder;
     colorSortOrder = p.Results.colorSortOrder;
     peaks = p.Results.peaks;
+    unitFilter = p.Results.unitFilter;
     plotting_options = p.Results.plotting_options;
     
 %     if ~isempty(sortOrder)
@@ -47,6 +48,11 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
 
     if isempty(colorSortOrder)
         colorSortOrder = 1:numSpatialTuningCurves;
+    end
+
+    if isempty(fieldnames(unitFilter))
+        %% Has active filter:
+        
     end
 
     [spatialTunings_unnormalizedPeakValues, spatialTunings_peakIndices] = max(spatialTunings, [], 2);

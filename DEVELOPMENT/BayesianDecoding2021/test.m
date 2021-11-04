@@ -42,6 +42,12 @@
     %% Should update obj.TuningCurves when done!
     [outFilePath] = obj.performSaveComputedData(parentFolder, activeSessionInfo.sessionNameHypenated, activeSessionInfo.sessionNameCamelCase);
 
+    %% Filtering Options:
+    % filter_config.filter_included_cell_types = {};
+    filter_config.filter_included_cell_types = {'pyramidal'};
+    % filter_config.filter_included_cell_types = {'interneurons'};
+    filter_config.filter_maximum_included_contamination_level = {2};
+    obj.applyFilter(filter_config);
     obj.plotKouroshLoadedPlaceFieldSpatialTunings(activeSessionInfo.sessionNameHypenated, outputFiguresFolder);
     obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
 

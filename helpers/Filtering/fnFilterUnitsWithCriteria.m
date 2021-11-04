@@ -14,6 +14,12 @@ function [is_unit_included, original_unit_index] = fnFilterUnitsWithCriteria(act
     num_units = height(spikes);
     is_unit_included = logical(ones([num_units 1]));
     if exist('showOnlyAlwaysStableCells','var') & showOnlyAlwaysStableCells
+        
+%         if ~isfield(spikes, 'isAlwaysStable')
+            %% Find units that are stable across all sessions:
+            spikes.stability_count = sum(spikes.isStable, 2);
+            spikes.isAlwaysStable = (spikes.stability_count == 3);
+%         end
         isAlwaysStable = spikes.isAlwaysStable; % 126x1
         is_unit_included = is_unit_included & isAlwaysStable;
     end
@@ -33,4 +39,6 @@ function [is_unit_included, original_unit_index] = fnFilterUnitsWithCriteria(act
     end
     
     original_unit_index = find(is_unit_included == 1);
+    % print out the updated filter status:
+    fprintf('Filter: Including %d of %d total units\n', sum(is_unit_included, 'all'), length(is_unit_included));
 end

@@ -8,6 +8,7 @@ classdef PhoBayesianDecoder < handle
         Loaded
         Parameters
         Posteriors
+        ActivePlottingFilter
     end
 
     methods
@@ -19,7 +20,7 @@ classdef PhoBayesianDecoder < handle
             obj.Loaded = struct;
             obj.Parameters = struct;
             obj.Posteriors = struct;
-            
+            obj.ActivePlottingFilter = struct;
         end
 
 
@@ -81,16 +82,11 @@ classdef PhoBayesianDecoder < handle
                 obj.Parameters.t_start, obj.Parameters.t_end, bin_size, sigma, f_base, min_t_occ);
     
             % Compute the obj.TuningCurves.sortedOriginalUnitIndicies that would be required to order the tuning curves by their location on the track:
-            [obj.TuningCurves.sortedPeakPlaces, obj.TuningCurves.sortIndicies, obj.TuningCurves.sortedOriginalUnitIDs, obj.TuningCurves.inverseSortingIndicies] = fnSortPlaceCellSpatialTuningCurves(obj.TuningCurves.lambda, ...
-                obj.TuningCurves.coords{1}, obj.Loaded.okUnits);
-            obj.TuningCurves.originalUnitIDs = obj.Loaded.okUnits;
-            % Unchanged, the units will be colored by ascending ID:
-            obj.TuningCurves.sortDynamicColors = colormap(jet(size(obj.TuningCurves.sortedOriginalUnitIDs, 1))); % should be the RGB triplets
-            % This will cause the units to be colored by their tuning position 
-%             obj.TuningCurves.sortDynamicColors = obj.TuningCurves.sortDynamicColors(obj.TuningCurves.sortedOriginalUnitIDs, :);
+            obj.performResortTuningCurves();
 
             fprintf('Successfully built tuning curves.\n');
         end
+
 
         function [] = performBuildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ)
             % performBuildTuningCurves(obj, ...):
@@ -126,12 +122,18 @@ classdef PhoBayesianDecoder < handle
             
             temp.L1 = smartload(fullfile(parentFolder, experimentName, 'toAddVariables.mat'), ...
                 'behavior', 'fileinfo', '-f');
+            if isempty(temp.L1.fileinfo.tbegin) | isempty(temp.L1.fileinfo.tend)
+                temp.L1.fileinfo.tbegin = temp.L1.behavior.time(1,1); 
+                temp.L1.fileinfo.tend   = temp.L1.behavior.time(3,2);
+            end
+
             temp.L2 = smartload(fullfile(parentFolder, experimentName, '/PlaceFields/biDirectional.mat'), ...
                 'PF_sorted_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'spatialTunings_biDir', 'positionBinningInfo_biDir');
             temp.L3 = smartload(fullfile(parentFolder, experimentName, '/TrackLaps/trackLaps.mat'), ...
                 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'positionTable', 'currMazeShape', 'occupancyInfo', 'trackInfo');
             temp.L4 = smartload(fullfile(parentFolder, experimentName, '/spikesVariables.mat'), ...
-                'spikeStruct', 'okUnits', 'shanks');
+                'spikeStruct', 'okUnits', 'shanks', 'spikesTable');
+
             [obj.Loaded] = fnMergeStructs(obj.Loaded, temp.L1, temp.L2, temp.L3, temp.L4);
             
             fprintf('Successfully loaded data.\n');
@@ -182,6 +184,60 @@ classdef PhoBayesianDecoder < handle
             obj.Posteriors.poiss_posterior = bayesian_decode(obj.Parameters.spikes, obj.Posteriors.t_start, obj.Posteriors.t_end, obj.TuningCurves.lambda);
             obj.Posteriors.nb_posterior = bayesian_decode(obj.Parameters.spikes, obj.Posteriors.t_start, obj.Posteriors.t_end, obj.TuningCurves.alpha, obj.TuningCurves.beta);
         end
+
+
+        function [] = performResortTuningCurves(obj)
+            % Compute the obj.TuningCurves.sortedOriginalUnitIndicies that would be required to order the tuning curves by their location on the track:
+            if ~isempty(fieldnames(obj.ActivePlottingFilter))
+                %% Has active filter:
+                fprintf('Using filter.\n');
+                isIncluded = obj.ActivePlottingFilter.filter_active_good_units;
+                active_unitIDs = obj.Loaded.okUnits(isIncluded); % The list of included indicies
+                activeSpatialTunings = obj.TuningCurves.lambda(isIncluded, :);
+            else
+                activeSpatialTunings = obj.TuningCurves.lambda;
+                active_unitIDs = obj.Loaded.okUnits;
+            end
+
+            [obj.TuningCurves.sortedPeakPlaces, obj.TuningCurves.sortIndicies, obj.TuningCurves.sortedOriginalUnitIDs, obj.TuningCurves.inverseSortingIndicies] = fnSortPlaceCellSpatialTuningCurves(activeSpatialTunings, ...
+                obj.TuningCurves.coords{1}, active_unitIDs);
+            obj.TuningCurves.originalUnitIDs = active_unitIDs;
+            % Unchanged, the units will be colored by ascending ID:
+            obj.TuningCurves.sortDynamicColors = colormap(jet(size(active_unitIDs, 1))); % should be the RGB triplets
+            % This will cause the units to be colored by their tuning position 
+%             obj.TuningCurves.sortDynamicColors = obj.TuningCurves.sortDynamicColors(obj.TuningCurves.sortedOriginalUnitIDs, :);
+        end
+
+        function [] = applyFilter(obj, filter_config)
+            if ~isempty(filter_config)
+%                 %% Filtering Options:
+%                 % filter_config.filter_included_cell_types = {};
+%                 filter_config.filter_included_cell_types = {'pyramidal'};
+%                 % filter_config.filter_included_cell_types = {'interneurons'};
+%                 filter_config.filter_maximum_included_contamination_level = {2};
+
+                %% Build filter info for active units
+                obj.ActivePlottingFilter = struct;
+                obj.ActivePlottingFilter.config = filter_config;
+                [obj.ActivePlottingFilter.filter_active_units, obj.ActivePlottingFilter.original_unit_index] = fnFilterUnitsWithCriteria(obj.Loaded.spikesTable, true, filter_config.filter_included_cell_types, ...
+                    filter_config.filter_maximum_included_contamination_level);
+                obj.ActivePlottingFilter.filter_active_good_units = ismember(obj.TuningCurves.originalUnitIDs, obj.ActivePlottingFilter.original_unit_index); % filter the 'okunits' that were returned and used in the tuning curves
+                obj.performResortTuningCurves();
+            else
+                %% Clear the filter
+                obj.clearFilter();
+            end
+
+
+        end
+
+        function [] = clearFilter(obj)
+            obj.ActivePlottingFilter = struct;
+            obj.performResortTuningCurves();
+        end
+
+
+
 
         function [] = plotPosteriors(obj)
             num_sample_timesteps = length(obj.Posteriors.t_start);
@@ -280,13 +336,27 @@ classdef PhoBayesianDecoder < handle
             %activeOriginalUnitIDs = obj.TuningCurves.sortedOriginalUnitIDs;
             %activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortIndicies, :);
 
+            if ~isempty(fieldnames(obj.ActivePlottingFilter))
+                %% Has active filter:
+                fprintf('Using filter.\n');
+%                 isIncluded = ismember(obj.TuningCurves.originalUnitIDs, obj.ActivePlottingFilter.original_unit_index);
+                isIncluded = obj.ActivePlottingFilter.filter_active_good_units;
+%                 activeOriginalUnitIDs = activeOriginalUnitIDs(obj.ActivePlottingFilter.filter_active_units);
+%                 activeOriginalUnitIDs = activeOriginalUnitIDs(isIncluded); % The list of included indicies
+                activeSpatialTunings = activeSpatialTunings(isIncluded, :);
+%                 activeUnitLabels = activeUnitLabels(isIncluded);
+%                 activeSortColors = obj.TuningCurves.sortDynamicColors(isIncluded, :);
+%                 activePeakLocations = activePeakLocations(isIncluded);
+            else
+                activeSortColors = obj.TuningCurves.sortDynamicColors;
+            end
+
+            activeSortColors = obj.TuningCurves.sortDynamicColors;
+
             activeSpatialLinearPositions = obj.TuningCurves.coords{1}';
-%             activeSpatialLinearPositions = 1:size(activeSpatialTunings, 2);
-
-
 
             [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', activeSpatialLinearPositions, ...
-                'unitLabels', activeUnitLabels, 'unitColors', obj.TuningCurves.sortDynamicColors, 'colorSortOrder', activeColorSortOrder, 'sortOrder', activeSortOrder, 'peaks', activePeakLocations);
+                'unitLabels', activeUnitLabels, 'unitColors', activeSortColors, 'colorSortOrder', activeColorSortOrder, 'sortOrder', activeSortOrder, 'peaks', activePeakLocations, 'unitFilter', obj.ActivePlottingFilter);
         
             curr_fig_name = sprintf('PhoBayesianDecoder Style - %s - Sorted Position Tuning Curves', obj.Loaded.experimentName);
             title(curr_fig_name)
@@ -307,34 +377,52 @@ classdef PhoBayesianDecoder < handle
     methods (Static)
         function [] = test()
         %TEST Summary of this function goes here
-        %   Detailed explanation goes here
+            [activeSessionInfo] = PhoBayesianDecoder.getHiroExperimentName(1, 3);
+             parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analyses';
+        %     parentFolder = 'C:\Share\data\analysesResults';
         
-            % experimentName = 'RoyMaze1';
-            % experimentName = 'Roy-maze1';
-            % experimentName = 'KevinMaze1';
-            experimentName = 'Kevin-maze1';
-%             experimentIdentifier = 'KevinMaze1';
-            experimentName = experimentIdentifier; %override on windows to get by naming problems
-            % '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/Kevin-maze1'
-            % smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1_v7_3.mat', ...
-            %     'active_processing', 'general_results', 'num_of_electrodes', 'processing_config', 'results_array', 'source_data', 'timesteps_array');
-            
-%             parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
-            parentFolder = 'C:\Share\data\analysesResults';
+            do_decoding = false;
+        
+            outputFiguresFolder = fullfile(parentFolder, activeSessionInfo.sessionNameHypenated, 'Figures');
+            if ~exist(outputFiguresFolder, 'dir')
+                mkdir(outputFiguresFolder)
+            end
+        %     parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
             obj = PhoBayesianDecoder();
-            obj.performLoadDataHiroFormat(parentFolder, experimentName);
-            obj.build(); % build the parameters from the loaded data
+            obj.performLoadDataHiroFormat(parentFolder, activeSessionInfo.sessionNameHypenated);
+            
             % Config 1:
-            sigma = [5];
+            sigma = [6];
             bin_size = [3]; % spatial bin size (cm)
             f_base = 2; % base firing rate (Hz)
             min_t_occ = 0.5;
-
+            % [] = buildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ);
             obj.buildTuningCurves(bin_size, sigma, f_base, min_t_occ);
             %% Should update obj.TuningCurves when done!
-            [outFilePath] = obj.performSaveComputedData(parentFolder, experimentName, experimentIdentifier);
-            obj.plotKouroshLoadedPlaceFieldSpatialTunings(experimentName)
-            obj.plotPlaceFieldSpatialTunings();
+            [outFilePath] = obj.performSaveComputedData(parentFolder, activeSessionInfo.sessionNameHypenated, activeSessionInfo.sessionNameCamelCase);
+        
+            obj.plotKouroshLoadedPlaceFieldSpatialTunings(activeSessionInfo.sessionNameHypenated, outputFiguresFolder);
+            obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
+        
+            %% DECODING:
+        
+            if do_decoding
+                %% Just decode over the track period for testing:
+                t_0 = obj.Loaded.behavior.time(2,1);
+                t_f = obj.Loaded.behavior.time(2,2);
+            
+                %% Track-specific decoding:
+            %     active_lap_index = 9;    
+            %     t_0 = obj.Loaded.lapsTable.lapStartTime(active_lap_index);
+            % %     t_f = obj.Loaded.lapsTable.lapEndTime(active_lap_index);
+            %     t_f = obj.Loaded.lapsTable.lapEndTime(active_lap_index+2); % go through the next 2 laps
+            
+                t_step_seconds = 0.25; % 250ms steps
+                % Perform neural decoding for the specified time ranges:
+                obj.performNeuralDecode(t_0, t_f, t_step_seconds);
+            
+                obj.plotPosteriors();
+            end
 
         end % end function test
 

@@ -47,8 +47,7 @@ filter_config.filter_maximum_included_contamination_level = {2};
 %% Get filter info for active units
 [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, true, filter_config.filter_included_cell_types, ...
     filter_config.filter_maximum_included_contamination_level);
-temp.num_active_units = sum(plot_outputs.filter_active_units, 'all');
-fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, length(plot_outputs.filter_active_units));
+
 
 
 %% We come in with a table where each row is a unit (active_processing.spikes)
