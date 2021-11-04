@@ -10,10 +10,11 @@
 % fileinfo.xyt2(:, 3) -> positionTable.lap_index
 % fileinfo.xyt(:, 3) -> positionTable.t
 % fileinfo.xyt2(:, 1) -> positionTable.linearPos
+close all;
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currSrcDir = fullfile(currDir, 'src');
-animalID = 2;
-sessionNumber = 3;
+animalID = 1;
+sessionNumber = 1;
 runSpeedThresh = 10; % 10cm/sec
 unitTypes = 'all';
 % Runs with the above settings
@@ -34,6 +35,10 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
 %    mazeShape.Ted = {'linear'; 'L-shape'; 'U-shape'};
 %    mazeShape.Kevin = {'linear'};
 %    currRat = rats{animalID};
+
+    runOptions.shouldIncludeAnyPBE = false;
+    runOptions.shouldIncludeExtendedPBE = false;
+    
 
    %% Load from the sessionInfo object produced by PhoBayesianDecoder.getHiroExperimentName(animalID, sessionNumber):
    currRat = sessionInfo.ratName;
@@ -118,17 +123,28 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
       fileinfo.xyt2(idx, 3) = laps(ii, 3);         
    end
    positionTable.lap_index = fileinfo.xyt2(:, 3);
+   %% all time
+   fileinfo.tbegin = behavior.time(1,1); 
+   fileinfo.tend   = behavior.time(3,2);
+   save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior');
+
    % Save out the laps info:
    subfolder = fullfile(mainDir, 'TrackLaps');
    mkdir(subfolder)
    % save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'xyt', 'xyt2', 'currMazeShape', 'occupancyInfo', 'trackInfo')
    save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'positionTable', 'currMazeShape', 'occupancyInfo', 'trackInfo')
    %% formating the spike info
-   [spikeStruct, okUnits] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
+   [spikeStruct, okUnits, spikesTable] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
+   %% TODO: to match the implementation produced by loadData.m, we need to convert the time column to relative times.
+   	% Convert the first column (of timestamp offsets) to relative offsets into the experiment
+% 	spikesTable.time = cellfun((@(timestamps) (timestamps ./ data_config.conversion_factor) - active_processing.earliest_start_timestamp), ...
+% 			spikesTable.time, ...
+% 			'UniformOutput', false);
+
    temp = [spikes.id];
    shanks = temp(2*okUnits - 1);
    % save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
-   save(fullfile(mainDir, 'spikesVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
+   save(fullfile(mainDir, 'spikesVariables.mat'), 'spikeStruct', 'okUnits', 'shanks', 'spikesTable')
    %% Tuning/PlaceFields Curves:
    close all
    subfolder = fullfile(mainDir, 'PlaceFields');
@@ -143,61 +159,73 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
    % runTemplate_biDir: 50 x 1
    % PF_sorted_biDir: 50 x 105
    save(fullfile(subfolder, 'biDirectional.mat'), 'okUnits', 'spatialTunings_biDir', 'PF_sorted_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'positionBinningInfo_biDir')
+   
+   
+   
+   
    %% TODO: make a good output format:
    % save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
+   
+   
+   
    %% PBEs during different behavioral periods
-   time_resolution = 0.001; % in second %TODO: HARDCODED_PARAMETER
-   threshZ         = 3; % sdf with 3 std deviation above the mean %TODO: HARDCODED_PARAMETER
-   qclus = [1 2 3]; %TODO: HARDCODED_PARAMETER
-   velocityFilter = 1; %TODO: HARDCODED_PARAMETER
-   %% all time
-   fileinfo.tbegin = behavior.time(1,1); 
-   fileinfo.tend   = behavior.time(3,2);
-   subfolder = fullfile(mainDir, 'PBEs', 'wholeSession');
-   mkdir(subfolder)
-   exclude = bvrTimeList(ismember(bvrState, [2 4]), :); % nrem=1, rem=2, qwake=3, wake=4
-   [primaryPBEs, sdat] = PBPeriods(spikeStruct, fileinfo, [], time_resolution, threshZ, exclude, velocityFilter);
-   save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 'velocityFilter')
-   save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior');
+   if runOptions.shouldIncludeAnyPBE
+       time_resolution = 0.001; % in second %TODO: HARDCODED_PARAMETER
+       threshZ         = 3; % sdf with 3 std deviation above the mean %TODO: HARDCODED_PARAMETER
+       qclus = [1 2 3]; %TODO: HARDCODED_PARAMETER
+       velocityFilter = 1; %TODO: HARDCODED_PARAMETER
 
-   binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) %TODO: HARDCODED_PARAMETER
-   %% Just Testing:
-   %% Implementation
-   [binnedPBEs, secondaryPBEs] = finalBinningResult(primaryPBEs, spikeStruct, qclus, fileinfo, binDur); % Very slow function
-   PBErippleIdx = ifContainRipples(secondaryPBEs, rippleEvents);
-   secondaryPBEs(:, 5) = PBErippleIdx;
-   nPBEs = size(binnedPBEs, 1);
-   secondaryPBEs = [secondaryPBEs zeros(nPBEs, 4)];
-   for ii= 1:nPBEs
-      pbeCenter = secondaryPBEs(ii, 3);
-      boutInd        = find(bvrTimeList(:,1) < pbeCenter & bvrTimeList(:,2) > pbeCenter, 1, 'first');
-      boutBrainState = bvrState(boutInd);
-      secondaryPBEs(ii, 5 + boutBrainState) = 1;
+       subfolder = fullfile(mainDir, 'PBEs', 'wholeSession');
+       mkdir(subfolder)
+       exclude = bvrTimeList(ismember(bvrState, [2 4]), :); % nrem=1, rem=2, qwake=3, wake=4
+       [primaryPBEs, sdat] = PBPeriods(spikeStruct, fileinfo, [], time_resolution, threshZ, exclude, velocityFilter);
+       save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 'velocityFilter')
+      
+       if runOptions.shouldIncludeExtendedPBE
+           binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) %TODO: HARDCODED_PARAMETER
+           %% Just Testing:
+           %% Implementation
+           [binnedPBEs, secondaryPBEs] = finalBinningResult(primaryPBEs, spikeStruct, qclus, fileinfo, binDur); % Very slow function
+           PBErippleIdx = ifContainRipples(secondaryPBEs, rippleEvents);
+           secondaryPBEs(:, 5) = PBErippleIdx;
+           nPBEs = size(binnedPBEs, 1);
+           secondaryPBEs = [secondaryPBEs zeros(nPBEs, 4)];
+           for ii= 1:nPBEs
+              pbeCenter = secondaryPBEs(ii, 3);
+              boutInd        = find(bvrTimeList(:,1) < pbeCenter & bvrTimeList(:,2) > pbeCenter, 1, 'first');
+              boutBrainState = bvrState(boutInd);
+              secondaryPBEs(ii, 5 + boutBrainState) = 1;
+           end
+           save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
+        
+%            %% Final form of output:
+%            baseStruct = struct('data', [], 'p', [], 'ts', [], 'pts', []);
+%         
+%            PREbinnedPBEs       = baseStruct;
+%            PREidx              = find(secondaryPBEs(:, 1) > behavior.time(1,1) & secondaryPBEs(:, 2) < behavior.time(1,2));
+%            PREbinnedPBEs.data  = binnedPBEs(PREidx, :);
+%            secondaryPBEs_PRE   = secondaryPBEs(PREidx, :);
+%            % PREbinnedPBEs       = genSurrogates(PREbinnedPBEs);
+%         
+%            RUNbinnedPBEs       = baseStruct;
+%            RUNidx              = find(secondaryPBEs(:, 1) > behavior.time(2,1) & secondaryPBEs(:, 2) < behavior.time(2,2));
+%            RUNbinnedPBEs.data  = binnedPBEs(RUNidx, :);
+%            secondaryPBEs_RUN   = secondaryPBEs(RUNidx, :);
+%            % RUNbinnedPBEs       = genSurrogates(RUNbinnedPBEs);
+%         
+%            POSTbinnedPBEs       = baseStruct;
+%            POSTidx              = find(secondaryPBEs(:, 1) > behavior.time(3,1) & secondaryPBEs(:, 2) < behavior.time(3,2));
+%            POSTbinnedPBEs.data  = binnedPBEs(POSTidx, :);
+%            secondaryPBEs_POST   = secondaryPBEs(POSTidx, :);
+%            % POSTbinnedPBEs       = genSurrogates(POSTbinnedPBEs);
+%            save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior', 'secondaryPBEs')
+       else
+           fprintf('Skipping extended PBE calculation because runOptions.shouldIncludeExtendedPBE is false. binnedPBEvariables.mat will not be updated. \n');
+       end
+   else
+           fprintf('Skipping any PBE calculations because runOptions.shouldIncludeAnyPBE is false. PBEvariables.mat, and binnedPBEvariables.mat will not be updated. \n');
+           save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior');
    end
-   save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
-
-   %% Final form of output:
-   baseStruct = struct('data', [], 'p', [], 'ts', [], 'pts', []);
-
-   PREbinnedPBEs       = baseStruct;
-   PREidx              = find(secondaryPBEs(:, 1) > behavior.time(1,1) & secondaryPBEs(:, 2) < behavior.time(1,2));
-   PREbinnedPBEs.data  = binnedPBEs(PREidx, :);
-   secondaryPBEs_PRE   = secondaryPBEs(PREidx, :);
-   % PREbinnedPBEs       = genSurrogates(PREbinnedPBEs);
-
-   RUNbinnedPBEs       = baseStruct;
-   RUNidx              = find(secondaryPBEs(:, 1) > behavior.time(2,1) & secondaryPBEs(:, 2) < behavior.time(2,2));
-   RUNbinnedPBEs.data  = binnedPBEs(RUNidx, :);
-   secondaryPBEs_RUN   = secondaryPBEs(RUNidx, :);
-   % RUNbinnedPBEs       = genSurrogates(RUNbinnedPBEs);
-
-   POSTbinnedPBEs       = baseStruct;
-   POSTidx              = find(secondaryPBEs(:, 1) > behavior.time(3,1) & secondaryPBEs(:, 2) < behavior.time(3,2));
-   POSTbinnedPBEs.data  = binnedPBEs(POSTidx, :);
-   secondaryPBEs_POST   = secondaryPBEs(POSTidx, :);
-   % POSTbinnedPBEs       = genSurrogates(POSTbinnedPBEs);
-   save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior', 'secondaryPBEs')
-
    fprintf('done.\n');
 
 end % end function

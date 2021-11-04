@@ -100,7 +100,7 @@ function [active_processing, source_data] = loadData(data_config, processing_con
 		
 	
 	% Get the classification type (Pyramidal, interneuron, etc) for each unit:
-	[active_processing.spikes.speculated_unit_type, active_processing.spikes.speculated_unit_contamination_level, active_processing.definitions.speculated_unit_info] = fnUnitQualityToCellType(active_processing);
+	[active_processing.spikes.speculated_unit_type, active_processing.spikes.speculated_unit_contamination_level, active_processing.definitions.speculated_unit_info] = fnUnitQualityToCellType(active_processing.spikes.quality);
 		
 	%% Preprocessing:
 	% num_of_electrodes = height(active_processing.spikes);
