@@ -7,6 +7,7 @@ classdef PhoBayesianDecoder < handle
         InformationContentCurves
         Loaded
         Parameters
+        Posteriors
     end
 
     methods
@@ -17,23 +18,8 @@ classdef PhoBayesianDecoder < handle
             obj.InformationContentCurves = struct;
             obj.Loaded = struct;
             obj.Parameters = struct;
+            obj.Posteriors = struct;
             
-        end
-
-        function outputArg = performNeuralDecode(obj, t_0, t_f, t_step)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            
-%             t_0 = 1000;
-%             t_f = 1030;
-%             t_step = 0.25;
-
-            t_start = t_0:t_step:t_f;
-            t_end = (t_0:t_step:t_f) + t_step;
-             
-            poiss_posterior = bayesian_decode(spikes, t_start, t_end, lambda);
-            nb_posterior = bayesian_decode(spikes, t_start, t_end, alpha, beta);
-
         end
 
 
@@ -183,6 +169,57 @@ classdef PhoBayesianDecoder < handle
         end
 
 
+        function [] = performNeuralDecode(obj, t_0, t_f, t_step_seconds)
+            %performNeuralDecode Decodes the positions at the given time steps using the computed tuning curves and the spikes matrix.
+            %   Detailed explanation goes here
+           obj.Posteriors = struct;
+
+%             t_0 = 1000;
+%             t_f = 1030;
+%             t_step = 0.25;
+
+            t_step = t_step_seconds * 1e6; % must convert to microseconds, since that's what t_0 and t_f are assumed to be.
+
+            obj.Posteriors.t_start = t_0:t_step:t_f; % if t_start and t_end are 1x27 double, then posteriors will be 27x73 double
+            obj.Posteriors.t_end = (t_0:t_step:t_f) + t_step;
+            
+            obj.Posteriors.poiss_posterior = bayesian_decode(obj.Parameters.spikes, obj.Posteriors.t_start, obj.Posteriors.t_end, obj.TuningCurves.lambda);
+            obj.Posteriors.nb_posterior = bayesian_decode(obj.Parameters.spikes, obj.Posteriors.t_start, obj.Posteriors.t_end, obj.TuningCurves.alpha, obj.TuningCurves.beta);
+        end
+
+        function [] = plotPosteriors(obj)
+            num_sample_timesteps = length(obj.Posteriors.t_start);
+            temporal_midpoints = obj.Posteriors.t_start + ((obj.Posteriors.t_end - obj.Posteriors.t_start) ./ 2.0); % Get the centers of the temporal bins the posteriors were calculated for
+            
+            num_position_bins = size(obj.Posteriors.poiss_posterior, 2); 
+
+            figure(1);
+%             imagesc(obj.Posteriors.poiss_posterior);
+%             title('Posterior')
+%             xlabel('Position Bin Likelihood')
+%             ylabel('Timestep')
+
+            [~, maxLikelyPositionBins] = max(obj.Posteriors.poiss_posterior, [], 2); % should get a 27x1 vector of the most likely positions for each timestamp
+            activeSpatialLinearPositions = obj.TuningCurves.coords{1};
+            maxLikelyPositions = activeSpatialLinearPositions(maxLikelyPositionBins);
+
+%             % Main Visualization of output: compares the animal's actual recorded position to the maximum likelihood predected position at each timepoint
+%             hold off;
+%             % plot the most likely trajectory
+%             scatter(temporal_midpoints, maxLikelyPositions, 'r', 'MarkerEdgeAlpha', 0.4);
+%         %     plot(activeTimeBins, maxL, 'r');
+%             hold on
+%             % Plot the animal's actual trajectory
+%             plot(obj.Loaded.positionTable.t, obj.Loaded.positionTable.linearPos, 'b', 'LineWidth', 0.5); 
+%             hold off;
+%             xlim([temporal_midpoints(1) temporal_midpoints(end)]);
+
+            PhoFallAnalysis2021.subfn_plotTrajectoryComparison(temporal_midpoints, maxLikelyPositions, obj.Loaded.positionTable.t, obj.Loaded.positionTable.linearPos);
+            xlim([temporal_midpoints(1) temporal_midpoints(end)]);
+
+        end
+
+
 
         function [figH, h] = plotKouroshLoadedPlaceFieldSpatialTunings(obj, experimentName, figureSaveParentPath)
             % Plots the tuning curves loaded from the biDirectional.mat
@@ -223,7 +260,7 @@ classdef PhoBayesianDecoder < handle
             activeColorSortOrder = [];
 
 %             % Sorted by tuned position, colored by original index:
-%             activeSortOrder = obj.TuningCurves.sortIndicies;
+            activeSortOrder = obj.TuningCurves.sortIndicies;
 %             activeColorSortOrder = obj.TuningCurves.sortIndicies;
 
             % Colored by unitID:
