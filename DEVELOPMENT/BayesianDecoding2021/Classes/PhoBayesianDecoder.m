@@ -95,8 +95,14 @@ classdef PhoBayesianDecoder < handle
                 obj.Parameters.t_start, obj.Parameters.t_end, bin_size, sigma, f_base, min_t_occ);
     
             % Compute the obj.TuningCurves.sortedOriginalUnitIndicies that would be required to order the tuning curves by their location on the track:
-            [obj.TuningCurves.sortedPeakPlaces, obj.TuningCurves.sortIndicies, obj.TuningCurves.sortedOriginalUnitIDs] = fnSortPlaceCellSpatialTuningCurves(obj.TuningCurves.lambda, ...
-                obj.TuningCurves.coords{1}, obj.Loaded.okUnits);            
+            [obj.TuningCurves.sortedPeakPlaces, obj.TuningCurves.sortIndicies, obj.TuningCurves.sortedOriginalUnitIDs, obj.TuningCurves.inverseSortingIndicies] = fnSortPlaceCellSpatialTuningCurves(obj.TuningCurves.lambda, ...
+                obj.TuningCurves.coords{1}, obj.Loaded.okUnits);
+            obj.TuningCurves.originalUnitIDs = obj.Loaded.okUnits;
+            % Unchanged, the units will be colored by ascending ID:
+            obj.TuningCurves.sortDynamicColors = colormap(jet(size(obj.TuningCurves.sortedOriginalUnitIDs, 1))); % should be the RGB triplets
+            % This will cause the units to be colored by their tuning position 
+%             obj.TuningCurves.sortDynamicColors = obj.TuningCurves.sortDynamicColors(obj.TuningCurves.sortedOriginalUnitIDs, :);
+
             fprintf('Successfully built tuning curves.\n');
         end
 
@@ -203,12 +209,38 @@ classdef PhoBayesianDecoder < handle
 %             activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortedOriginalUnitIndicies, :);
 %             activeSpatialLinearPositions = obj.TuningCurves.alpha;
 
-            activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortIndicies, :);
-%             activeSpatialLinearPositions = obj.TuningCurves.coords{1};
-            activeSpatialLinearPositions = 1:size(activeSpatialTunings,2);
+            activePeakLocations = obj.TuningCurves.sortedPeakPlaces(obj.TuningCurves.inverseSortingIndicies);
+            
+            %% Sorted by unitID:
+            activeOriginalUnitIDs = obj.TuningCurves.originalUnitIDs;
+            activeSpatialTunings = obj.TuningCurves.lambda;
+            activeUnitLabels = num2cellstr(activeOriginalUnitIDs);
 
-            activeOriginalUnitIDs = obj.TuningCurves.sortedOriginalUnitIDs;
-            [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', activeSpatialLinearPositions, 'unitLabels', num2cellstr(activeOriginalUnitIDs));
+            % Sorted by Unit ID:
+            activeSortOrder = [];
+            activeColorSortOrder = [];
+
+%             % Sorted by tuned position, colored by original index:
+%             activeSortOrder = obj.TuningCurves.sortIndicies;
+%             activeColorSortOrder = obj.TuningCurves.sortIndicies;
+
+            % Colored by unitID:
+%             activeColorSortOrder = 1:length(obj.TuningCurves.originalUnitIDs);
+
+
+            %% Sorted by tuning place:
+            activeColorSortOrder = obj.TuningCurves.sortIndicies;
+            %activeOriginalUnitIDs = obj.TuningCurves.sortedOriginalUnitIDs;
+            %activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortIndicies, :);
+
+            activeSpatialLinearPositions = obj.TuningCurves.coords{1}';
+%             activeSpatialLinearPositions = 1:size(activeSpatialTunings, 2);
+
+
+
+            [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', activeSpatialLinearPositions, ...
+                'unitLabels', activeUnitLabels, 'unitColors', obj.TuningCurves.sortDynamicColors, 'colorSortOrder', activeColorSortOrder, 'sortOrder', activeSortOrder, 'peaks', activePeakLocations);
+        
             curr_fig_name = sprintf('PhoBayesianDecoder/PhoPositionAnalaysis2021 Style - %s - Sorted Position Tuning Curves', obj.Loaded.experimentName);
             title(curr_fig_name)
             if exist('figureSaveParentPath', 'var')

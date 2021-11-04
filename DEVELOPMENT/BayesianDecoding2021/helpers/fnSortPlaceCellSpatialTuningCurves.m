@@ -1,4 +1,4 @@
-function [sortedPeakPlaces, sortedTuningCurveSortIndicies, sortedTuningCurveUnitIDs] = fnSortPlaceCellSpatialTuningCurves(placeFieldTuningCurves, PositionBins, originalUnitIDs)
+function [sortedPeakPlaces, sortedTuningCurveSortIndicies, sortedTuningCurveUnitIDs, inverseSortingIndicies] = fnSortPlaceCellSpatialTuningCurves(placeFieldTuningCurves, PositionBins, originalUnitIDs)
 % fnSortPlaceCellSpatialTuningCurves - One line description of what the function performs
 % Detailed explanation goes here
 % 
@@ -17,6 +17,10 @@ function [sortedPeakPlaces, sortedTuningCurveSortIndicies, sortedTuningCurveUnit
 %     - sortedTuningCurveUnitIDs: the actual unitIDs corresponding to the
 %     sorted curves. Only can be produced if you pass in the optional
 %     originalUnitIDs argument
+%     - inverseSortingIndicies: the reciprocal of
+%     sortedTuningCurveSortIndicies. Things sorted by
+%     sortedTuningCurveSortIndicies can be returned to the original unit
+%     sort order by applying inverseSortingIndicies
 % 
 % Author: Pho Hale
 % PhoHale.com 
@@ -34,6 +38,13 @@ function [sortedPeakPlaces, sortedTuningCurveSortIndicies, sortedTuningCurveUnit
     if exist('originalUnitIDs','var')
         sortedTuningCurveUnitIDs = originalUnitIDs(sortedTuningCurveSortIndicies);
     end
+
+    % Inverse sort indicies:
+    inverseSortingIndicies = zeros(size(sortedTuningCurveSortIndicies));
+    for i = 1:length(sortedTuningCurveSortIndicies)
+        inverseSortingIndicies(i) = find(sortedTuningCurveSortIndicies == i);
+    end
+
 end
 
 
