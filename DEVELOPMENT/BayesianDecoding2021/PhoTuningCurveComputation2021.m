@@ -36,6 +36,15 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
 %    mazeShape.Kevin = {'linear'};
 %    currRat = rats{animalID};
 
+    %% OutputVariableLists:
+    outputVariableNames.trackLaps = {'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'positionTable', 'currMazeShape', 'occupancyInfo', 'trackInfo'};
+    outputVariableNames.toAddVariables = {'fileinfo', 'behavior'};
+    outputVariableNames.spikesVariables = {'spikeStruct', 'okUnits', 'shanks', 'spikesTable'};
+    outputVariableNames.biDirectional = {'okUnits', 'spatialTunings_biDir', 'PF_sorted_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'positionBinningInfo_biDir'};
+    outputVariableNames.PBEvariables = {'primaryPBEs', 'sdat', 'exclude', 'velocityFilter'};
+    outputVariableNames.binnedPBEvariables = {'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx'};
+
+
     runOptions.shouldIncludeAnyPBE = false;
     runOptions.shouldIncludeExtendedPBE = false;
     
@@ -132,7 +141,7 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
    subfolder = fullfile(mainDir, 'TrackLaps');
    mkdir(subfolder)
    % save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'xyt', 'xyt2', 'currMazeShape', 'occupancyInfo', 'trackInfo')
-   save(fullfile(subfolder, 'trackLaps.mat'), 'lapsStruct', 'turningPeriods', 'laps', 'totNumLaps', 'lapsTable', 'positionTable', 'currMazeShape', 'occupancyInfo', 'trackInfo')
+   save(fullfile(subfolder, 'trackLaps.mat'), outputVariableNames.trackLaps{:})
    %% formating the spike info
    [spikeStruct, okUnits, spikesTable] = spikeBehaviorAnalysis(spikes, laps, rippleEvents, speed, unitTypes, fileinfo);
    %% TODO: to match the implementation produced by loadData.m, we need to convert the time column to relative times.
@@ -144,7 +153,7 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
    temp = [spikes.id];
    shanks = temp(2*okUnits - 1);
    % save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
-   save(fullfile(mainDir, 'spikesVariables.mat'), 'spikeStruct', 'okUnits', 'shanks', 'spikesTable')
+   save(fullfile(mainDir, 'spikesVariables.mat'), outputVariableNames.spikesVariables{:})
    %% Tuning/PlaceFields Curves:
    close all
    subfolder = fullfile(mainDir, 'PlaceFields');
@@ -158,14 +167,9 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
    % spatialTunings_biDir: 60 x 105 %% The spatialTunings_* has the same number of units as 'okUnits' from the struct, but 10 of the rows are nothing but zeros, explaining why we only see 50 x 105 for the PF_sorted_biDir and the runTemplate_*
    % runTemplate_biDir: 50 x 1
    % PF_sorted_biDir: 50 x 105
-   save(fullfile(subfolder, 'biDirectional.mat'), 'okUnits', 'spatialTunings_biDir', 'PF_sorted_biDir', 'runTemplate_biDir', 'spatialInfo_biDir', 'conslapsRatio_biDir', 'diffWithAvg_biDir', 'positionBinningInfo_biDir')
-   
-   
-   
-   
-   %% TODO: make a good output format:
-   % save(fullfile(mainDir, 'allVariables.mat'), 'spikeStruct', 'okUnits', 'shanks')
-   
+   save(fullfile(subfolder, 'biDirectional.mat'), outputVariableNames.biDirectional{:})
+ 
+   %% TODO: make a good output format:  
    
    
    %% PBEs during different behavioral periods
@@ -179,7 +183,7 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
        mkdir(subfolder)
        exclude = bvrTimeList(ismember(bvrState, [2 4]), :); % nrem=1, rem=2, qwake=3, wake=4
        [primaryPBEs, sdat] = PBPeriods(spikeStruct, fileinfo, [], time_resolution, threshZ, exclude, velocityFilter);
-       save(fullfile(subfolder, 'PBEvariables.mat'), 'primaryPBEs', 'sdat', 'exclude', 'velocityFilter')
+       save(fullfile(subfolder, 'PBEvariables.mat'), outputVariableNames.PBEvariables{:})
       
        if runOptions.shouldIncludeExtendedPBE
            binDur = 0.02; % 20 ms bins (beside 1 ms binning for visualizing the rasters) %TODO: HARDCODED_PARAMETER
@@ -196,7 +200,7 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
               boutBrainState = bvrState(boutInd);
               secondaryPBEs(ii, 5 + boutBrainState) = 1;
            end
-           save(fullfile(subfolder, 'binnedPBEvariables.mat'), 'binnedPBEs', 'secondaryPBEs', 'qclus', 'rippleEvents','nPBEs','PBErippleIdx')
+           save(fullfile(subfolder, 'binnedPBEvariables.mat'), outputVariableNames.binnedPBEvariables{:})
         
 %            %% Final form of output:
 %            baseStruct = struct('data', [], 'p', [], 'ts', [], 'pts', []);
@@ -224,7 +228,6 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
        end
    else
            fprintf('Skipping any PBE calculations because runOptions.shouldIncludeAnyPBE is false. PBEvariables.mat, and binnedPBEvariables.mat will not be updated. \n');
-           save(fullfile(mainDir, 'toAddVariables.mat'), 'fileinfo', 'behavior');
    end
    fprintf('done.\n');
 

@@ -23,6 +23,7 @@
 %     parentFolder = 'C:\Share\data\analysesResults';
 
     do_decoding = false;
+    do_saving_object_computed_data = false;
 
     outputFiguresFolder = fullfile(parentFolder, activeSessionInfo.sessionNameHypenated, 'Figures');
     if ~exist(outputFiguresFolder, 'dir')
@@ -40,17 +41,21 @@
     % [] = buildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ);
     obj.buildTuningCurves(bin_size, sigma, f_base, min_t_occ);
     %% Should update obj.TuningCurves when done!
-    [outFilePath] = obj.performSaveComputedData(parentFolder, activeSessionInfo.sessionNameHypenated, activeSessionInfo.sessionNameCamelCase);
+    if do_saving_object_computed_data
+        [outFilePath] = obj.performSaveComputedData(parentFolder, activeSessionInfo.sessionNameHypenated, activeSessionInfo.sessionNameCamelCase);
+    end
 
     %% Filtering Options:
-    % filter_config.filter_included_cell_types = {};
+%     filter_config.filter_included_cell_types = {};
     filter_config.filter_included_cell_types = {'pyramidal'};
     % filter_config.filter_included_cell_types = {'interneurons'};
-    filter_config.filter_maximum_included_contamination_level = {2};
-    obj.applyFilter(filter_config);
-    obj.clearFilter();
-    obj.plotKouroshLoadedPlaceFieldSpatialTunings(activeSessionInfo.sessionNameHypenated, outputFiguresFolder);
-    obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
+    filter_config.filter_maximum_included_contamination_level = {};
+%     obj.applyFilter(filter_config);
+%     obj.clearFilter();
+    [customOverrideFilter.filter_active_units, customOverrideFilter.original_unit_index] = fnFilterUnitsWithCriteria(obj.Loaded.spikesTable, true, filter_config.filter_included_cell_types, ...
+                    filter_config.filter_maximum_included_contamination_level);
+    obj.plotKouroshLoadedPlaceFieldSpatialTunings(activeSessionInfo.sessionNameHypenated, customOverrideFilter, outputFiguresFolder);
+%     obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
 
     %% DECODING:
 

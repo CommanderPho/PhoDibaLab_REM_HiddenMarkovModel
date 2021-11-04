@@ -282,7 +282,7 @@ classdef PhoBayesianDecoder < handle
             ylim([activeSpatialLinearPositions(1), activeSpatialLinearPositions(end)]);
         end
 
-        function [figH, h] = plotKouroshLoadedPlaceFieldSpatialTunings(obj, experimentName, figureSaveParentPath)
+        function [figH, h] = plotKouroshLoadedPlaceFieldSpatialTunings(obj, experimentName, customOverrideFilter, figureSaveParentPath)
             % Plots the tuning curves loaded from the biDirectional.mat
             % file's PF_sorted_biDir variable, which were computed using
             % Kourosh's old code.
@@ -307,21 +307,29 @@ classdef PhoBayesianDecoder < handle
 %                 end
             end
 
-            if ~isempty(fieldnames(obj.ActivePlottingFilter))
-                %% Has active filter:
-                fprintf('Using filter.\n');
-%                 isIncluded = ismember(obj.TuningCurves.originalUnitIDs, obj.ActivePlottingFilter.original_unit_index);
-                isIncluded = ismember(activeOriginalUnitIDs, obj.ActivePlottingFilter.original_unit_index); % filter the 'okunits' that were returned and used in the tuning curves
-%                 activeOriginalUnitIDs = activeOriginalUnitIDs(obj.ActivePlottingFilter.filter_active_units);
+            if exist('customOverrideFilter','var')
+                fprintf('Using customOverrideFilter.\n');
+                isIncluded = ismember(activeOriginalUnitIDs, customOverrideFilter.original_unit_index); % filter the units present given the customOverrideFilter
                 activeOriginalUnitIDs = activeOriginalUnitIDs(isIncluded); % The list of included indicies
                 activeSpatialTunings = activeSpatialTunings(isIncluded, :);
-%                 activeUnitLabels = activeUnitLabels(isIncluded);
-%                 activeSortColors = obj.TuningCurves.sortDynamicColors(isIncluded, :);
-%                 activePeakLocations = activePeakLocations(isIncluded);
             else
-                % No filter
-            end
+                % Otherwise check for active filter from object
+                if ~isempty(fieldnames(obj.ActivePlottingFilter))
+                    %% Has active filter:
+                    fprintf('Using filter.\n');
+    %                 isIncluded = ismember(obj.TuningCurves.originalUnitIDs, obj.ActivePlottingFilter.original_unit_index);
+                    isIncluded = ismember(activeOriginalUnitIDs, obj.ActivePlottingFilter.original_unit_index); % filter the 'okunits' that were returned and used in the tuning curves
+    %                 activeOriginalUnitIDs = activeOriginalUnitIDs(obj.ActivePlottingFilter.filter_active_units);
+                    activeOriginalUnitIDs = activeOriginalUnitIDs(isIncluded); % The list of included indicies
+                    activeSpatialTunings = activeSpatialTunings(isIncluded, :);
+    %                 activeUnitLabels = activeUnitLabels(isIncluded);
+    %                 activeSortColors = obj.TuningCurves.sortDynamicColors(isIncluded, :);
+    %                 activePeakLocations = activePeakLocations(isIncluded);
+                else
+                    % No filter
+                end
 
+            end
             %% Plot tuning curves:
             [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', obj.Loaded.positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(activeOriginalUnitIDs));
             curr_fig_name = sprintf('Kourosh Style - %s - Sorted Position Tuning Curves - %d units', experimentName, length(activeOriginalUnitIDs));
