@@ -18,7 +18,7 @@
 %     sessionNameHypenated = sessionNameCamelCase; %override on windows to get by naming problems
 
   
-    [activeSessionInfo] = PhoBayesianDecoder.getHiroExperimentName(1, 3);
+    [activeSessionInfo] = PhoBayesianDecoder.getHiroExperimentName(1, 1);
      parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analyses';
 %     parentFolder = 'C:\Share\data\analysesResults';
 
@@ -48,6 +48,7 @@
     % filter_config.filter_included_cell_types = {'interneurons'};
     filter_config.filter_maximum_included_contamination_level = {2};
     obj.applyFilter(filter_config);
+    obj.clearFilter();
     obj.plotKouroshLoadedPlaceFieldSpatialTunings(activeSessionInfo.sessionNameHypenated, outputFiguresFolder);
     obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
 

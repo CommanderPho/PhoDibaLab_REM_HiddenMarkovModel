@@ -236,9 +236,8 @@ classdef PhoBayesianDecoder < handle
             obj.performResortTuningCurves();
         end
 
-
-
-
+        %% Plotting:
+        %%%%%%%%%%%%%%%%%%%%
         function [] = plotPosteriors(obj)
             num_sample_timesteps = length(obj.Posteriors.t_start);
             temporal_midpoints = obj.Posteriors.t_start + ((obj.Posteriors.t_end - obj.Posteriors.t_start) ./ 2.0); % Get the centers of the temporal bins the posteriors were calculated for
@@ -283,18 +282,31 @@ classdef PhoBayesianDecoder < handle
             ylim([activeSpatialLinearPositions(1), activeSpatialLinearPositions(end)]);
         end
 
-
-
         function [figH, h] = plotKouroshLoadedPlaceFieldSpatialTunings(obj, experimentName, figureSaveParentPath)
             % Plots the tuning curves loaded from the biDirectional.mat
             % file's PF_sorted_biDir variable, which were computed using
             % Kourosh's old code.
+            shouldUnsort = true;
             if ~exist('experimentName', 'var')
                 experimentName = obj.Loaded.experimentName;
             end
 
             activeOriginalUnitIDs = obj.Loaded.runTemplate_biDir; % 67x1
             activeSpatialTunings = obj.Loaded.PF_sorted_biDir; % 67x108
+
+            %% Unsort: if enabled, it takes the spatially sorted PF_sorted_biDir and reverses the sort to have the rows ordered by unitID
+            if shouldUnsort
+                [sortedKouroshUnitIDs, ia, ic] = unique(obj.Loaded.runTemplate_biDir,'sorted'); % sortedKouroshUnitIDs = obj.Loaded.runTemplate_biDir(ia) and obj.Loaded.runTemplate_biDir = sortedKouroshUnitIDs(ic).
+                activeOriginalUnitIDs = activeOriginalUnitIDs(ia);
+                activeSpatialTunings = activeSpatialTunings(ia, :);
+
+%                 % Inverse sort indicies:
+%                 inverseSortingIndicies = zeros(size(obj.Loaded.runTemplate_biDir));
+%                 for i = 1:length(obj.Loaded.runTemplate_biDir)
+%                     inverseSortingIndicies(i) = find(activeOriginalUnitIDs == i);
+%                 end
+            end
+
             if ~isempty(fieldnames(obj.ActivePlottingFilter))
                 %% Has active filter:
                 fprintf('Using filter.\n');
@@ -341,17 +353,11 @@ classdef PhoBayesianDecoder < handle
             activeColorSortOrder = [];
 
 %             % Sorted by tuned position, colored by original index:
-            activeSortOrder = obj.TuningCurves.sortIndicies;
+%             activeSortOrder = obj.TuningCurves.sortIndicies;
 %             activeColorSortOrder = obj.TuningCurves.sortIndicies;
 
             % Colored by unitID:
 %             activeColorSortOrder = 1:length(obj.TuningCurves.originalUnitIDs);
-
-
-            %% Sorted by tuning place:
-%             activeColorSortOrder = obj.TuningCurves.sortIndicies;
-            %activeOriginalUnitIDs = obj.TuningCurves.sortedOriginalUnitIDs;
-            %activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortIndicies, :);
 
             if ~isempty(fieldnames(obj.ActivePlottingFilter))
                 %% Has active filter:
