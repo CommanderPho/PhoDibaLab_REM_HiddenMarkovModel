@@ -176,7 +176,7 @@ classdef PhoBayesianDecoder < handle
             for i = 1:length(output_variable_names)
                 BayesocampusResults.(experimentIdentifier).Outputs.(output_variable_names{i}) = obj.TuningCurves.(output_variable_names{i}); 
             end
-            outFilePath = fullfile(parentFolder, sprintf('Bayesiocampus_Results_%s_2021_11_01-6.mat', experimentName));
+            outFilePath = fullfile(parentFolder, experimentName, sprintf('Bayesiocampus_Results_%s_2021_11_01-6.mat', experimentName));
             fprintf('Saving data data to %s...\n', outFilePath);
             save(outFilePath, "BayesocampusResults");
             fprintf('\t done.\n');

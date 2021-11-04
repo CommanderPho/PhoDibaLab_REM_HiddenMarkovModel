@@ -5,10 +5,12 @@
 %   Detailed explanation goes here
 
 %     experimentName = 'RoyMaze1';
-    experimentIdentifier = 'RoyMaze2';
-%     experimentName = 'TedMaze1';
-%     experimentIdentifier = 'TedMaze1';
-    % experimentName = 'Roy-maze1';
+%     experimentIdentifier = 'RoyMaze1';
+%     experimentName = 'Roy-maze1';
+    
+    experimentIdentifier = 'TedMaze2';
+    experimentName = 'Ted-maze2';
+
     % experimentName = 'KevinMaze1';
     %experimentName = 'Kevin-maze1';
     

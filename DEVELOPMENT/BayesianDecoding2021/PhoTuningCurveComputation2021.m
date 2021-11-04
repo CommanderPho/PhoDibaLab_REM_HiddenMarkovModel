@@ -12,8 +12,8 @@
 % fileinfo.xyt2(:, 1) -> positionTable.linearPos
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
 currSrcDir = fullfile(currDir, 'src');
-animalID = 3;
-sessionNumber = 1;
+animalID = 2;
+sessionNumber = 3;
 runSpeedThresh = 10; % 10cm/sec
 unitTypes = 'all';
 % Runs with the above settings
