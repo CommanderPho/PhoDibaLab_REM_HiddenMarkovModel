@@ -229,7 +229,7 @@ classdef PhoBayesianDecoder < handle
 
 
             %% Sorted by tuning place:
-            activeColorSortOrder = obj.TuningCurves.sortIndicies;
+%             activeColorSortOrder = obj.TuningCurves.sortIndicies;
             %activeOriginalUnitIDs = obj.TuningCurves.sortedOriginalUnitIDs;
             %activeSpatialTunings = obj.TuningCurves.lambda(obj.TuningCurves.sortIndicies, :);
 
