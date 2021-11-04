@@ -46,12 +46,15 @@
     obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
 
     %% Just decode over the track period for testing:
-%     t_0 = obj.Loaded.behavior.time(2,1);
-%     t_f = obj.Loaded.behavior.time(2,2);
-    active_lap_index = 9;
-    
-    t_0 = obj.Loaded.lapsTable.lapStartTime(active_lap_index);
-    t_f = obj.Loaded.lapsTable.lapEndTime(active_lap_index);
+    t_0 = obj.Loaded.behavior.time(2,1);
+    t_f = obj.Loaded.behavior.time(2,2);
+
+    %% Track-specific decoding:
+%     active_lap_index = 9;    
+%     t_0 = obj.Loaded.lapsTable.lapStartTime(active_lap_index);
+% %     t_f = obj.Loaded.lapsTable.lapEndTime(active_lap_index);
+%     t_f = obj.Loaded.lapsTable.lapEndTime(active_lap_index+2); % go through the next 2 laps
+
     t_step_seconds = 0.25; % 250ms steps
     % Perform neural decoding for the specified time ranges:
     obj.performNeuralDecode(t_0, t_f, t_step_seconds);

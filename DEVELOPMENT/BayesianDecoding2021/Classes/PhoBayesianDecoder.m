@@ -194,29 +194,41 @@ classdef PhoBayesianDecoder < handle
             num_position_bins = size(obj.Posteriors.poiss_posterior, 2); 
 
             figure(1);
-%             imagesc(obj.Posteriors.poiss_posterior);
-%             title('Posterior')
-%             xlabel('Position Bin Likelihood')
-%             ylabel('Timestep')
+            clf;
 
             [~, maxLikelyPositionBins] = max(obj.Posteriors.poiss_posterior, [], 2); % should get a 27x1 vector of the most likely positions for each timestamp
             activeSpatialLinearPositions = obj.TuningCurves.coords{1};
             maxLikelyPositions = activeSpatialLinearPositions(maxLikelyPositionBins);
 
-%             % Main Visualization of output: compares the animal's actual recorded position to the maximum likelihood predected position at each timepoint
-%             hold off;
-%             % plot the most likely trajectory
-%             scatter(temporal_midpoints, maxLikelyPositions, 'r', 'MarkerEdgeAlpha', 0.4);
-%         %     plot(activeTimeBins, maxL, 'r');
-%             hold on
-%             % Plot the animal's actual trajectory
-%             plot(obj.Loaded.positionTable.t, obj.Loaded.positionTable.linearPos, 'b', 'LineWidth', 0.5); 
-%             hold off;
-%             xlim([temporal_midpoints(1) temporal_midpoints(end)]);
+            % Main Visualization of output: compares the animal's actual recorded position to the maximum likelihood predected position at each timepoint
+            hold off;
+%             imagesc(obj.Posteriors.poiss_posterior);
+            
+            dim.x = size(obj.Posteriors.poiss_posterior, 1);
+            dim.y = size(obj.Posteriors.poiss_posterior, 2);
 
-            PhoFallAnalysis2021.subfn_plotTrajectoryComparison(temporal_midpoints, maxLikelyPositions, obj.Loaded.positionTable.t, obj.Loaded.positionTable.linearPos);
+%             xx = [1:dim.x];
+%             yy = [1:dim.y];
+            xx = temporal_midpoints; % Time step
+            yy = activeSpatialLinearPositions; % Position
+    
+            h_posteriorHeatmap = imagesc('XData', xx, 'YData', yy, 'CData', obj.Posteriors.poiss_posterior, 'AlphaData', .5);
+
+%             title('Posterior')
+%             xlabel('Position Bin Likelihood')
+%             ylabel('Timestep')
+            hold on
+            % plot the most likely trajectory
+            scatter(temporal_midpoints, maxLikelyPositions, 'r', 'MarkerEdgeAlpha', 0.4);
+        %     plot(activeTimeBins, maxL, 'r');
+            hold on
+            % Plot the animal's actual trajectory
+            plot(obj.Loaded.positionTable.t, obj.Loaded.positionTable.linearPos, 'b', 'LineWidth', 0.5); 
+            hold off;
+
+% %             PhoFallAnalysis2021.subfn_plotTrajectoryComparison(temporal_midpoints, maxLikelyPositions, obj.Loaded.positionTable.t, obj.Loaded.positionTable.linearPos);
             xlim([temporal_midpoints(1) temporal_midpoints(end)]);
-
+            ylim([activeSpatialLinearPositions(1), activeSpatialLinearPositions(end)]);
         end
 
 
