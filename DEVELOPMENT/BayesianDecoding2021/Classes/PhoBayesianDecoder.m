@@ -293,9 +293,26 @@ classdef PhoBayesianDecoder < handle
                 experimentName = obj.Loaded.experimentName;
             end
 
+            activeOriginalUnitIDs = obj.Loaded.runTemplate_biDir; % 67x1
+            activeSpatialTunings = obj.Loaded.PF_sorted_biDir; % 67x108
+            if ~isempty(fieldnames(obj.ActivePlottingFilter))
+                %% Has active filter:
+                fprintf('Using filter.\n');
+%                 isIncluded = ismember(obj.TuningCurves.originalUnitIDs, obj.ActivePlottingFilter.original_unit_index);
+                isIncluded = ismember(activeOriginalUnitIDs, obj.ActivePlottingFilter.original_unit_index); % filter the 'okunits' that were returned and used in the tuning curves
+%                 activeOriginalUnitIDs = activeOriginalUnitIDs(obj.ActivePlottingFilter.filter_active_units);
+                activeOriginalUnitIDs = activeOriginalUnitIDs(isIncluded); % The list of included indicies
+                activeSpatialTunings = activeSpatialTunings(isIncluded, :);
+%                 activeUnitLabels = activeUnitLabels(isIncluded);
+%                 activeSortColors = obj.TuningCurves.sortDynamicColors(isIncluded, :);
+%                 activePeakLocations = activePeakLocations(isIncluded);
+            else
+                % No filter
+            end
+
             %% Plot tuning curves:
-            [figH, h] = fnPlotPlaceCellSpatialTunings(obj.Loaded.PF_sorted_biDir, 'linearPoscenters', obj.Loaded.positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(obj.Loaded.runTemplate_biDir));
-            curr_fig_name = sprintf('Kourosh Style - %s - Sorted Position Tuning Curves', experimentName);
+            [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', obj.Loaded.positionBinningInfo_biDir.linearPoscenters, 'unitLabels', num2cellstr(activeOriginalUnitIDs));
+            curr_fig_name = sprintf('Kourosh Style - %s - Sorted Position Tuning Curves - %d units', experimentName, length(activeOriginalUnitIDs));
             title(curr_fig_name)
             if exist('figureSaveParentPath', 'var')
                curr_fig_output_basename = strrep(curr_fig_name, ' ', ''); % Remove Spaces from filename
@@ -358,7 +375,7 @@ classdef PhoBayesianDecoder < handle
             [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', activeSpatialLinearPositions, ...
                 'unitLabels', activeUnitLabels, 'unitColors', activeSortColors, 'colorSortOrder', activeColorSortOrder, 'sortOrder', activeSortOrder, 'peaks', activePeakLocations, 'unitFilter', obj.ActivePlottingFilter);
         
-            curr_fig_name = sprintf('PhoBayesianDecoder Style - %s - Sorted Position Tuning Curves', obj.Loaded.experimentName);
+            curr_fig_name = sprintf('PhoBayesianDecoder Style - %s - Sorted Position Tuning Curves - %d units', obj.Loaded.experimentName, length(activeOriginalUnitIDs));
             title(curr_fig_name)
             if exist('figureSaveParentPath', 'var')
                curr_fig_output_basename = strrep(curr_fig_name, ' ', ''); % Remove Spaces from filename
