@@ -159,10 +159,20 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
    subfolder = fullfile(mainDir, 'PlaceFields');
    mkdir(subfolder)
 
+
+   tuningCurveStartTime = behavior.time(2,1);
+   tuningCurveEndTime = behavior.time(2,2);
+   
    %%% 1D spatial tuning: using linearized position:
-   [spatialTunings_LR, PF_sorted_LR, runTemplate_LR,  spatialInfo_LR, conslapsRatio_LR, diffWithAvg_LR, positionBinningInfo_LR] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'LR', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
-   [spatialTunings_RL, PF_sorted_RL, runTemplate_RL,  spatialInfo_RL, conslapsRatio_RL, diffWithAvg_RL, positionBinningInfo_RL] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'RL', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
-   [spatialTunings_biDir, PF_sorted_biDir, runTemplate_biDir,  spatialInfo_biDir, conslapsRatio_biDir, diffWithAvg_biDir, positionBinningInfo_biDir] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, behavior.time(2,1), behavior.time(2,2), [], [], speed, 'uni', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
+%    [spatialTunings_LR, PF_sorted_LR, runTemplate_LR,  spatialInfo_LR, conslapsRatio_LR, diffWithAvg_LR, positionBinningInfo_LR] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, tuningCurveStartTime, tuningCurveEndTime, [], [], speed, 'LR', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
+%    [spatialTunings_RL, PF_sorted_RL, runTemplate_RL,  spatialInfo_RL, conslapsRatio_RL, diffWithAvg_RL, positionBinningInfo_RL] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, tuningCurveStartTime, tuningCurveEndTime, [], [], speed, 'RL', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
+   [spatialTunings_biDir, PF_sorted_biDir, runTemplate_biDir,  spatialInfo_biDir, conslapsRatio_biDir, diffWithAvg_biDir, positionBinningInfo_biDir] = spatialTuning_1D_Pho(spikeStruct, [1 2 3], positionTable, tuningCurveStartTime, tuningCurveEndTime, [], [], speed, 'uni', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
+
+   %% Per-interval mode:
+   tuningCurveStartTimes = lapsTable.lapStartTime;
+   tuningCurveEndTimes = lapsTable.lapEndTime;
+   [spatialTunings_biDirCells, PF_sorted_biDirCells, runTemplate_biDirCells,  spatialInfo_biDirCells, conslapsRatio_biDirCells, diffWithAvg_biDirCells, positionBinningInfo_biDirCells] = computeTuningCurvesOverTimeRanges(spikeStruct, [1 2 3], positionTable, tuningCurveStartTimes, tuningCurveEndTimes, [], [], speed, 'uni', 2, runSpeedThresh, [], fileinfo.Fs, subfolder, fileinfo.name);
+
    %% These "runTemplate"s are really important, they're the cellIDs for the active spatial maps!
    % spatialTunings_biDir: 60 x 105 %% The spatialTunings_* has the same number of units as 'okUnits' from the struct, but 10 of the rows are nothing but zeros, explaining why we only see 50 x 105 for the PF_sorted_biDir and the runTemplate_*
    % runTemplate_biDir: 50 x 1
@@ -232,5 +242,16 @@ function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, 
    fprintf('done.\n');
 
 end % end function
+
+function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffWithAvg, positionBinningInfo] = computeTuningCurvesOverTimeRanges(spikeStruct, qclus, positionTable, tuningCurveStartTimes, tuningCurveEndTimes, thetaPeriods, turningPeriods, speed, direction, posBinSize, runSpeedThresh, combinedUnits, timeUnit, FileBase, FileName)
+    
+%     spatialTunings, PF_sorted, template,  spatialInfo, conslapsRatio, diffWithAvg, positionBinningInfo = deal(cell(size(tuningCurveStartTimes)));
+    
+    for i = 1:length(tuningCurveStartTimes)
+        tuningCurveStartTime = tuningCurveStartTimes(i);
+        tuningCurveEndTime = tuningCurveEndTimes(i);
+        [spatialTunings{i}, PF_sorted{i}, template{i},  spatialInfo{i}, conslapsRatio{i}, diffWithAvg{i}, positionBinningInfo{i}] = spatialTuning_1D_Pho(spikeStruct, qclus, positionTable, tuningCurveStartTime, tuningCurveEndTime, thetaPeriods, turningPeriods, speed, direction, posBinSize, runSpeedThresh, combinedUnits, timeUnit, FileBase, FileName);
+    end
+end
 
 % ------------- END OF CODE --------------

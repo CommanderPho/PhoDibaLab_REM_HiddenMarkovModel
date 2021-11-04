@@ -12,6 +12,7 @@ plotting_options.total_duration = plotting_options.active_timesteps(end) - plott
 plotting_options.active_timesteps = plotting_options.active_timesteps(1:end-1);
 % plotting_options.active_timesteps = plotting_options.active_timesteps + (plotting_option.active_step_size / 2); % This was to center the bins, but it isn't needed
 
+% general_results.per_behavioral_state_period.spike_rate_per_unit
 
 extantFigH = figure(13);
 

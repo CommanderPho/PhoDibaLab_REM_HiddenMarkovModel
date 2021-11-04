@@ -33,6 +33,10 @@ function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffW
 
 % ------------- BEGIN CODE --------------
 
+features.shouldPlot = false; % Whether to render the tuning curve plots or not
+features.shouldSave = false; % Whether to save out the tuning curve plots to disk by default
+features.shouldWriteTextFile = false; % Whether to save out .clu and .txt files
+
 % EXPLAIN THE FUNCTION
 totalNumofUnits = max(spikeStruct.unit);
 % including only the spikes meeting certain criteria
@@ -82,10 +86,6 @@ if ~isempty(turningPeriods)
     positionIdx = setdiff(positionIdx, turningPositionInd);
 end
 
-
-% linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions           
-
-% linearPos = fileinfo.xyt2(:, [1 3]); % the third row indicates lap indices of the positions 
 linearPos = [positionTable.linearPos, positionTable.lap_index];
 directionLinearPos = nan(size(linearPos));          
 directionLinearPos(positionIdx, :) = linearPos(positionIdx, :);
@@ -143,8 +143,7 @@ for ii = 1: length(activeUnits)
             peakPosBin_laps(jj) = nan;
         end
     
-    end
-    
+    end % end for jj
     
     % average across the laps:
     posBinnSpikeCnts = sum(posBinnSpikeCnts_laps, 2);
@@ -175,8 +174,8 @@ for ii = 1: length(activeUnits)
     
     if ismember(unit, combinedUnits)
         combinedflag(unit) = 1; 
-    end  
-end
+    end 
+end % end for ii 
 placeCells = find(spatialInfo > 0 & conslapsRatio > 0); % here we are not using the consistence and spatial info to filter cells
 [~, sortIdx] = sort(peakPosBin(placeCells), unitSortingMode);
 PF_sorted    = spatialTunings(placeCells(sortIdx), :); % sort the place fields based on the peaks
@@ -188,17 +187,17 @@ template = placeCells(sortIdx);
 PF_sorted_norm = PF_sorted ./ repmat(max(PF_sorted, [], 2), [1 size(PF_sorted, 2)]); % Normalize the peaks to one for visulaization
 % sum_PF = mean(PF_sorted_norm, 1);
 % plot the place fields
-% units with peak firing rates below the threshold (2 Hz) will be shown in black
-figure;
-x0=0;
-y0=0;
-width=400;
-height=400* size(PF_sorted_norm, 1)/20;
-difpos = linearPoscenters(2)- linearPoscenters(1);
-set(gcf,'units','points','position',[x0,y0,width,height])
-tt = 0;
-for jj = 1 : size(PF_sorted_norm, 1)
-%     if peakRates_sorted(jj) > 1
+if features.shouldPlot
+    % units with peak firing rates below the threshold (2 Hz) will be shown in black
+    figure;
+    x0=0;
+    y0=0;
+    width=400;
+    height=400* size(PF_sorted_norm, 1)/20;
+    difpos = linearPoscenters(2)- linearPoscenters(1);
+    set(gcf,'units','points','position',[x0,y0,width,height])
+    tt = 0;
+    for jj = 1 : size(PF_sorted_norm, 1)
         tt = tt + 1;
         if combinedflag(jj) == 0
         cl = 'r';
@@ -209,76 +208,63 @@ for jj = 1 : size(PF_sorted_norm, 1)
         hold on
         plot(linearPoscenters, 0.06*tt+PF_sorted_norm(jj, :)/20,'color', 'k','linewidth', 0.5);
         alpha(0.5)
-%         sparsity(tt) = mean(PF_sorted_norm(jj, :))^2 / mean(PF_sorted_norm(jj, :).^2);
-%         peakBins(tt) = peakPosBin_sorted(jj) * posBinSize;
-%     end
-    
-    set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
-%     text(linearPoscenters(1)-5*difpos, 0.06*jj, num2str(activeUnits_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
-%     text(linearPoscenters(end)+5*difpos, 0.06*jj, sprintf('%.1f Hz', peakRates_sorted(jj)), 'fontsize', 7, 'HorizontalAlignment', 'center');
-end
-% tt = tt + 3;
-% cl = 'k';
-% 
-% fill([linearPoscenters fliplr(linearPoscenters)], [0.06*tt+sum_PF/2 fliplr(0.06*tt*ones(size(sum_PF)))], cl,'LineStyle','none')
-% 
-% hold on
-% plot(linearPoscenters, 0.06*tt+sum_PF/2,'color', 'k','linewidth', 0.5);
-% 
-% alpha(0.5)
-xlim([linearPoscenters(1)-difpos/2 linearPoscenters(end)+difpos/2])
-xlabel('Position on track (cm)', 'fontsize', 10)
-h = text(linearPoscenters(1)-5*difpos, 0.06*(tt)/2, 'Unit', 'fontsize', 10, 'HorizontalAlignment', 'center');
-set(h, 'rotation', 90)
-% 
-% h = text(linearPoscenters(1)-5*difpos, 0.06*tt, 'Norm pooled', 'fontsize', 10, 'HorizontalAlignment', 'center');
-% set(h, 'rotation', 90)
-if ~strcmp(direction, 'uni')
-    ha = annotation('arrow');  
-    ha.Parent = gca;  
-    if strcmp(direction, 'LR')
-        ha.X = [linearPoscenters(1) linearPoscenters(15)]; 
-    elseif strcmp(direction, 'RL')
-        ha.X = [linearPoscenters(end) linearPoscenters(end-15)]; 
+        
+        set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
     end
-    ha.Y = [0.06*(tt+2) 0.06*(tt+2)];   
-    ha.LineWidth  = 2;          % make the arrow bolder for the picture
-    ha.HeadWidth  = 10;
-    ha.HeadLength = 10;
-end
-if ~isempty(FileBase)
+    xlim([linearPoscenters(1)-difpos/2 linearPoscenters(end)+difpos/2])
+    xlabel('Position on track (cm)', 'fontsize', 10)
+    h = text(linearPoscenters(1)-5*difpos, 0.06*(tt)/2, 'Unit', 'fontsize', 10, 'HorizontalAlignment', 'center');
+    set(h, 'rotation', 90)
     if ~strcmp(direction, 'uni')
-        filename = [FileName '_placeFields1D_' direction];
-    else
-        filename = [FileName '_placeFields1D_uni'];
+        ha = annotation('arrow');  
+        ha.Parent = gca;  
+        if strcmp(direction, 'LR')
+            ha.X = [linearPoscenters(1) linearPoscenters(15)]; 
+        elseif strcmp(direction, 'RL')
+            ha.X = [linearPoscenters(end) linearPoscenters(end-15)]; 
+        end
+        ha.Y = [0.06*(tt+2) 0.06*(tt+2)];   
+        ha.LineWidth  = 2;          % make the arrow bolder for the picture
+        ha.HeadWidth  = 10;
+        ha.HeadLength = 10;
     end
-    savefig(gcf, fullfile(FileBase, filename))
-%     savepdf(gcf, fullfile(FileBase, filename), '-dpng')
-%     exportgraphics(gcf,[fullfile(FileBase, filename) '.pdf'],'BackgroundColor','none','ContentType','vector')
-end
 
-%%% making clu and res files 
-rest = [];
-cluorder = [];
-shank = zeros(length(template), 1);
-cluster = zeros(length(template), 1);
-for ii = 1 : length(template)
-    spkInd = find(spikeStruct.unit == template(ii));
-    currSpiketimes = floor(spikeStruct.t(spkInd)*20000);
-    rest = [rest; currSpiketimes];
-    cluorder = [cluorder; ii*ones(length(currSpiketimes),1)];
-    shank(ii) = 1; %unique(spikeStruct.shank(spkInd));
-    cluster(ii) = unique(spikeStruct.unit(spkInd));
+    if ~isempty(FileBase) & features.shouldSave
+        if ~strcmp(direction, 'uni')
+            filename = [FileName '_placeFields1D_' direction];
+        else
+            filename = [FileName '_placeFields1D_uni'];
+        end
+        savefig(gcf, fullfile(FileBase, filename))
+    %     savepdf(gcf, fullfile(FileBase, filename), '-dpng')
+    %     exportgraphics(gcf,[fullfile(FileBase, filename) '.pdf'],'BackgroundColor','none','ContentType','vector')
+    end 
+end % end if shouldPlot
+
+%%% making clu and res files
+if features.shouldWriteTextFile
+    rest = [];
+    cluorder = [];
+    shank = zeros(length(template), 1);
+    cluster = zeros(length(template), 1);
+    for ii = 1 : length(template)
+        spkInd = find(spikeStruct.unit == template(ii));
+        currSpiketimes = floor(spikeStruct.t(spkInd)*20000);
+        rest = [rest; currSpiketimes];
+        cluorder = [cluorder; ii*ones(length(currSpiketimes),1)];
+        shank(ii) = 1; %unique(spikeStruct.shank(spkInd));
+        cluster(ii) = unique(spikeStruct.unit(spkInd));
+    end
+    [sortedRest, ind] = sort(rest);
+    cluorder = cluorder(ind)-1;
+    numclu = [shank cluster];
+    numclu = numclu';
+    % Saveres([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum)],sortedRest);
+    % SaveClu([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum)],cluorder);
+    % dlmwrite([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.numclu.' num2str(directionNum)],numclu);
+    writematrix(sortedRest, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum) '.txt'])
+    writematrix(cluorder, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum) '.txt'])
 end
-[sortedRest, ind] = sort(rest);
-cluorder = cluorder(ind)-1;
-numclu = [shank cluster];
-numclu = numclu';
-% Saveres([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum)],sortedRest);
-% SaveClu([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum)],cluorder);
-% dlmwrite([FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.numclu.' num2str(directionNum)],numclu);
-writematrix(sortedRest, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.res.' num2str(directionNum) '.txt'])
-writematrix(cluorder, [FileBase '/' FileName direction 'Active.10' num2str(directionNum) '.clu.' num2str(directionNum) '.txt'])
 
 end
 
