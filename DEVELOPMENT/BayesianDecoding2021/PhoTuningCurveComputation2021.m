@@ -17,22 +17,31 @@ sessionNumber = 3;
 runSpeedThresh = 10; % 10cm/sec
 unitTypes = 'all';
 % Runs with the above settings
-fnPerformKouroshTrackProcessingComputations(animalID, sessionNumber, currDir, currSrcDir, runSpeedThresh, unitTypes);
+[sessionInfo] = PhoBayesianDecoder.getHiroExperimentName(animalID, sessionNumber);
+fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, currSrcDir, runSpeedThresh, unitTypes);
 
 
-function [] = fnPerformKouroshTrackProcessingComputations(animalID, sessionNumber, currDir, currSrcDir, runSpeedThresh, unitTypes)
+function [] = fnPerformKouroshTrackProcessingComputations(sessionInfo, currDir, currSrcDir, runSpeedThresh, unitTypes)
    %% loading session data
-   rats = {'Roy','Ted', 'Kevin'};
-   allsessionNumbers = {[1 2 3],[1 2 3], [1]}; 
-   mazeShape.Roy = {'linear';'linear';'linear'};
-   mazeShape.Ted = {'linear'; 'L-shape'; 'U-shape'};
-   mazeShape.Kevin = {'linear'};
-   currRat = rats{animalID};
-   % sessionNumber
-   %% session info
-   %%% load the data
-   sessionName = [currRat 'Maze' num2str(sessionNumber)];
-   sessionName2 = [currRat '-maze' num2str(sessionNumber)];
+%    %% session info
+%    sessionName = [currRat 'Maze' num2str(sessionNumber)];
+%    sessionName2 = [currRat '-maze' num2str(sessionNumber)];
+%    animalMazeShapes = eval(sprintf('mazeShape.%s', currRat));
+%    currMazeShape    = animalMazeShapes{sessionNumber};
+%    rats = {'Roy','Ted', 'Kevin'};
+%    allsessionNumbers = {[1 2 3],[1 2 3], [1]}; 
+%    mazeShape.Roy = {'linear';'linear';'linear'};
+%    mazeShape.Ted = {'linear'; 'L-shape'; 'U-shape'};
+%    mazeShape.Kevin = {'linear'};
+%    currRat = rats{animalID};
+
+   %% Load from the sessionInfo object produced by PhoBayesianDecoder.getHiroExperimentName(animalID, sessionNumber):
+   currRat = sessionInfo.ratName;
+   currMazeShape = sessionInfo.mazeShape;
+   sessionName = sessionInfo.sessionNameCamelCase;
+   sessionName2 = sessionInfo.sessionNameHypenated;
+
+   %%% load the data:
    VarList = {'spikes','behavior','position','speed','basics','ripple'};
    for var = 1 : length(VarList)
       load([currSrcDir '/wake-' VarList{var} '.mat'])
@@ -74,8 +83,6 @@ function [] = fnPerformKouroshTrackProcessingComputations(animalID, sessionNumbe
    fileinfo.xyt = [position.x*fileinfo.pix2cm; position.y*fileinfo.pix2cm; position.t]'; 
    % linearized positions (we need this specially for analyzing the L-shape, U-shape, and circular mazes)
    % the information will be loaded into the xyt2 field of fileinfo structure
-   animalMazeShapes = eval(sprintf('mazeShape.%s', currRat));
-   currMazeShape    = animalMazeShapes{sessionNumber};
    specified_maze_platform_centers = [43.4908, 36.2828; 223.7903, 32.3178];
    %% Linearize Position for the current maze shape:
    [linearPos, userSelectedCenters] = linearizePosition2(fileinfo.xyt, behavior.time(2,1), behavior.time(2,2), currMazeShape, specified_maze_platform_centers);

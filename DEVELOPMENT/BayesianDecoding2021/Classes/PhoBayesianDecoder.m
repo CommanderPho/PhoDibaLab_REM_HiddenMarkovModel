@@ -117,7 +117,6 @@ classdef PhoBayesianDecoder < handle
             obj.InformationContentCurves = get_IC_curves(obj.TuningCurves.alpha, obj.TuningCurves.beta, f_base, min_t_occ);
         end
 
-
         function performLoadDataHiroFormat(obj, parentFolder, experimentName)
             %performLoadDataHiroFormat Summary of this method goes here
             %   Detailed explanation goes here
@@ -136,6 +135,7 @@ classdef PhoBayesianDecoder < handle
             [obj.Loaded] = fnMergeStructs(obj.Loaded, temp.L1, temp.L2, temp.L3, temp.L4);
             
             fprintf('Successfully loaded data.\n');
+            obj.build(); % build the parameters from the loaded data
         end
 
 
@@ -170,14 +170,10 @@ classdef PhoBayesianDecoder < handle
 
 
         function [] = performNeuralDecode(obj, t_0, t_f, t_step_seconds)
-            %performNeuralDecode Decodes the positions at the given time steps using the computed tuning curves and the spikes matrix.
+            %performNeuralDecode: Decodes the positions at the given time steps using the computed tuning curves and the spikes matrix.
             %   Detailed explanation goes here
-           obj.Posteriors = struct;
-
-%             t_0 = 1000;
-%             t_f = 1030;
-%             t_step = 0.25;
-
+%             t_0 = 1000; t_f = 1030; t_step = 0.25;
+            obj.Posteriors = struct;
             t_step = t_step_seconds * 1e6; % must convert to microseconds, since that's what t_0 and t_f are assumed to be.
 
             obj.Posteriors.t_start = t_0:t_step:t_f; % if t_start and t_end are 1x27 double, then posteriors will be 27x73 double
@@ -341,6 +337,23 @@ classdef PhoBayesianDecoder < handle
             obj.plotPlaceFieldSpatialTunings();
 
         end % end function test
+
+        function [sessionInfo] = getHiroExperimentName(animalID, sessionNumber)
+            % Gets the appropriate info from the animalID and sessionNumber for Hiro's data.
+           %% loading session data
+           sessionInfo.animalID = animalID;
+           sessionInfo.sessionNumber = sessionNumber;
+           rats = {'Roy','Ted', 'Kevin'};
+           allsessionNumbers = {[1 2 3],[1 2 3], [1]}; 
+           mazeShapes.Roy = {'linear';'linear';'linear'};
+           mazeShapes.Ted = {'linear'; 'L-shape'; 'U-shape'};
+           mazeShapes.Kevin = {'linear'};
+           sessionInfo.ratName = rats{animalID};
+           sessionInfo.sessionNameCamelCase = [sessionInfo.ratName 'Maze' num2str(sessionNumber)]; % 'RoyMaze1';
+           sessionInfo.sessionNameHypenated = [sessionInfo.ratName '-maze' num2str(sessionNumber)]; % 'Roy-maze1';
+           animalMazeShapes = mazeShapes.(sessionInfo.ratName);
+           sessionInfo.mazeShape = animalMazeShapes{sessionNumber};
+        end
         
     end % end static method block
 
