@@ -258,9 +258,9 @@ function [spatialTunings, PF_sorted, template, spatialInfo, conslapsRatio, diffW
 end
 
 function [] = plotTuningCurveTimeRanges(tuningCurveStartTimes, tuningCurveEndTimes, spatialTunings_biDirCells, PF_sorted_biDirCells, runTemplate_biDirCells,  spatialInfo_biDirCells, conslapsRatio_biDirCells, diffWithAvg_biDirCells, positionBinningInfo_biDirCells)
-    
+    % plotTuningCurveTimeRanges: plots the cell arrays of tuning curves for different time ranges produced by computeTuningCurvesOverTimeRanges(...)
     numRanges = length(tuningCurveStartTimes);
-    boundedRanges = max(numRanges, 10); % make sure we don't plot too many and lock up the UI
+    boundedRanges = min(numRanges, 10); % make sure we don't plot too many and lock up the UI
     for i = 1:boundedRanges
         fnPlotPlaceCellSpatialTunings(PF_sorted_biDirCells{i});
         hold on;

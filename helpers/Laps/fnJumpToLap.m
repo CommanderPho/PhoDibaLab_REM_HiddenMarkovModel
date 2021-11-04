@@ -10,6 +10,9 @@ function [startTime, endTime] = fnJumpToLap(lapsMatrix, lapIndex)
         %     lapsInfo.numTotalLaps = size(lapsInfo.laps, 1); 
         %    end
         
+       
+   curr_cellLapIndex = 15; xlim([obj.Loaded.lapsTable.lapStartTime(curr_cellLapIndex), obj.Loaded.lapsTable.lapEndTime(curr_cellLapIndex)]);
+
    startTime = lapsMatrix(lapIndex, 1);
    endTime = lapsMatrix(lapIndex, 2);
    xlim([startTime endTime])

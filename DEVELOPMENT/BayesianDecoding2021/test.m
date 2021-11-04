@@ -35,7 +35,7 @@
     
     % Config 1:
     sigma = [6];
-    bin_size = [3]; % spatial bin size (cm)
+    bin_size = [2]; % spatial bin size (cm)
     f_base = 2; % base firing rate (Hz)
     min_t_occ = 0.5;
     % [] = buildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ);

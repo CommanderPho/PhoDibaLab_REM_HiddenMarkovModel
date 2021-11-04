@@ -119,7 +119,6 @@ function [fig, h] = fnPlotPlaceCellSpatialTunings(spatialTunings, varargin)
             
         set(gca, 'YTick', [], 'YTickLabel', [], 'color', 'none', 'YColor', 'none', 'box', 'off')
         if exist('unitLabels','var')
-            
             text(0.0, curr_y_offset_factor_midpoint, unitLabels{sortOrder(jj)}, 'fontsize', 11, 'HorizontalAlignment', 'center', 'Color', 'k'); % black background text for legibility
             text(0.0, curr_y_offset_factor_midpoint, unitLabels{sortOrder(jj)}, 'fontsize', 10, 'HorizontalAlignment', 'center', 'Color', cl);
         end
