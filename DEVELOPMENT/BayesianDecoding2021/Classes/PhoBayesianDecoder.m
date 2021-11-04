@@ -197,8 +197,10 @@ classdef PhoBayesianDecoder < handle
             curr_fig_name = sprintf('Kourosh Style - %s - Sorted Position Tuning Curves', experimentName);
             title(curr_fig_name)
             if exist('figureSaveParentPath', 'var')
-               figureSavePath = fullfile(figureSaveParentPath, curr_fig_name);
-               savefig(figureSavePath); 
+               curr_fig_output_basename = strrep(curr_fig_name, ' ', ''); % Remove Spaces from filename
+               curr_fig_output_basename = strrep(curr_fig_output_basename, '/', '|'); % Remove Slashes from filename
+               figureSavePath = fullfile(figureSaveParentPath, curr_fig_output_basename);
+               savefig(figH, figureSavePath,'compact');
                fprintf('Figure saved to %s\n', figureSavePath);
             end
         end
@@ -241,11 +243,13 @@ classdef PhoBayesianDecoder < handle
             [figH, h] = fnPlotPlaceCellSpatialTunings(activeSpatialTunings, 'linearPoscenters', activeSpatialLinearPositions, ...
                 'unitLabels', activeUnitLabels, 'unitColors', obj.TuningCurves.sortDynamicColors, 'colorSortOrder', activeColorSortOrder, 'sortOrder', activeSortOrder, 'peaks', activePeakLocations);
         
-            curr_fig_name = sprintf('PhoBayesianDecoder/PhoPositionAnalaysis2021 Style - %s - Sorted Position Tuning Curves', obj.Loaded.experimentName);
+            curr_fig_name = sprintf('PhoBayesianDecoder Style - %s - Sorted Position Tuning Curves', obj.Loaded.experimentName);
             title(curr_fig_name)
             if exist('figureSaveParentPath', 'var')
-               figureSavePath = fullfile(figureSaveParentPath, curr_fig_name);
-               savefig(figureSavePath); 
+               curr_fig_output_basename = strrep(curr_fig_name, ' ', ''); % Remove Spaces from filename
+               curr_fig_output_basename = strrep(curr_fig_output_basename, '/', '|'); % Remove Slashes from filename
+               figureSavePath = fullfile(figureSaveParentPath, curr_fig_output_basename);
+               savefig(figH, figureSavePath,'compact'); 
                fprintf('Figure saved to %s\n', figureSavePath);
             end
         end
@@ -264,25 +268,29 @@ classdef PhoBayesianDecoder < handle
             % experimentName = 'Roy-maze1';
             % experimentName = 'KevinMaze1';
             experimentName = 'Kevin-maze1';
-            experimentIdentifier = 'KevinMaze1';
+%             experimentIdentifier = 'KevinMaze1';
+            experimentName = experimentIdentifier; %override on windows to get by naming problems
             % '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/Kevin-maze1'
             % smartload('/Users/pho/repo/NGP Rotations Repos/PhoDibaLab_DataAnalysis/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results/PhoResults_Expt1_RoyMaze1_v7_3.mat', ...
             %     'active_processing', 'general_results', 'num_of_electrodes', 'processing_config', 'results_array', 'source_data', 'timesteps_array');
             
-            parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
+%             parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
+            parentFolder = 'C:\Share\data\analysesResults';
             obj = PhoBayesianDecoder();
             obj.performLoadDataHiroFormat(parentFolder, experimentName);
             obj.build(); % build the parameters from the loaded data
             % Config 1:
-            sigma = [3];
+            sigma = [5];
             bin_size = [3]; % spatial bin size (cm)
             f_base = 2; % base firing rate (Hz)
             min_t_occ = 0.5;
-            % [] = buildTuningCurves(obj, spikes, X, t, sample_rate, t_start, t_end, bin_size, sigma, f_base, min_t_occ);
+
             obj.buildTuningCurves(bin_size, sigma, f_base, min_t_occ);
             %% Should update obj.TuningCurves when done!
             [outFilePath] = obj.performSaveComputedData(parentFolder, experimentName, experimentIdentifier);
-       
+            obj.plotKouroshLoadedPlaceFieldSpatialTunings(experimentName)
+            obj.plotPlaceFieldSpatialTunings();
+
         end % end function test
         
     end % end static method block

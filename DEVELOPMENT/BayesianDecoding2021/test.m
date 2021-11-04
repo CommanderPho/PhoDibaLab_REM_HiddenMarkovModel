@@ -4,11 +4,15 @@
 %TEST Summary of this function goes here
 %   Detailed explanation goes here
 
-    % experimentName = 'RoyMaze1';
+%     experimentName = 'RoyMaze1';
+    experimentIdentifier = 'RoyMaze2';
+%     experimentName = 'TedMaze1';
+%     experimentIdentifier = 'TedMaze1';
     % experimentName = 'Roy-maze1';
     % experimentName = 'KevinMaze1';
-    experimentName = 'Kevin-maze1';
-    experimentIdentifier = 'KevinMaze1';
+    %experimentName = 'Kevin-maze1';
+    
+    %experimentIdentifier = 'KevinMaze1';
     experimentName = experimentIdentifier; %override on windows to get by naming problems
 
     % '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/Kevin-maze1'
@@ -17,12 +21,17 @@
     
     %parentFolder = 'C:\Share\data\analysesResults\KevinMaze1';
     parentFolder = 'C:\Share\data\analysesResults';
+
+    outputFiguresFolder = fullfile(parentFolder, experimentName, 'Figures');
+    if ~exist(outputFiguresFolder, 'dir')
+        mkdir(outputFiguresFolder)
+    end
 %     parentFolder = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/analysesResults_02-Nov-2021/';
     obj = PhoBayesianDecoder();
     obj.performLoadDataHiroFormat(parentFolder, experimentName);
     obj.build(); % build the parameters from the loaded data
     % Config 1:
-    sigma = [3];
+    sigma = [6];
     bin_size = [3]; % spatial bin size (cm)
     f_base = 2; % base firing rate (Hz)
     min_t_occ = 0.5;
@@ -31,8 +40,7 @@
     %% Should update obj.TuningCurves when done!
     [outFilePath] = obj.performSaveComputedData(parentFolder, experimentName, experimentIdentifier);
 
-    obj.plotKouroshLoadedPlaceFieldSpatialTunings(experimentName)
-
-    obj.plotPlaceFieldSpatialTunings();
+    obj.plotKouroshLoadedPlaceFieldSpatialTunings(experimentName, outputFiguresFolder)
+    obj.plotPlaceFieldSpatialTunings(outputFiguresFolder);
 % end
 
