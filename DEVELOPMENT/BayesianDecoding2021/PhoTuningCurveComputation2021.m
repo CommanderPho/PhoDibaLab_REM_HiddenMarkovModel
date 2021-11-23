@@ -12,6 +12,7 @@
 % fileinfo.xyt2(:, 1) -> positionTable.linearPos
 close all;
 currDir = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/';
+currDir = 'C:\Share\data\AllCombined';
 currSrcDir = fullfile(currDir, 'src');
 animalID = 1;
 sessionNumber = 1;
