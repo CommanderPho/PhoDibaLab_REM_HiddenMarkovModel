@@ -5,12 +5,11 @@
 % data_config.source_data_prefix = 'src';
 % data_config.output_data_prefix = 'Results';
 
-data_config.root_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/ClusterFreeAnalysisProject/Data/Achilles_10252013';
+% data_config.root_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/ClusterFreeAnalysisProject/Data/Achilles_10252013';
+data_config.root_parent_path = 'R:\data\Achilles_10252013'; % Windows path
 data_config.source_data_prefix = 'src';
 data_config.output_data_prefix = 'ExportedData';
-
 data_config.output.intermediate_file_names = {'PhoIntermediate_Stage0_0.mat', 'PhoIntermediate_Stage0_1.mat'};
-
 
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
 data_config.output.root_path = fullfile(data_config.root_parent_path, data_config.output_data_prefix);
