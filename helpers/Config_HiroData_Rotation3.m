@@ -5,11 +5,10 @@
 % data_config.source_data_prefix = 'src';
 % data_config.output_data_prefix = 'Results';
 
-data_config.root_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
+% data_config.root_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets'; 
+data_config.root_parent_path = 'F:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProject\Hiro_Datasets\Results'; %% Windows
 data_config.source_data_prefix = 'src';
 data_config.output_data_prefix = 'Results';
-
-
 
 data_config.output.intermediate_file_names = {'PhoIntermediate_Stage0_0.mat', 'PhoIntermediate_Stage0_1.mat'};
 
