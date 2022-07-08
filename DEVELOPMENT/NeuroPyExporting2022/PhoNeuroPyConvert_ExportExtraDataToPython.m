@@ -12,21 +12,6 @@ active_experiment_export_root_path = fullfile(export_root_path, active_experimen
 mkdir(active_experiment_export_root_path);
 fprintf('Saving extras analysis data to %s...\n', fullfile(active_experiment_export_root_path, 'extrasAnalysis.mat'));
 
-% behavioral_epochs = table2dataset(active_processing.behavioral_epochs);
-% behavioral_periods = table2dataset(active_processing.behavioral_periods_table);
-% 
-% behavioral_epochs = table2array(active_processing.behavioral_epochs);
-% behavioral_periods = table2array(active_processing.behavioral_periods_table);
-
-% behavioral_epochs = table2cell(active_processing.behavioral_epochs);
-% behavioral_periods = table2cell(active_processing.behavioral_periods_table);
-
-% behavioral_periods.epoch_start_seconds = double(active_processing.behavioral_periods_table.epoch_start_seconds);
-% behavioral_periods.epoch_end_seconds = double(active_processing.behavioral_periods_table.epoch_end_seconds);
-% behavioral_periods.duration = double(active_processing.behavioral_periods_table.duration);
-% behavioral_periods.behavioral_epoch = double(active_processing.behavioral_periods_table.behavioral_epoch);
-% behavioral_periods.type = double(active_processing.behavioral_periods_table.type);
-
 % Epoch names from table Row header:
 behavioral_epoch_names = active_processing.behavioral_epochs.Row;
 

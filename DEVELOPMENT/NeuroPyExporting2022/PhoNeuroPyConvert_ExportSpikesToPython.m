@@ -81,6 +81,23 @@ PhoDibaTest_PositionalAnalysis_temp.spike_cells = cellfun(@(cell_idx) [(cell_idx
     num2cell([1:numActiveCells]), ...
     'UniformOutput', false);
 
+
+%% Pho Spikes Cell Info 2022-07-08
+
+PhoDibaTest_PositionalAnalysis_temp.speculated_unit_type = cellstr(active_processing.spikes.speculated_unit_type(plot_outputs.filter_active_units));
+
+% behavioral_epochs = [[0:(height(active_processing.behavioral_epochs)-1)]', table2array(active_processing.behavioral_epochs)];
+
+
+%% Properties are ['shank', 'cluster', 'aclu', 'qclu']
+% id
+PhoDibaTest_PositionalAnalysis_temp.shank = active_processing.spikes.id(plot_outputs.filter_active_units, 1); % shank
+PhoDibaTest_PositionalAnalysis_temp.cluster = active_processing.spikes.id(plot_outputs.filter_active_units, 2); % cluster
+PhoDibaTest_PositionalAnalysis_temp.aclu = PhoDibaTest_PositionalAnalysis_temp.cell_indicies; % (aclu)
+PhoDibaTest_PositionalAnalysis_temp.qclu = active_processing.spikes.quality(plot_outputs.filter_active_units); % quality (qclu)
+PhoDibaTest_PositionalAnalysis_temp.speculated_unit_contamination_level = active_processing.spikes.speculated_unit_contamination_level(plot_outputs.filter_active_units); % speculated_unit_contamination_level
+
+
 % Save out positionalAnalysis data for Python:
 % export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
 export_root_path = 'R:\rMBP Python Repos 2022-07-07\PhoNeuronGillespie2021CodeRepo\PhoMatlabDataScripting\ExportedData';
@@ -91,7 +108,17 @@ fprintf('Saving spikes analysis data to %s...\n', fullfile(active_experiment_exp
 spike_cells_ids = PhoDibaTest_PositionalAnalysis_temp.cell_indicies;
 spike_cells = PhoDibaTest_PositionalAnalysis_temp.spike_cells;
 spike_matrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix;
-save(fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'), 'spike_matrix', 'spike_cells', 'spike_cells_ids')
+
+
+shank = PhoDibaTest_PositionalAnalysis_temp.shank;
+cluster = PhoDibaTest_PositionalAnalysis_temp.cluster;
+aclu = PhoDibaTest_PositionalAnalysis_temp.aclu;
+qclu = PhoDibaTest_PositionalAnalysis_temp.qclu;
+speculated_unit_contamination_level = PhoDibaTest_PositionalAnalysis_temp.speculated_unit_contamination_level;
+speculated_unit_type = PhoDibaTest_PositionalAnalysis_temp.speculated_unit_type;
+
+% save(fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'), 'spike_matrix', 'spike_cells', 'spike_cells_ids')
+save(fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'), 'spike_matrix', 'spike_cells', 'spike_cells_ids', 'shank', 'cluster', 'aclu', 'qclu', 'speculated_unit_contamination_level', 'speculated_unit_type')
 fprintf('done!\n');
 fprintf('PhoDibaConvert_SpikesAnalysis complete!\n');
 
