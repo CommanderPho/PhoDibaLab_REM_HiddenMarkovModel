@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "..\\Matlab-Pho-Helper-Tools"
+		},
+		{
+			"path": "R:\\rMBP Python Repos 2022-07-07"
 		}
 	],
 	"settings": {
@@ -17,6 +20,12 @@
 			"activityBar.background": "#5A0C31",
 			"titleBar.activeBackground": "#7E1144",
 			"titleBar.activeForeground": "#FFFCFD"
+		},
+		"files.exclude": {
+			"**/.qt_for_python": true,
+			"**/*.7z": true,
+			"**/*.asv": true,
+			"**/*.zip": true
 		}
 	}
 }
