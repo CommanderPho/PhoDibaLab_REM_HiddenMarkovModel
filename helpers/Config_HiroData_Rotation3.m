@@ -6,12 +6,11 @@
 % data_config.output_data_prefix = 'Results';
 
 % data_config.root_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets'; 
-data_config.root_parent_path = 'F:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProject\Hiro_Datasets\Results'; %% Windows
+% data_config.root_parent_path = 'F:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProject\Hiro_Datasets\Results'; %% Windows
+data_config.root_parent_path = 'W:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProject\Hiro_Datasets\Results'; %% Windows
 data_config.source_data_prefix = 'src';
 data_config.output_data_prefix = 'Results';
-
 data_config.output.intermediate_file_names = {'PhoIntermediate_Stage0_0.mat', 'PhoIntermediate_Stage0_1.mat'};
-
 
 data_config.source_root_path = fullfile(data_config.root_parent_path, data_config.source_data_prefix);
 data_config.output.root_path = fullfile(data_config.root_parent_path, data_config.output_data_prefix);
@@ -25,17 +24,16 @@ data_config.conversion_factor = (10^6);
 
 
 % Process one of the experiments: 
-processing_config.active_expt.name = 'RoyMaze1';
-processing_config.step_sizes = {0.1, 1.0}; % Step Sizes in seconds 
+processing_config.active_expt.name = 'RoyMaze2';
+% processing_config.step_sizes = {0.1, 1.0}; % Step Sizes in seconds 
+processing_config.step_sizes = {10.0}; % Step Sizes in seconds 
 processing_config.num_step_sizes = length(processing_config.step_sizes);
-processing_config.max_xcorr_lag = 9; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
+processing_config.max_xcorr_lag = 3; % Specified the maximum pairwise cross-correlation lag in seconds, the output ranges from -maxlag to maxlag
 
 %% Results:
 % Add the results file path:
 data_config.output.results_file_name = 'PhoResults.mat';
 data_config.output.results_file_path = fullfile(data_config.output.root_path, data_config.output.results_file_name);
-
-
 
 
 %% Configure Graphics and Plotting:
