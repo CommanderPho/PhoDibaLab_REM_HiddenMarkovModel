@@ -11,6 +11,10 @@
 % History: was based off of "PhoDibaConvert_SpikesToPython.m"
 
 %%%%%%%%% CONFIG
+import_root_path = 'R:\data\RoyMaze1';
+import_file_name = 'PhoResults_Expt1_RoyMaze1.mat';
+
+
 % export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
 export_root_path = 'R:\rMBP Python Repos 2022-07-07\PhoNeuronGillespie2021CodeRepo\PhoMatlabDataScripting\ExportedData';
 %% Filtering Options:
