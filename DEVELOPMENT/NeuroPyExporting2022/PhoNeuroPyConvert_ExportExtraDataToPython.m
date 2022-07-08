@@ -27,11 +27,14 @@ fprintf('Saving extras analysis data to %s...\n', fullfile(active_experiment_exp
 % behavioral_periods.behavioral_epoch = double(active_processing.behavioral_periods_table.behavioral_epoch);
 % behavioral_periods.type = double(active_processing.behavioral_periods_table.type);
 
+% Epoch names from table Row header:
+behavioral_epoch_names = active_processing.behavioral_epochs.Row;
+
 % Numerical table version:
 behavioral_epochs = [[0:(height(active_processing.behavioral_epochs)-1)]', table2array(active_processing.behavioral_epochs)];
 behavioral_periods = [[0:(height(active_processing.behavioral_periods_table)-1)]', double(active_processing.behavioral_periods_table.epoch_start_seconds), double(active_processing.behavioral_periods_table.epoch_end_seconds), double(active_processing.behavioral_periods_table.duration), double(active_processing.behavioral_periods_table.behavioral_epoch), double(active_processing.behavioral_periods_table.type)];
 
-save(fullfile(active_experiment_export_root_path, 'extrasAnalysis.mat'), 'behavioral_epochs', 'behavioral_periods')
+save(fullfile(active_experiment_export_root_path, 'extrasAnalysis.mat'), 'behavioral_epochs', 'behavioral_periods', 'behavioral_epoch_names')
 fprintf('done!\n');
 fprintf('Extras export complete!\n');
 
