@@ -30,7 +30,7 @@ end
 %     fprintf('results_array already exists in workspace. Contains results for %d different bin sizes. Using extant data.\n', length(results_array));
 % end
 %% Begin:
-fprintf('PhoDibaConvert_SpikesAnalysis ready to process!\n');
+fprintf('PhoNeuroPyConvert_ExportSpikesToPython ready to process!\n');
 %% Binning Options:
 active_expt_index = 1;
 if exist('active_experiment_names','var')
@@ -55,11 +55,10 @@ PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins = [floor(P
 
 %% Filtering Options:
 filter_config.filter_included_cell_types = {};
-filter_config.filter_maximum_included_contamination_level = {2};
-%filter_config.filter_maximum_included_contamination_level = {};
-
-filter_config.showOnlyAlwaysStableCells = true;
-% filter_config.showOnlyAlwaysStableCells = false;
+% filter_config.filter_maximum_included_contamination_level = {2};
+filter_config.filter_maximum_included_contamination_level = {};
+% filter_config.showOnlyAlwaysStableCells = true;
+filter_config.showOnlyAlwaysStableCells = false;
 
 %% Get filter info for active units
 [plot_outputs.filter_active_units, plot_outputs.original_unit_index] = fnFilterUnitsWithCriteria(active_processing, filter_config.showOnlyAlwaysStableCells, filter_config.filter_included_cell_types, ...
@@ -83,7 +82,9 @@ PhoDibaTest_PositionalAnalysis_temp.spike_cells = cellfun(@(cell_idx) [(cell_idx
     'UniformOutput', false);
 
 % Save out positionalAnalysis data for Python:
-export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
+% export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
+export_root_path = 'R:\rMBP Python Repos 2022-07-07\PhoNeuronGillespie2021CodeRepo\PhoMatlabDataScripting\ExportedData';
+
 active_experiment_export_root_path = fullfile(export_root_path, active_experiment_name, 'ExportedData');
 mkdir(active_experiment_export_root_path);
 fprintf('Saving spikes analysis data to %s...\n', fullfile(active_experiment_export_root_path, 'spikesAnalysis.mat'));

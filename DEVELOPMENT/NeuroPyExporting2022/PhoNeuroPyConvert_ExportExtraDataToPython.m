@@ -5,7 +5,12 @@ if ~exist('timesteps_array','var')
     load('PhoResults_Expt1_RoyMaze1.mat', 'active_processing')
 end
 
-out_filepath = 'C:\Share\data\RoyMaze1\ExportedData';
+% Save out positionalAnalysis data for Python:
+% export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
+export_root_path = 'R:\rMBP Python Repos 2022-07-07\PhoNeuronGillespie2021CodeRepo\PhoMatlabDataScripting\ExportedData';
+active_experiment_export_root_path = fullfile(export_root_path, active_experiment_name, 'ExportedData');
+mkdir(active_experiment_export_root_path);
+fprintf('Saving extras analysis data to %s...\n', fullfile(active_experiment_export_root_path, 'extrasAnalysis.mat'));
 
 % behavioral_epochs = table2dataset(active_processing.behavioral_epochs);
 % behavioral_periods = table2dataset(active_processing.behavioral_periods_table);
@@ -26,5 +31,7 @@ out_filepath = 'C:\Share\data\RoyMaze1\ExportedData';
 behavioral_epochs = [[0:(height(active_processing.behavioral_epochs)-1)]', table2array(active_processing.behavioral_epochs)];
 behavioral_periods = [[0:(height(active_processing.behavioral_periods_table)-1)]', double(active_processing.behavioral_periods_table.epoch_start_seconds), double(active_processing.behavioral_periods_table.epoch_end_seconds), double(active_processing.behavioral_periods_table.duration), double(active_processing.behavioral_periods_table.behavioral_epoch), double(active_processing.behavioral_periods_table.type)];
 
-save(fullfile(out_filepath, 'extrasAnalysis.mat'), 'behavioral_epochs', 'behavioral_periods')
+save(fullfile(active_experiment_export_root_path, 'extrasAnalysis.mat'), 'behavioral_epochs', 'behavioral_periods')
+fprintf('done!\n');
+fprintf('Extras export complete!\n');
 
