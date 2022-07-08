@@ -44,22 +44,7 @@ temp.curr_timestamps = timesteps_array{current_binning_index};
 temp.curr_processed = active_processing.processed_array{current_binning_index};
 % active_results = results_array{current_binning_index};
 fprintf('Plotting results with bin resolution set to %d.\n', active_binning_resolution);
-% [ones(size(PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_i}')), PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_i}']
-% cellfun(@(cell_i) [ones(size(PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_i}')), PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_i}'], 
-% cellfun(@(cell_arr) [ones(size(cell_arr')), cell_arr'], PhoDibaTest_PositionalAnalysis_temp.active_spikes,'UniformOutput',false)
-% num2cell([1:numAlwaysStableCells]')
-% {1:numAlwaysStableCells}
-% active_processing.spikes % Table
-% Only get the spike data during the track period:
-% active_processing.processed_array{2, 1}.by_epoch.track.spike_data  
-% [out_times out_groups out_spikesmat] = spikes2sorted(active_processing.spikes.time);
-% [spikemat] = bz_SpktToSpkmat(active_processing.spikes, varargin)
-% [firingMaps] = bz_firingMap1D(varargin)
-% [ fields ] = bz_getPlaceFields(varargin)
-% [ fields ] = bz_getPlaceFields1D(varargin)
-% [positionDecodingBayesian] = bz_positionDecodingBayesian(varargin)
-% [Pr, prMax] = placeBayes(Cr, rateMap, binLength)
-% [positionDecodingGLM] = bz_positionDecodingGLM(varargin)
+
 % Binned Spike rates per time:
 [PhoDibaTest_PositionalAnalysis_temp.activeMatrix] = fnUnitDataCells2mat(active_processing.processed_array{current_binning_index}.all.binned_spike_counts);  % 35351x126 double
 PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_seconds = [11512.6074066973, 12000];
@@ -69,8 +54,6 @@ PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins = [floor(P
 
 %% Filtering Options:
 filter_config.filter_included_cell_types = {};
-% filter_config.filter_included_cell_types = {'pyramidal'};
-% filter_config.filter_included_cell_types = {'interneurons'};
 filter_config.filter_maximum_included_contamination_level = {2};
 %filter_config.filter_maximum_included_contamination_level = {};
 
@@ -87,16 +70,6 @@ fprintf('Filter: Including %d of %d total units\n', temp.num_active_units, lengt
 PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, plot_outputs.filter_active_units);
 PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time(plot_outputs.filter_active_units);
 numActiveCells = temp.num_active_units;
-% if processing_config.showOnlyAlwaysStableCells
-%     isAlwaysStable = active_processing.spikes.isAlwaysStable; % 126x1
-%     numAlwaysStableCells = sum(isAlwaysStable, 'all');
-%     PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, isAlwaysStable);
-%     PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time(isAlwaysStable);
-%     numActiveCells = numAlwaysStableCells;
-% else
-%     PhoDibaTest_PositionalAnalysis_temp.active_spikes = active_processing.spikes.time;
-%     numActiveCells = length(active_processing.spikes.isAlwaysStable);
-% end
 PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix'; % should be units x time
 % Extract only the portion specified as the training portion
 PhoDibaTest_PositionalAnalysis_temp.activeMatrix = PhoDibaTest_PositionalAnalysis_temp.activeMatrix(:, PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins(1):PhoDibaTest_PositionalAnalysis_config.training_subset_start_stop_bins(2));
@@ -107,8 +80,7 @@ PhoDibaTest_PositionalAnalysis_temp.cell_indicies = plot_outputs.original_unit_i
 PhoDibaTest_PositionalAnalysis_temp.spike_cells = cellfun(@(cell_idx) [(cell_idx .* ones(size(PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_idx}'))), PhoDibaTest_PositionalAnalysis_temp.active_spikes{cell_idx}'], ...
     num2cell([1:numActiveCells]), ...
     'UniformOutput', false);
-% [includedCellIDs, unitSpikeCells, unitFlatIndicies] = fnFlatSpikesToUnitCells(spikeStruct.t, spikeStruct.unit, true);
-% cellfun(@(x) spikeStruct.ripple(find(x)), unitFlatIndicies, 'UniformOutput', false)
+
 % Save out positionalAnalysis data for Python:
 export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
 active_experiment_export_root_path = fullfile(export_root_path, active_experiment_name, 'ExportedData');
