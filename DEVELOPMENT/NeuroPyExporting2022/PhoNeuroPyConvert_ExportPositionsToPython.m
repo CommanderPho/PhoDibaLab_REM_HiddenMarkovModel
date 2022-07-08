@@ -1,4 +1,5 @@
 % PhoNeuroPyConvert_ExportPositionsToPython.m
+%% DEPRICATION NOTE: This script is depricated as of 2022-07-08 by Pho Hale to be replaced by a comprehensive PhoNeuroPyConvert_ExportAllToPython_MAIN.m script
 % Peform analysis of animal position and state transitions in wake on the track
 
 % Requires the datastructures from "PhoDibaProcess_Stage2.m" to be loaded
@@ -12,7 +13,6 @@ addpath(genpath('../../helpers'));
 addpath(genpath('../../libraries/buzcode/'));
 
 enable_plotting = false;
-
 
 clear temp
 

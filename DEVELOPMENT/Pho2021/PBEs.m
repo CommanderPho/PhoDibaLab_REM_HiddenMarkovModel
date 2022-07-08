@@ -32,7 +32,6 @@ secondaryPBEs(:, 5) = PBErippleIdx;
 
 nPBEs = size(binnedPBEs, 1);
 
-
 secondaryPBEs = [secondaryPBEs zeros(nPBEs, 4)];
 
 for ii= 1:nPBEs

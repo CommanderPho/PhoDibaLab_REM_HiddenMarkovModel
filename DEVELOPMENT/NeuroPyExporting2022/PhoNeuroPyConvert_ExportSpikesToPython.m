@@ -1,4 +1,5 @@
 % PhoNeuroPyConvert_ExportSpikesToPython.m
+%% DEPRICATION NOTE: This script is depricated as of 2022-07-08 by Pho Hale to be replaced by a comprehensive PhoNeuroPyConvert_ExportAllToPython_MAIN.m script
 % PhoNeuroPyConvert_ExportSpikesToPython - Aims to export the .mat-format
 % data to NeuroPy 2022-07-08 Session format.
 % Makes use of active_processing.position_table, active_processing.behavioral_epochs.start_seconds

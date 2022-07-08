@@ -1,4 +1,5 @@
 % PhoDibaConvert_SpikesToPython.m
+%% DEPRICATION NOTE: This script is depricated as of 2022-07-08 by Pho Hale to be replaced by a comprehensive PhoNeuroPyConvert_ExportAllToPython_MAIN.m script
 % PhoDibaConvert_SpikesToPython - One line description of what the script performs
 % Makes use of active_processing.position_table, active_processing.behavioral_epochs.start_seconds
 % 
