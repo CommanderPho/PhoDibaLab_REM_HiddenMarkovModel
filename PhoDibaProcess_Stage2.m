@@ -19,12 +19,21 @@ else
     fprintf('active_processing already exists in workspace. Using extant data.\n');
 end
 
-if ~exist('results_array','var') %TEMP: cache the loaded data to rapidly prototype the script
-    fprintf('loading results from %s...\n', data_config.output.results_file_path);
-    load(data_config.output.results_file_path, 'general_results', 'results_array');
-    fprintf('done. Contains results for %d different bin sizes.\n', length(results_array));
+% if ~exist('results_array','var') %TEMP: cache the loaded data to rapidly prototype the script
+%     fprintf('loading results from %s...\n', data_config.output.results_file_path);
+%     load(data_config.output.results_file_path, 'general_results', 'results_array');
+%     fprintf('done. Contains results for %d different bin sizes.\n', length(results_array));
+% else
+%     fprintf('results_array already exists in workspace. Contains results for %d different bin sizes. Using extant data.\n', length(results_array));
+% end
+
+
+if ~exist('general_results','var') %TEMP: cache the loaded data to rapidly prototype the script
+    fprintf('loading general_results from %s...\n', data_config.output.results_file_path);
+    load(data_config.output.results_file_path, 'general_results');
+    fprintf('done.\n');
 else
-    fprintf('results_array already exists in workspace. Contains results for %d different bin sizes. Using extant data.\n', length(results_array));
+    fprintf('general_results already exists in workspace.\n');
 end
 
 %% Begin:
@@ -105,8 +114,8 @@ end
 % 	
 % end % end for processing_config.step_sizes loop
 
-fprintf('writing out results to %s...\n', data_config.output.results_file_path);
-save(data_config.output.results_file_path, 'results_array', 'general_results');
+fprintf('writing out general_results to %s...\n', data_config.output.results_file_path);
+save(data_config.output.results_file_path, 'general_results');
 fprintf('done.\n');
 % 
 fprintf('PhoDibaProcess_Stage2 complete!\n');

@@ -2,6 +2,9 @@ clc
 addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
 
+
+OPTION_SKIP_STEP_SIZE_DEPENDENT_OUTPUTS = true;
+
 % clear all;
 
 temp.possibleRootPaths = {'W:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProject\Hiro_Datasets', ...
