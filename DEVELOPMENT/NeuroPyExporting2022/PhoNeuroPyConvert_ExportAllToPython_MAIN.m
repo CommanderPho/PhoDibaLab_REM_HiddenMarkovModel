@@ -4,6 +4,11 @@
 % data to NeuroPy 2022-07-08 Session format.
 % Makes use of active_processing.position_table, active_processing.behavioral_epochs.start_seconds
 % 
+% Can use
+% C:\Users\pho\repos\PhoDibaLab_REM_HiddenMarkovModel\PhoDibaProcess_ComputeSingleExperiment.m
+% to load active_processing into memory, and then run this script directly
+% instead of loading anything from disk.
+%
 % Author: Pho Hale
 % PhoHale.com 
 % email: halechr@umich.edu
@@ -11,12 +16,14 @@
 % History: was based off of "PhoDibaConvert_SpikesToPython.m"
 
 %%%%%%%%% CONFIG
-import_root_path = 'R:\data\RoyMaze1';
-import_file_name = 'PhoResults_Expt1_RoyMaze1.mat';
+% import_root_path = 'R:\data\RoyMaze1';
+% import_file_name = 'PhoResults_Expt1_RoyMaze1.mat';
 
 
 % export_root_path = '/Users/pho/repo/Python Projects/PhoNeuronGillespie2021CodeRepo/PhoMatlabDataScripting/ExportedData';
-export_root_path = 'R:\rMBP Python Repos 2022-07-07\PhoNeuronGillespie2021CodeRepo\PhoMatlabDataScripting\ExportedData';
+% export_root_path = 'R:\rMBP Python Repos 2022-07-07\PhoNeuronGillespie2021CodeRepo\PhoMatlabDataScripting\ExportedData';
+export_root_path = 'R:\data\Hiro';
+
 %% Filtering Options:
 filter_config.filter_included_cell_types = {};
 % filter_config.filter_maximum_included_contamination_level = {2};

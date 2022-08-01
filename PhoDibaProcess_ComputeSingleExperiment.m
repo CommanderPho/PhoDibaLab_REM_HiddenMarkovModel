@@ -1,4 +1,5 @@
 clc
+clear all; 
 addpath(genpath('helpers'));
 addpath(genpath('libraries/buzcode/'));
 
@@ -12,9 +13,14 @@ temp.possibleRootPaths = {'W:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProj
 	'/Users/pho/Dropbox/Classes/Spring 2021/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets'};
 
 temp.possibleExperiments = {'RoyMaze1',	'RoyMaze2',	'RoyMaze3',	'TedMaze1',	'TedMaze2',	'TedMaze3',	'KevinMaze1'};
+% active_expt_name = 'RoyMaze1';
+% active_expt_name = 'RoyMaze2';
+% active_expt_name = 'RoyMaze3';
+% active_expt_name = 'TedMaze1';
+% active_expt_name = 'TedMaze2';
+active_expt_name = 'TedMaze3';
+% active_expt_name = 'KevinMaze1';
 
-% active_expt_name = 'TedMaze3';
-active_expt_name = 'TedMaze2';
 % % auxillary pink rMBP:
 % active_root_path = temp.possibleRootPaths{2};
 % main rMBP:
@@ -31,3 +37,6 @@ PhoDibaProcess_Stage1 % general_results, results_array
 PhoDibaProcess_Stage2 % general_results
 
 fprintf('fnRunPipeline completed for active_expt_name: %s\n', active_expt_name);
+
+PhoNeuroPyConvert_ExportAllToPython_MAIN
+
