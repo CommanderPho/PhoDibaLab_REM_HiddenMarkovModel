@@ -1,8 +1,8 @@
 % Requires the datastructures from "PhoDibaPrepare_Stage0.m" to be loaded
 % Stage 1 of the processing pipeline
 
-addpath(genpath('helpers'));
-addpath(genpath('libraries/buzcode/'));
+% addpath(genpath('helpers'));
+% addpath(genpath('libraries/buzcode/'));
 
 clear temp
 

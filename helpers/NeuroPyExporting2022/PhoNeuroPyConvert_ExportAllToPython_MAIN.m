@@ -15,6 +15,10 @@
 % Created: 08-07-2022 ; Last revision: 08-07-2022 
 % History: was based off of "PhoDibaConvert_SpikesToPython.m"
 
+addpath(genpath('helpers'));
+addpath(genpath('libraries/buzcode/'));
+
+
 %%%%%%%%% CONFIG
 % import_root_path = 'R:\data\RoyMaze1';
 % import_file_name = 'PhoResults_Expt1_RoyMaze1.mat';

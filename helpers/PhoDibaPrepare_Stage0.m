@@ -1,8 +1,8 @@
 % PhoDibaPrepare_Stage0
 % Stage 0 of the processing pipeline.
 
-addpath(genpath('helpers'));
-addpath(genpath('libraries/buzcode/'));
+% addpath(genpath('helpers'));
+% addpath(genpath('libraries/buzcode/'));
 % clear all;
 
 if ~exist('data_config','var')
