@@ -10,7 +10,7 @@ addpath(genpath('../libraries/buzcode/'));
 % User must specify the correct experiment name and its corresponding index (as they're used to build the filename to load):
 % multi_experiment_config.active_experiment_id: the index of the active experiment to load
 multi_experiment_config.active_experiment_id = 1;
-multi_experiment_config.active_experiment_name = 'RoyMaze1';
+multi_experiment_config.active_experiment_name = 'RoyMaze2';
 
 if ~exist('data_config','var')
     Config;
@@ -21,7 +21,8 @@ end
 if ~exist('active_processing','var') 
     %% Set the path to the combined single experiment file:
     % data_config.output.all_expts_combined_parent_path = '/Users/pho/Dropbox/Classes/Spring 2020/PIBS 600 - Rotations/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets';
-    data_config.output.all_expts_combined_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results';
+    % data_config.output.all_expts_combined_parent_path = '/Volumes/iNeo/Data/Rotation_3_Kamran Diba Lab/DataProcessingProject/Hiro_Datasets/Results';
+    data_config.output.all_expts_combined_parent_path = 'F:\Data\Rotation_3_Kamran Diba Lab\DataProcessingProject\Hiro_Datasets\Results';
     data_config.output.active_expt_combined_results_file_name = sprintf('PhoResults_Expt%d_%s.mat', multi_experiment_config.active_experiment_id, multi_experiment_config.active_experiment_name);
     data_config.output.active_expt_combined_results_file_path = fullfile(data_config.output.all_expts_combined_parent_path, data_config.output.active_expt_combined_results_file_name);
 

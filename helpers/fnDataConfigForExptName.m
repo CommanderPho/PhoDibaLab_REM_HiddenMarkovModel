@@ -23,8 +23,6 @@ function [data_config, processing_config, plotting_options] = fnDataConfigForExp
 
     processing_config.active_expt.identifier_string = processing_config.active_expt.name; % for now the identifier string is just the name
     
-    
-    
     data_config.root_parent_path = active_root_path;
     data_config.source_data_prefix = 'src';
     data_config.output_data_prefix = 'Results';
@@ -57,6 +55,7 @@ function [data_config, processing_config, plotting_options] = fnDataConfigForExp
     %% Configure Graphics and Plotting:
     processing_config.show_graphics = false;
     % Options for tightening up the subplots:
+    % plotting_options.should_use_custom_subplots = true;
     plotting_options.should_use_custom_subplots = true;
 
     if plotting_options.should_use_custom_subplots

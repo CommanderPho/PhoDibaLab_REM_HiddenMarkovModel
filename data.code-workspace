@@ -1,0 +1,31 @@
+{
+	"folders": [
+		{
+			"path": "R:\\data"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\Matlab-Pho-Helper-Tools"
+		},
+		{
+			"path": "R:\\rMBP Python Repos 2022-07-07"
+		}
+	],
+	"settings": {
+		"workbench.colorCustomizations": {
+			"editor.lineHighlightBackground": "#1073cf2d",
+			"editor.lineHighlightBorder": "#9fced11f",
+			"activityBar.background": "#5A0C31",
+			"titleBar.activeBackground": "#7E1144",
+			"titleBar.activeForeground": "#FFFCFD"
+		},
+		"files.exclude": {
+			"**/.qt_for_python": true,
+			"**/*.7z": true,
+			"**/*.asv": true,
+			"**/*.zip": true
+		}
+	}
+}

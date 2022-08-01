@@ -87,8 +87,6 @@ end
 active_processing.spikes.behavioral_states = temp.spikes_behavioral_states;
 active_processing.spikes.behavioral_epoch = temp.spikes_behavioral_epoch;
 
-
-
 fprintf('writing out to %s...\n', data_config.output.intermediate_file_paths{1});
 save(data_config.output.intermediate_file_paths{1}, 'active_processing', 'data_config', 'processing_config', 'num_of_electrodes', 'source_data');
 fprintf('done.\n');
