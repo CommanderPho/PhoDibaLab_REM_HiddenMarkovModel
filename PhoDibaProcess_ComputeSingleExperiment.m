@@ -18,8 +18,8 @@ temp.possibleExperiments = {'RoyMaze1',	'RoyMaze2',	'RoyMaze3',	'TedMaze1',	'Ted
 % active_expt_name = 'RoyMaze3';
 % active_expt_name = 'TedMaze1';
 % active_expt_name = 'TedMaze2';
-active_expt_name = 'TedMaze3';
-% active_expt_name = 'KevinMaze1';
+% active_expt_name = 'TedMaze3';
+active_expt_name = 'KevinMaze1';
 
 % % auxillary pink rMBP:
 % active_root_path = temp.possibleRootPaths{2};
