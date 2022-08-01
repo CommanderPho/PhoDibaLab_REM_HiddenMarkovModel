@@ -34,8 +34,9 @@ filter_config.showOnlyAlwaysStableCells = false;
 
 % R:\data\RoyMaze1
 
-addpath(genpath('../../helpers'));
-addpath(genpath('../../libraries/buzcode/'));
+% addpath(genpath('../../helpers'));
+% addpath(genpath('../../libraries/buzcode/'));
+
 clear temp
 if ~exist('data_config','var')
     Config;
@@ -137,8 +138,8 @@ positionalAnalysis.track_position.xyv = [positionalAnalysis.track_position.x, po
 % Compute the new bounds restricted to the valid (track) positions:
 [positionalAnalysis.plotting.bounds.x(1), positionalAnalysis.plotting.bounds.x(2)] = bounds(positionalAnalysis.track_position.x);
 [positionalAnalysis.plotting.bounds.y(1), positionalAnalysis.plotting.bounds.y(2)] = bounds(positionalAnalysis.track_position.y);
-fprintf('Saving positional analysis data to %s...\n', fullfile(active_experiment_export_root_path, 'positionAnalysis.mat'),'-v7.3');
-save(fullfile(active_experiment_export_root_path, 'positionAnalysis.mat'), 'positionalAnalysis');
+fprintf('Saving positional analysis data to %s...\n', fullfile(active_experiment_export_root_path, 'positionAnalysis.mat'));
+save(fullfile(active_experiment_export_root_path, 'positionAnalysis.mat'), 'positionalAnalysis','-v7.3');
 fprintf('done!\n');
 fprintf('Positions export complete!\n');
 
